@@ -12,8 +12,10 @@ export async function POST(req: NextRequest) {
         const result = SubscribeSchema.safeParse(body);
 
         if (!result.success) {
+            const firstError = result.error.issues[0];
+            const errorMessage = firstError?.message || 'Invalid input';
             return NextResponse.json(
-                { error: result.error.errors[0].message },
+                { error: errorMessage },
                 { status: 400 }
             );
         }
