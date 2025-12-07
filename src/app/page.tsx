@@ -27,8 +27,8 @@ export default async function Home() {
   return (
     <div className="max-w-3xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">最新 AI 趨勢</h1>
-        <p className="text-gray-600">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">最新 AI 趨勢</h1>
+        <p className="text-gray-600 dark:text-gray-400">
           每日精選全球人工智慧新聞摘要
         </p>
       </div>
