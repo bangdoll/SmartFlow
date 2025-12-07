@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Global AI Trends Automation Website (全球 AI 趨勢自動化網站)
 
-## Getting Started
+這是一個全自動化的 AI 新聞聚合與電子報發送系統。每日自動從 TechCrunch 等來源爬取 AI 新聞，使用 OpenAI 生成中英文摘要，並透過 Resend 發送電子報。
 
-First, run the development server:
+## 功能特色
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **自動爬蟲**: 每日定時抓取最新 AI 趨勢。
+- **AI 摘要**: 使用 GPT-4o 生成精簡的中英文摘要。
+- **電子報系統**: 每日早上 8 點 (台北時間) 自動發送摘要給訂閱者。
+- **現代化 UI**: 響應式設計，支援歷史摘要瀏覽。
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 技術堆疊
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Database**: Supabase
+- **AI**: OpenAI API (Vercel AI SDK)
+- **Email**: Resend
+- **Deployment**: Vercel (Cron Jobs)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 本地開發
 
-## Learn More
+1. **複製專案**
+   ```bash
+   git clone <repository-url>
+   cd ai-trends-daily
+   npm install
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+2. **設定環境變數**
+   複製 `.env.example` 為 `.env.local` 並填入 API Keys：
+   ```bash
+   cp .env.example .env.local
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. **設定資料庫**
+   在 Supabase 建立專案，並至 SQL Editor 執行 `supabase/schema.sql` 中的內容以建立資料表。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4. **啟動開發伺服器**
+   ```bash
+   npm run dev
+   ```
 
-## Deploy on Vercel
+## 部署至 Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. 將專案推送到 GitHub。
+2. 在 Vercel 匯入專案。
+3. 在 Vercel Project Settings > Environment Variables 中設定所有環境變數。
+4. 部署後，Cron Jobs 會自動設定 (需確保 Vercel 專案有啟用 Cron 功能)。
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## API Endpoints (Cron Jobs)
+
+- `GET /api/cron/scrape`: 執行爬蟲與摘要 (需 `Authorization: Bearer <CRON_SECRET>`)
+- `GET /api/cron/newsletter`: 發送電子報 (需 `Authorization: Bearer <CRON_SECRET>`)
+
+## 授權
+
+MIT
