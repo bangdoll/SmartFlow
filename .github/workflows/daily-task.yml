@@ -1,0 +1,27 @@
+name: Daily AI Trends
+
+on:
+  schedule:
+    # 每天 UTC 00:00 (台灣時間 08:00) 執行
+    - cron: '0 0 * * *'
+  workflow_dispatch: # 允許手動觸發
+
+jobs:
+  cron:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Daily Cron API
+        run: |
+          # 請確認已在 GitHub Repository Settings -> Secrets 中設定 PRODUCTION_URL 與 CRON_SECRET
+          # PRODUCTION_URL 例如: https://smart-flow.vercel.app
+          # 如果沒有設定 PRODUCTION_URL，這裡會報錯
+          
+          if [ -z "${{ secrets.PRODUCTION_URL }}" ]; then
+            echo "Error: PRODUCTION_URL secret is not set."
+            exit 1
+          fi
+
+          echo "Triggering Daily Job at ${{ secrets.PRODUCTION_URL }}/api/cron/daily"
+          
+          curl -v -X GET "${{ secrets.PRODUCTION_URL }}/api/cron/daily" \
+          -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
