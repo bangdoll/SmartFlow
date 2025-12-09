@@ -15,7 +15,7 @@ export function NewsCard({ news }: NewsCardProps) {
     });
 
     return (
-        <article className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-6 hover:shadow-md transition-all">
+        <article className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm border border-white/50 dark:border-gray-800/50 rounded-xl p-6 hover:shadow-lg hover:scale-[1.01] transition-all duration-300 group shadow-sm">
             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-2">
                 <span className="font-semibold text-blue-600 dark:text-blue-400">{news.source}</span>
                 <span>•</span>
