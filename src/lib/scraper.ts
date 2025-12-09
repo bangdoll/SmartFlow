@@ -61,8 +61,116 @@ export async function scrapeTechCrunch(): Promise<ScrapedNews[]> {
     }
 }
 
+// The Verge AI Category URL
+const VERGE_AI_URL = 'https://www.theverge.com/ai';
+// Wired AI Category URL
+const WIRED_AI_URL = 'https://www.wired.com/category/artificial-intelligence/';
+
+export async function scrapeTheVerge(): Promise<ScrapedNews[]> {
+    try {
+        console.log(`Fetching ${VERGE_AI_URL}...`);
+        const response = await fetch(VERGE_AI_URL, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            },
+            next: { revalidate: 3600 }
+        });
+
+        if (!response.ok) throw new Error(`Failed to fetch The Verge: ${response.statusText}`);
+
+        const html = await response.text();
+        const $ = cheerio.load(html);
+        const newsItems: ScrapedNews[] = [];
+
+        // The Verge selector strategy (based on standard Chorus structure)
+        $('h2 a').each((_, element) => {
+            const link = $(element);
+            const title = link.text().trim();
+            const href = link.attr('href');
+
+            if (title && href) {
+                // Determine absolute URL
+                const url = href.startsWith('http') ? href : `https://www.theverge.com${href}`;
+
+                // Try to find datetime
+                // The Verge usually puts it in a time tag or next to author
+                const timeStr = link.closest('div').find('time').attr('datetime');
+                const publishedAt = timeStr ? new Date(timeStr).toISOString() : new Date().toISOString();
+
+                newsItems.push({
+                    title,
+                    original_url: url,
+                    source: 'The Verge',
+                    published_at: publishedAt,
+                    content: title
+                });
+            }
+        });
+
+        console.log(`Found ${newsItems.length} items from The Verge.`);
+        return newsItems;
+
+    } catch (error) {
+        console.error('Error scraping The Verge:', error);
+        return [];
+    }
+}
+
+export async function scrapeWired(): Promise<ScrapedNews[]> {
+    try {
+        console.log(`Fetching ${WIRED_AI_URL}...`);
+        const response = await fetch(WIRED_AI_URL, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            },
+            next: { revalidate: 3600 }
+        });
+
+        if (!response.ok) throw new Error(`Failed to fetch Wired: ${response.statusText}`);
+
+        const html = await response.text();
+        const $ = cheerio.load(html);
+        const newsItems: ScrapedNews[] = [];
+
+        // Wired selector strategy
+        // Usually in 'summary-item__content'
+        $('.summary-item__content').each((_, element) => {
+            const titleEl = $(element).find('h3, h2');
+            const linkEl = $(element).find('a.summary-item__hed-link');
+
+            const title = titleEl.text().trim();
+            const href = linkEl.attr('href');
+
+            if (title && href) {
+                const url = href.startsWith('http') ? href : `https://www.wired.com${href}`;
+                // Wired usually uses specific formatting for time, simplified here to current time if missing
+                const publishedAt = new Date().toISOString();
+
+                newsItems.push({
+                    title,
+                    original_url: url,
+                    source: 'Wired',
+                    published_at: publishedAt,
+                    content: title
+                });
+            }
+        });
+
+        console.log(`Found ${newsItems.length} items from Wired.`);
+        return newsItems;
+
+    } catch (error) {
+        console.error('Error scraping Wired:', error);
+        return [];
+    }
+}
+
 export async function scrapeAllSources(): Promise<ScrapedNews[]> {
-    // 目前僅實作 TechCrunch，未來可加入其他來源
-    const techCrunchNews = await scrapeTechCrunch();
-    return [...techCrunchNews];
+    const [techCrunch, verge, wired] = await Promise.all([
+        scrapeTechCrunch(),
+        scrapeTheVerge(),
+        scrapeWired()
+    ]);
+
+    return [...techCrunch, ...verge, ...wired];
 }
