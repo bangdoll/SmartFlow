@@ -80,6 +80,7 @@ export async function sendDailyNewsletter() {
           <p>這是自動發送的每日摘要。</p>
           <p>若不想再收到此信件，請回覆告知。</p>
           <p style="margin-top: 16px; font-weight: bold; color: #333;">蔡正信數位教練</p>
+          <p style="color: #666;">漫遊數位 <a href="https://rd.coach" style="color: #0066cc;">https://rd.coach</a></p>
         </div>
       </body>
       </html>

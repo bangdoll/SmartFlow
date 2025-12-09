@@ -60,6 +60,7 @@ export async function GET(req: NextRequest) {
             <div style="margin-top: 48px; font-size: 12px; color: #999; text-align: center; border-top: 1px solid #eee; padding-top: 24px;">
               <p>這是自動發送的每日摘要。</p>
               <p style="margin-top: 16px; font-weight: bold; color: #333;">蔡正信數位教練</p>
+              <p style="color: #666;">漫遊數位 <a href="https://rd.coach" style="color: #0066cc;">https://rd.coach</a></p>
             </div>
           </body>
           </html>
