@@ -1,12 +1,17 @@
+'use client';
+
 import { NewsItem } from '@/types';
 import { ExternalLink, Calendar, Tag } from 'lucide-react';
 import Link from 'next/link';
+import { useTagFilter } from './tag-filter-context';
 
 interface NewsCardProps {
     news: NewsItem;
 }
 
 export function NewsCard({ news }: NewsCardProps) {
+    const { setSelectedTag } = useTagFilter();
+
     const date = new Date(news.published_at).toLocaleDateString('zh-TW', {
         month: 'long',
         day: 'numeric',
@@ -41,13 +46,18 @@ export function NewsCard({ news }: NewsCardProps) {
             {news.tags && news.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-4">
                     {news.tags.map((tag) => (
-                        <Link key={tag} href={`/?tag=${encodeURIComponent(tag)}`} className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                        <button
+                            key={tag}
+                            onClick={() => setSelectedTag(tag)}
+                            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
+                        >
                             <Tag className="w-3 h-3" />
                             {tag}
-                        </Link>
+                        </button>
                     ))}
                 </div>
             )}
         </article>
     );
 }
+

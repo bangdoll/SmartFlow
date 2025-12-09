@@ -12,7 +12,7 @@ export function Header() {
                             src="/logo.png"
                             alt="Smart Flow Logo"
                             fill
-                            className="object-contain"
+                            className="object-contain mix-blend-multiply dark:mix-blend-screen dark:invert"
                             priority
                         />
                     </div>
