@@ -1,14 +1,22 @@
+import Image from 'next/image';
 import Link from 'next/link';
-import { Newspaper } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 
 export function Header() {
     return (
         <header className="border-b border-gray-200/50 dark:border-gray-800/50 bg-white/70 dark:bg-gray-950/70 backdrop-blur-md sticky top-0 z-50 transition-colors supports-[backdrop-filter]:bg-white/50 dark:supports-[backdrop-filter]:bg-gray-950/50">
             <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-                <Link href="/" className="flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-white">
-                    <Newspaper className="w-6 h-6" />
-                    <span>智流 Smart Flow</span>
+                <Link href="/" className="flex items-center gap-3 text-xl font-bold text-gray-900 dark:text-white group">
+                    <div className="relative w-8 h-8 transition-transform group-hover:scale-110 duration-300">
+                        <Image
+                            src="/logo.png"
+                            alt="Smart Flow Logo"
+                            fill
+                            className="object-contain"
+                            priority
+                        />
+                    </div>
+                    <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-emerald-500 bg-clip-text text-transparent">智流 Smart Flow</span>
                 </Link>
 
                 <nav className="flex items-center gap-6">
