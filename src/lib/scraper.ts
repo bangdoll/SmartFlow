@@ -165,12 +165,93 @@ export async function scrapeWired(): Promise<ScrapedNews[]> {
     }
 }
 
+// Threads AI Tags - Note: Threads is a JS-rendered SPA, this may have limited success
+const THREADS_AI_TAGS = ['AI', 'ChatGPT', 'OpenAI', 'GenerativeAI'];
+
+export async function scrapeThreads(): Promise<ScrapedNews[]> {
+    const newsItems: ScrapedNews[] = [];
+
+    // Threads URL format for tags: https://www.threads.net/tag/{tag}
+    // Note: This is experimental - Threads may block or require JS rendering
+    for (const tag of THREADS_AI_TAGS) {
+        try {
+            const url = `https://www.threads.net/tag/${tag}`;
+            console.log(`Fetching Threads tag: #${tag}...`);
+
+            const response = await fetch(url, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                    'Accept-Language': 'en-US,en;q=0.5',
+                },
+                next: { revalidate: 3600 }
+            });
+
+            if (!response.ok) {
+                console.log(`Threads tag #${tag} returned ${response.status}, skipping...`);
+                continue;
+            }
+
+            const html = await response.text();
+            const $ = cheerio.load(html);
+
+            // Threads embeds data in JSON within script tags
+            // Try to extract from __NEXT_DATA__ or similar
+            $('script[type="application/json"]').each((_, element) => {
+                try {
+                    const jsonStr = $(element).html();
+                    if (jsonStr && jsonStr.includes('thread')) {
+                        // Parse and extract thread data if available
+                        const data = JSON.parse(jsonStr);
+                        // This structure varies, so we do a best-effort extraction
+                        console.log(`Found JSON data for Threads #${tag}`);
+                    }
+                } catch {
+                    // JSON parsing failed, skip
+                }
+            });
+
+            // Alternative: Look for any visible text content
+            // Threads renders most content client-side, so this may be empty
+            $('div[data-pressable-container] span').each((_, element) => {
+                const text = $(element).text().trim();
+                if (text && text.length > 20 && text.length < 500) {
+                    // This might capture some thread content
+                    newsItems.push({
+                        title: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
+                        original_url: `https://www.threads.net/tag/${tag}`,
+                        source: 'Threads',
+                        published_at: new Date().toISOString(),
+                        content: text
+                    });
+                }
+            });
+
+        } catch (error) {
+            console.error(`Error scraping Threads tag #${tag}:`, error);
+        }
+    }
+
+    // Deduplicate by title
+    const seen = new Set<string>();
+    const deduped = newsItems.filter(item => {
+        if (seen.has(item.title)) return false;
+        seen.add(item.title);
+        return true;
+    });
+
+    console.log(`Found ${deduped.length} items from Threads (experimental).`);
+    return deduped.slice(0, 10); // Limit to 10 items
+}
+
 export async function scrapeAllSources(): Promise<ScrapedNews[]> {
-    const [techCrunch, verge, wired] = await Promise.all([
+    const [techCrunch, verge, wired, threads] = await Promise.all([
         scrapeTechCrunch(),
         scrapeTheVerge(),
-        scrapeWired()
+        scrapeWired(),
+        scrapeThreads()
     ]);
 
-    return [...techCrunch, ...verge, ...wired];
+    return [...techCrunch, ...verge, ...wired, ...threads];
 }
+
