@@ -244,14 +244,174 @@ export async function scrapeThreads(): Promise<ScrapedNews[]> {
     return deduped.slice(0, 10); // Limit to 10 items
 }
 
+// Hacker News - Using official Firebase API
+// We search for AI-related stories from the front page and recent posts
+export async function scrapeHackerNews(): Promise<ScrapedNews[]> {
+    try {
+        console.log('Fetching Hacker News top stories...');
+
+        // Get top story IDs
+        const topStoriesRes = await fetch('https://hacker-news.firebaseio.com/v0/topstories.json', {
+            next: { revalidate: 3600 }
+        });
+
+        if (!topStoriesRes.ok) throw new Error('Failed to fetch HN top stories');
+
+        const storyIds: number[] = await topStoriesRes.json();
+        const newsItems: ScrapedNews[] = [];
+
+        // AI-related keywords to filter
+        const aiKeywords = ['ai', 'artificial intelligence', 'machine learning', 'ml', 'llm', 'gpt', 'openai', 'claude', 'anthropic', 'gemini', 'chatgpt', 'neural', 'deep learning'];
+
+        // Fetch first 50 stories and filter for AI content
+        const storiesToCheck = storyIds.slice(0, 50);
+
+        for (const id of storiesToCheck) {
+            try {
+                const storyRes = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`);
+                if (!storyRes.ok) continue;
+
+                const story = await storyRes.json();
+
+                if (story && story.title && story.url) {
+                    const titleLower = story.title.toLowerCase();
+                    const isAI = aiKeywords.some(kw => titleLower.includes(kw));
+
+                    if (isAI) {
+                        newsItems.push({
+                            title: story.title,
+                            original_url: story.url,
+                            source: 'Hacker News',
+                            published_at: new Date(story.time * 1000).toISOString(),
+                            content: story.title
+                        });
+                    }
+                }
+
+                // Limit to 10 AI stories
+                if (newsItems.length >= 10) break;
+
+            } catch {
+                continue;
+            }
+        }
+
+        console.log(`Found ${newsItems.length} AI items from Hacker News.`);
+        return newsItems;
+
+    } catch (error) {
+        console.error('Error scraping Hacker News:', error);
+        return [];
+    }
+}
+
+// Reddit r/artificial - Using JSON API
+export async function scrapeRedditArtificial(): Promise<ScrapedNews[]> {
+    try {
+        console.log('Fetching Reddit r/artificial...');
+
+        const response = await fetch('https://www.reddit.com/r/artificial/hot.json?limit=20', {
+            headers: {
+                'User-Agent': 'SmartFlow-AI-News-Bot/1.0',
+            },
+            next: { revalidate: 3600 }
+        });
+
+        if (!response.ok) throw new Error(`Reddit returned ${response.status}`);
+
+        const data = await response.json();
+        const newsItems: ScrapedNews[] = [];
+
+        if (data.data && data.data.children) {
+            for (const post of data.data.children) {
+                const item = post.data;
+
+                // Skip stickied posts and self-posts without content
+                if (item.stickied) continue;
+
+                const url = item.url_overridden_by_dest || `https://www.reddit.com${item.permalink}`;
+
+                newsItems.push({
+                    title: item.title,
+                    original_url: url,
+                    source: 'Reddit r/artificial',
+                    published_at: new Date(item.created_utc * 1000).toISOString(),
+                    content: item.selftext || item.title
+                });
+            }
+        }
+
+        console.log(`Found ${newsItems.length} items from Reddit r/artificial.`);
+        return newsItems.slice(0, 15);
+
+    } catch (error) {
+        console.error('Error scraping Reddit:', error);
+        return [];
+    }
+}
+
+// Ars Technica AI Category
+const ARS_TECHNICA_AI_URL = 'https://arstechnica.com/ai/';
+
+export async function scrapeArsTechnica(): Promise<ScrapedNews[]> {
+    try {
+        console.log(`Fetching ${ARS_TECHNICA_AI_URL}...`);
+
+        const response = await fetch(ARS_TECHNICA_AI_URL, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            },
+            next: { revalidate: 3600 }
+        });
+
+        if (!response.ok) throw new Error(`Ars Technica returned ${response.status}`);
+
+        const html = await response.text();
+        const $ = cheerio.load(html);
+        const newsItems: ScrapedNews[] = [];
+
+        // Ars Technica article structure
+        $('article').each((_, element) => {
+            const titleEl = $(element).find('h2 a, h3 a');
+            const title = titleEl.text().trim();
+            const href = titleEl.attr('href');
+
+            // Get time if available
+            const timeEl = $(element).find('time');
+            const timeStr = timeEl.attr('datetime');
+
+            if (title && href) {
+                const url = href.startsWith('http') ? href : `https://arstechnica.com${href}`;
+
+                newsItems.push({
+                    title,
+                    original_url: url,
+                    source: 'Ars Technica',
+                    published_at: timeStr ? new Date(timeStr).toISOString() : new Date().toISOString(),
+                    content: title
+                });
+            }
+        });
+
+        console.log(`Found ${newsItems.length} items from Ars Technica.`);
+        return newsItems.slice(0, 15);
+
+    } catch (error) {
+        console.error('Error scraping Ars Technica:', error);
+        return [];
+    }
+}
+
 export async function scrapeAllSources(): Promise<ScrapedNews[]> {
-    const [techCrunch, verge, wired, threads] = await Promise.all([
+    const [techCrunch, verge, wired, threads, hackerNews, reddit, arsTechnica] = await Promise.all([
         scrapeTechCrunch(),
         scrapeTheVerge(),
         scrapeWired(),
-        scrapeThreads()
+        scrapeThreads(),
+        scrapeHackerNews(),
+        scrapeRedditArtificial(),
+        scrapeArsTechnica()
     ]);
 
-    return [...techCrunch, ...verge, ...wired, ...threads];
+    return [...techCrunch, ...verge, ...wired, ...threads, ...hackerNews, ...reddit, ...arsTechnica];
 }
-
