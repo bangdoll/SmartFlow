@@ -10,6 +10,9 @@ export function Footer() {
                     <br />
                     Powered by Next.js, Supabase, and OpenAI.
                 </p>
+                <p className="text-sm mt-4 text-gray-400 dark:text-gray-500">
+                    建置者：蔡正信-數位教練 | 漫遊數位 <a href="https://rd.coach" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">https://rd.coach</a>
+                </p>
             </div>
         </footer>
     );
