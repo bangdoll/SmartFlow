@@ -7,12 +7,12 @@ export function Header() {
         <header className="border-b border-gray-200/50 dark:border-gray-800/50 bg-white/70 dark:bg-gray-950/70 backdrop-blur-md sticky top-0 z-50 transition-colors supports-[backdrop-filter]:bg-white/50 dark:supports-[backdrop-filter]:bg-gray-950/50">
             <div className="container mx-auto px-4 h-16 flex items-center justify-between">
                 <Link href="/" className="flex items-center gap-3 text-xl font-bold text-gray-900 dark:text-white group">
-                    <div className="relative w-10 h-10 transition-transform group-hover:scale-105 duration-300 rounded-xl overflow-hidden shadow-sm ring-1 ring-gray-900/5 dark:ring-white/10 flex items-center justify-center">
+                    <div className="relative w-10 h-10 transition-transform group-hover:scale-105 duration-300 flex items-center justify-center">
                         <Image
                             src="/logo.png"
                             alt="Smart Flow Logo"
                             fill
-                            className="object-cover"
+                            className="object-contain"
                             priority
                         />
                     </div>
