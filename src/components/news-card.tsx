@@ -41,10 +41,10 @@ export function NewsCard({ news }: NewsCardProps) {
             {news.tags && news.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-4">
                     {news.tags.map((tag) => (
-                        <span key={tag} className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200">
+                        <Link key={tag} href={`/?tag=${encodeURIComponent(tag)}`} className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                             <Tag className="w-3 h-3" />
                             {tag}
-                        </span>
+                        </Link>
                     ))}
                 </div>
             )}
