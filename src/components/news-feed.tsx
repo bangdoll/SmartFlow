@@ -1,16 +1,16 @@
 'use client';
 
 import { NewsItem } from '@/types';
-import { NewsCard } from './news-card';
-import { useTagFilter } from './tag-filter-context';
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
+import { ExternalLink, Calendar, Tag, X } from 'lucide-react';
+import Link from 'next/link';
 
 interface NewsFeedProps {
     items: NewsItem[];
 }
 
 export function NewsFeed({ items }: NewsFeedProps) {
-    const { selectedTag, setSelectedTag } = useTagFilter();
+    const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
     const filteredItems = useMemo(() => {
         if (!selectedTag) return items;
@@ -20,35 +20,109 @@ export function NewsFeed({ items }: NewsFeedProps) {
         );
     }, [items, selectedTag]);
 
+    const handleTagClick = (tag: string) => {
+        console.log('Tag clicked:', tag); // Debug log
+        setSelectedTag(tag);
+    };
+
+    const clearFilter = () => {
+        console.log('Filter cleared'); // Debug log
+        setSelectedTag(null);
+    };
+
     return (
         <div className="space-y-6">
             {/* 篩選狀態顯示區 */}
             {selectedTag && (
-                <div className="mb-6 p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/30 backdrop-blur-sm">
+                <div className="p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/30 backdrop-blur-sm animate-in fade-in duration-300">
                     <div className="flex items-center justify-between">
                         <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                            Tag: <span className="text-blue-600 dark:text-blue-400">#{selectedTag}</span>
+                            篩選: <span className="text-blue-600 dark:text-blue-400">#{selectedTag}</span>
                         </h2>
                         <button
-                            onClick={() => setSelectedTag(null)}
-                            className="text-sm px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-200 dark:hover:border-blue-800 transition-colors shadow-sm cursor-pointer"
+                            type="button"
+                            onClick={clearFilter}
+                            className="flex items-center gap-1 text-sm px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full text-gray-600 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400 hover:border-red-200 dark:hover:border-red-800 transition-colors shadow-sm"
                         >
-                            清除篩選 ✕
+                            <X className="w-4 h-4" />
+                            清除
                         </button>
                     </div>
                     <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm">
-                        顯示關於 "{selectedTag}" 的精選新聞 ({filteredItems.length} 則)
+                        找到 {filteredItems.length} 則相關新聞
                     </p>
                 </div>
             )}
 
+            {/* 新聞列表 */}
             {filteredItems.length > 0 ? (
-                filteredItems.map((item) => (
-                    <NewsCard key={item.id || item.original_url} news={item} />
-                ))
+                filteredItems.map((item) => {
+                    const date = new Date(item.published_at).toLocaleDateString('zh-TW', {
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                    });
+
+                    return (
+                        <article
+                            key={item.id || item.original_url}
+                            className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm border border-white/50 dark:border-gray-800/50 rounded-xl p-6 hover:shadow-lg hover:scale-[1.01] transition-all duration-300 shadow-sm"
+                        >
+                            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-2">
+                                <span className="font-semibold text-blue-600 dark:text-blue-400">{item.source}</span>
+                                <span>•</span>
+                                <span className="flex items-center gap-1">
+                                    <Calendar className="w-3 h-3" />
+                                    {date}
+                                </span>
+                            </div>
+
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3 leading-tight">
+                                <Link
+                                    href={item.original_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center gap-2"
+                                >
+                                    {item.title}
+                                    <ExternalLink className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                </Link>
+                            </h2>
+
+                            {item.summary_zh && (
+                                <p className="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
+                                    {item.summary_zh}
+                                </p>
+                            )}
+
+                            {item.tags && item.tags.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mt-4">
+                                    {item.tags.map((tag) => (
+                                        <button
+                                            key={tag}
+                                            type="button"
+                                            onClick={() => handleTagClick(tag)}
+                                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer ${selectedTag === tag
+                                                    ? 'bg-blue-500 text-white shadow-md scale-105'
+                                                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:text-blue-600 dark:hover:text-blue-400'
+                                                }`}
+                                        >
+                                            <Tag className="w-3 h-3" />
+                                            {tag}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </article>
+                    );
+                })
             ) : (
                 <div className="text-center py-12 text-gray-500 bg-white/30 dark:bg-gray-900/30 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
-                    {selectedTag ? `目前沒有關於 "${selectedTag}" 的新聞摘要。` : '目前沒有新聞摘要。'}
+                    {selectedTag
+                        ? `沒有找到關於「${selectedTag}」的新聞。`
+                        : '目前沒有新聞摘要。'
+                    }
                 </div>
             )}
         </div>
