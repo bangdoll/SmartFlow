@@ -46,7 +46,7 @@ export async function runScrapeSortAndSummary() {
                     .from('news_items')
                     .insert({
                         original_url: item.original_url,
-                        title: item.title,
+                        title: summary.title_zh || item.title, // 優先使用中文標題
                         source: item.source,
                         published_at: item.published_at,
                         summary_en: summary.summary_en,
