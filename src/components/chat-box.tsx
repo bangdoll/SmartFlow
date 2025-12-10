@@ -87,23 +87,35 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
                         <div className="mt-4 flex flex-wrap justify-center gap-2">
                             <button
                                 type="button"
-                                onClick={async () => {
+                                onClick={() => {
+                                    console.log('[ChatBox] Button 1 clicked, isLoading:', isLoading);
                                     if (isLoading) return;
-                                    await append({ role: 'user', content: "解釋這篇新聞的重點" });
+                                    try {
+                                        append({ role: 'user', content: "解釋這篇新聞的重點" });
+                                        console.log('[ChatBox] append called successfully');
+                                    } catch (err) {
+                                        console.error('[ChatBox] append error:', err);
+                                    }
                                 }}
                                 disabled={isLoading}
-                                className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-300 transition-colors disabled:opacity-50 cursor-pointer"
+                                className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-300 active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
                             >
                                 &quot;解釋這篇新聞的重點&quot;
                             </button>
                             <button
                                 type="button"
-                                onClick={async () => {
+                                onClick={() => {
+                                    console.log('[ChatBox] Button 2 clicked, isLoading:', isLoading);
                                     if (isLoading) return;
-                                    await append({ role: 'user', content: "這會有什麼影響？" });
+                                    try {
+                                        append({ role: 'user', content: "這會有什麼影響？" });
+                                        console.log('[ChatBox] append called successfully');
+                                    } catch (err) {
+                                        console.error('[ChatBox] append error:', err);
+                                    }
                                 }}
                                 disabled={isLoading}
-                                className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-300 transition-colors disabled:opacity-50 cursor-pointer"
+                                className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-300 active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
                             >
                                 &quot;這會有什麼影響？&quot;
                             </button>
