@@ -6,6 +6,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { Share2, ArrowLeft, Calendar, ExternalLink, Clock, Tag } from 'lucide-react';
 import { ChatBox } from '@/components/chat-box';
+import ReactMarkdown from 'react-markdown';
 
 // 強制動態渲染，確保獲取最新數據
 export const dynamic = 'force-dynamic';
@@ -104,8 +105,8 @@ export default async function NewsDetailPage({ params }: Props) {
                         {item.title}
                     </h1>
 
-                    <div className="prose prose-lg dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 whitespace-pre-line mb-8">
-                        {item.summary_zh || item.summary_en}
+                    <div className="prose prose-lg dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 mb-8 prose-table:border-collapse prose-table:w-full prose-th:bg-blue-50 dark:prose-th:bg-blue-900/30 prose-th:p-3 prose-td:p-3 prose-th:text-left prose-td:border prose-td:border-gray-200 dark:prose-td:border-gray-700 prose-th:border prose-th:border-gray-200 dark:prose-th:border-gray-700">
+                        <ReactMarkdown>{item.summary_zh || item.summary_en || ''}</ReactMarkdown>
                     </div>
 
                     {item.tags && item.tags.length > 0 && (

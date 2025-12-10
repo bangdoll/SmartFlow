@@ -4,6 +4,7 @@ import { NewsItem } from '@/types';
 import { useState, useMemo, useEffect } from 'react';
 import { Calendar, Tag, ExternalLink, X, Share2 } from 'lucide-react';
 import Link from 'next/link';
+import ReactMarkdown from 'react-markdown';
 
 interface NewsFeedProps {
     items: NewsItem[];
@@ -245,8 +246,8 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
 
                                     {item.summary_zh && (
                                         <Link href={`/news/${item.id}`} className="block group/summary">
-                                            <div className={`text-gray-600 dark:text-gray-300 mb-4 leading-relaxed whitespace-pre-line ${isRead ? 'text-gray-500 dark:text-gray-500' : ''} group-hover/summary:text-blue-600 dark:group-hover/summary:text-blue-400 transition-colors`}>
-                                                {item.summary_zh}
+                                            <div className={`text-gray-600 dark:text-gray-300 mb-4 leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-table:border-collapse prose-th:bg-blue-50 dark:prose-th:bg-blue-900/30 prose-th:p-2 prose-td:p-2 prose-th:text-left prose-table:w-full prose-table:text-sm ${isRead ? 'text-gray-500 dark:text-gray-500' : ''} group-hover/summary:text-blue-600 dark:group-hover/summary:text-blue-400 transition-colors`}>
+                                                <ReactMarkdown>{item.summary_zh}</ReactMarkdown>
                                             </div>
                                         </Link>
                                     )}
