@@ -2,8 +2,8 @@ name: Daily AI Trends
 
 on:
   schedule:
-    # 每天 UTC 00:00 (台灣時間 08:00) 執行
-    - cron: '0 0 * * *'
+    # 每天 UTC 23:50 (台灣時間 07:50) 執行，補償 GitHub Actions 5-15 分鐘延遲
+    - cron: '50 23 * * *'
   workflow_dispatch: # 允許手動觸發
 
 jobs:
