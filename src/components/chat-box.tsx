@@ -87,35 +87,29 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
                         <div className="mt-4 flex flex-wrap justify-center gap-2 relative z-10">
                             <button
                                 type="button"
-                                onClick={() => {
-                                    console.log('[ChatBox] Button 1 clicked, isLoading:', isLoading);
+                                onMouseDown={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    console.log('[ChatBox] Button 1 mousedown');
                                     if (isLoading) return;
-                                    try {
-                                        append({ role: 'user', content: "解釋這篇新聞的重點" });
-                                        console.log('[ChatBox] append called successfully');
-                                    } catch (err) {
-                                        console.error('[ChatBox] append error:', err);
-                                    }
+                                    append({ role: 'user', content: "解釋這篇新聞的重點" });
                                 }}
                                 disabled={isLoading}
-                                className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-300 active:scale-95 transition-all disabled:opacity-50 cursor-pointer pointer-events-auto relative z-20"
+                                className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:border-blue-400 active:bg-blue-200 transition-all disabled:opacity-50 cursor-pointer select-none"
                             >
                                 &quot;解釋這篇新聞的重點&quot;
                             </button>
                             <button
                                 type="button"
-                                onClick={() => {
-                                    console.log('[ChatBox] Button 2 clicked, isLoading:', isLoading);
+                                onMouseDown={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    console.log('[ChatBox] Button 2 mousedown');
                                     if (isLoading) return;
-                                    try {
-                                        append({ role: 'user', content: "這會有什麼影響？" });
-                                        console.log('[ChatBox] append called successfully');
-                                    } catch (err) {
-                                        console.error('[ChatBox] append error:', err);
-                                    }
+                                    append({ role: 'user', content: "這會有什麼影響？" });
                                 }}
                                 disabled={isLoading}
-                                className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-300 active:scale-95 transition-all disabled:opacity-50 cursor-pointer pointer-events-auto relative z-20"
+                                className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:border-blue-400 active:bg-blue-200 transition-all disabled:opacity-50 cursor-pointer select-none"
                             >
                                 &quot;這會有什麼影響？&quot;
                             </button>
