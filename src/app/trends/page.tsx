@@ -15,7 +15,8 @@ async function getTrends() {
 
     const tagCounts: Record<string, number> = {};
     items?.forEach(item => {
-        item.tags?.forEach(tag => {
+        const tags = item.tags as string[] | null;
+        tags?.forEach((tag: string) => {
             const normalizedTag = tag.trim();
             tagCounts[normalizedTag] = (tagCounts[normalizedTag] || 0) + 1;
         });
@@ -56,8 +57,8 @@ export default async function TrendsPage() {
                         >
                             <div className="flex items-center gap-4">
                                 <div className={`w-8 h-8 flex items-center justify-center rounded-lg font-bold text-sm ${index < 3
-                                        ? 'bg-gradient-to-br from-yellow-400 to-orange-500 text-white shadow-lg'
-                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                                    ? 'bg-gradient-to-br from-yellow-400 to-orange-500 text-white shadow-lg'
+                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
                                     }`}>
                                     {index + 1}
                                 </div>

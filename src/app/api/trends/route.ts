@@ -17,7 +17,8 @@ export async function GET() {
         // Flatten tags and count frequency
         const tagCounts: Record<string, number> = {};
         items?.forEach(item => {
-            item.tags?.forEach(tag => {
+            const tags = item.tags as string[] | null;
+            tags?.forEach((tag: string) => {
                 const normalizedTag = tag.trim();
                 tagCounts[normalizedTag] = (tagCounts[normalizedTag] || 0) + 1;
             });
