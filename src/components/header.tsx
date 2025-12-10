@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { Sparkles } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { SearchInput } from '@/components/search-input';
@@ -27,7 +28,9 @@ export function Header() {
                     </Link>
 
                     <div className="flex items-center gap-2">
-                        <SearchInput />
+                        <Suspense fallback={<div className="w-10 h-10" />}>
+                            <SearchInput />
+                        </Suspense>
                         <ThemeToggle />
                         <Link href="/#subscribe" className="hidden md:inline-flex bg-black dark:bg-white text-white dark:text-black px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors">
                             訂閱
