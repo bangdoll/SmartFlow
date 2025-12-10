@@ -7,7 +7,7 @@ import { NewsItem } from '@/types';
 export const revalidate = 60;
 
 import { HotNewsSection } from '@/components/hot-news';
-import { HotNewsSection } from '@/components/hot-news';
+
 
 async function getHotNews() {
   const { data: items } = await supabase
