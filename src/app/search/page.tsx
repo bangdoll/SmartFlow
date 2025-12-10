@@ -91,7 +91,7 @@ export default async function SearchPage({
 
                                     {item.tags && (
                                         <div className="flex flex-wrap gap-2">
-                                            {item.tags.map(tag => (
+                                            {(item.tags as string[]).map(tag => (
                                                 <span key={tag} className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-gray-600 dark:text-gray-400">
                                                     #{tag}
                                                 </span>
