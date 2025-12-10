@@ -24,8 +24,9 @@ export async function generateSummary(title: string, content: string) {
       1. Translate the title into Traditional Chinese (繁體中文).
       2. Provide a concise summary in English (max 500 words).
       3. Provide a concise summary in Traditional Chinese (繁體中文) (max 600 words).
-      4. Extract 3-5 relevant tags.
-      5. The tone should be professional and objective, suitable for a tech newsletter.
+      4. **CRITICAL**: At the end of the Traditional Chinese summary, add a double line break and append a section starting with "💡 關鍵影響：" followed by one insightful sentence explaining why this news is important for the AI industry or the future.
+      5. Extract 3-5 relevant tags.
+      6. The tone should be professional and objective, suitable for a tech newsletter.
     `;
 
         const { object } = await generateObject({
