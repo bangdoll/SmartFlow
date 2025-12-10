@@ -27,6 +27,9 @@ export function Header() {
                         <Link href="/archive" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium transition-colors">
                             歷史摘要
                         </Link>
+                        <Link href="/trends" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium transition-colors flex items-center gap-1">
+                            趨勢關鍵字
+                        </Link>
                     </div>
 
                     <div className="flex items-center gap-4">
