@@ -7,6 +7,7 @@ export interface NewsItem {
     summary_en?: string;
     summary_zh?: string;
     tags?: string[];
+    click_count?: number;
     created_at?: string;
 }
 

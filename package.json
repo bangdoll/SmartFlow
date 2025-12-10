@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.74",
+    "@ai-sdk/react": "^2.0.109",
     "@supabase/supabase-js": "^2.86.0",
+    "@vercel/og": "^0.8.5",
     "ai": "^5.0.104",
     "cheerio": "^1.1.2",
     "clsx": "^2.1.1",
@@ -20,7 +22,9 @@
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
     "resend": "^6.5.2",
+    "rss": "^1.2.2",
     "tailwind-merge": "^3.4.0",
+    "twitter-api-v2": "^1.28.0",
     "zod": "^4.1.13"
   },
   "devDependencies": {
@@ -28,6 +32,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/rss": "^0.0.32",
     "eslint": "^9",
     "eslint-config-next": "^16.0.7",
     "tailwindcss": "^4",

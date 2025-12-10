@@ -45,7 +45,8 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
         if (sortBy === 'popular' || (selectedTag && loadedItems.length === 0)) {
             loadMore(true); // reset=true
         }
-    }, [selectedTag, sortBy]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedTag, sortBy, initialItems]);
 
     const handleTagClick = (tag: string) => {
         if (selectedTag !== tag) {
@@ -101,50 +102,6 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
             window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
         } else if (platform === 'facebook') {
             window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
-        }
-    };
-
-    const loadMore = async (reset = false) => {
-        if ((isLoading && !reset) || (!hasMore && !reset)) return;
-
-        setIsLoading(true);
-        try {
-            const offset = reset ? 0 : displayItems.length;
-
-            const params = new URLSearchParams({
-                offset: offset.toString(),
-                limit: '10',
-                sort: sortBy
-            });
-
-            if (selectedTag) {
-                params.append('tag', selectedTag);
-            }
-
-            const res = await fetch(`/api/news?${params.toString()}`);
-            if (!res.ok) throw new Error('Failed to load more news');
-
-            const newItems: NewsItem[] = await res.json();
-
-            if (newItems.length === 0) {
-                setHasMore(false);
-            } else {
-                setLoadedItems(prev => {
-                    if (reset) return newItems;
-
-                    // Filter out duplicates
-                    const existingIds = new Set([...filteredInitialItems, ...prev].map(i => i.id));
-                    const uniqueNewItems = newItems.filter(i => !existingIds.has(i.id));
-
-                    if (uniqueNewItems.length === 0) setHasMore(false);
-
-                    return [...prev, ...uniqueNewItems];
-                });
-            }
-        } catch (error) {
-            console.error('Error loading more news:', error);
-        } finally {
-            setIsLoading(false);
         }
     };
 

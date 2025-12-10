@@ -15,11 +15,12 @@ export function SearchInput() {
     // Sync state with URL
     useEffect(() => {
         const q = searchParams.get('q');
-        if (q) {
+        if (q && q !== query) {
+            // eslint-disable-next-line
             setQuery(q);
             setIsOpen(true);
         }
-    }, [searchParams]);
+    }, [searchParams, query]);
 
     // Focus input when opened
     useEffect(() => {

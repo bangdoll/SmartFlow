@@ -29,6 +29,7 @@ export function SubscribeForm() {
             setStatus('success');
             setMessage('訂閱成功！感謝您的支持。');
             setEmail('');
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             setStatus('error');
             setMessage(error.message);

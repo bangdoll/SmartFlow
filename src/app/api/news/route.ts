@@ -6,13 +6,24 @@ export async function GET(request: Request) {
     const tag = searchParams.get('tag');
     const offset = parseInt(searchParams.get('offset') || '0', 10);
     const limit = parseInt(searchParams.get('limit') || '10', 10);
+    const sort = searchParams.get('sort') || 'latest'; // 'latest' | 'popular'
 
     try {
         let query = supabase
             .from('news_items')
-            .select('*')
-            .order('published_at', { ascending: false })
-            .range(offset, offset + limit - 1);
+            .select('*');
+
+        // 排序邏輯
+        if (sort === 'popular') {
+            // 先按點擊數降序，再按發布時間降序
+            query = query.order('click_count', { ascending: false }).order('published_at', { ascending: false });
+        } else {
+            // 默認按發布時間降序
+            query = query.order('published_at', { ascending: false });
+        }
+
+        // 分頁
+        query = query.range(offset, offset + limit - 1);
 
         if (tag) {
             // 注意：Supabase 的 array 欄位過濾

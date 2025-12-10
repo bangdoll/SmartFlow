@@ -4,9 +4,9 @@ import { streamText } from 'ai';
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-    const { messages, context } = await req.json();
+  const { messages, context } = await req.json();
 
-    const systemPrompt = `
+  const systemPrompt = `
     你是一個專業的 AI 新聞導讀助手，你的名字叫 "Smart Flow AI"。
     你的任務是幫助使用者深入理解這則新聞。
     
@@ -21,11 +21,11 @@ export async function POST(req: Request) {
     4. 解釋專業術語時，請用通俗易懂的比喻。
   `;
 
-    const result = streamText({
-        model: openai('gpt-4o-mini'),
-        system: systemPrompt,
-        messages,
-    });
+  const result = streamText({
+    model: openai('gpt-4o-mini'),
+    system: systemPrompt,
+    messages,
+  });
 
-    return result.toDataStreamResponse();
+  return result.toTextStreamResponse();
 }
