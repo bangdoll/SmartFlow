@@ -1,4 +1,4 @@
-# Global AI Trends Automation Website (全球 AI 趨勢自動化網站)
+# Global AI Trends Automation Website <!-- Trigger Vercel Deploy --> (全球 AI 趨勢自動化網站)
 
 這是一個全自動化的 AI 新聞聚合與電子報發送系統。每日自動從 TechCrunch 等來源爬取 AI 新聞，使用 OpenAI 生成中英文摘要，並透過 Resend 發送電子報。
 
