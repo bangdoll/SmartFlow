@@ -9,8 +9,25 @@ const inter = Inter({ subsets: ["latin"] });
 import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
-  title: "智流 Smart Flow - 全球科技快報",
+  metadataBase: new URL(process.env.PRODUCTION_URL || "https://ai-smart-flow.vercel.app"),
+  title: {
+    default: "智流 Smart Flow - 全球科技快報",
+    template: "%s | 智流 Smart Flow"
+  },
   description: "每日自動擷取全球 AI 新聞，提供中英文摘要與電子報服務。",
+  openGraph: {
+    type: "website",
+    locale: "zh_TW",
+    url: "/",
+    siteName: "智流 Smart Flow",
+    title: "智流 Smart Flow - 全球科技快報",
+    description: "每日自動擷取全球 AI 新聞，提供中英文摘要與電子報服務。",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "智流 Smart Flow",
+    description: "全球 AI 趨勢，一站掌握。",
+  }
 };
 
 export default function RootLayout({
