@@ -11,7 +11,7 @@ import { ChatBox } from '@/components/chat-box';
 export const dynamic = 'force-dynamic';
 
 interface Props {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }
 
 async function getNewsItem(id: string) {
@@ -25,7 +25,8 @@ async function getNewsItem(id: string) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-    const item = await getNewsItem(params.id);
+    const { id } = await params;
+    const item = await getNewsItem(id);
 
     if (!item) {
         return {
@@ -62,7 +63,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function NewsDetailPage({ params }: Props) {
-    const item = await getNewsItem(params.id);
+    const { id } = await params;
+    const item = await getNewsItem(id);
 
     if (!item) {
         notFound();
