@@ -1,7 +1,8 @@
 import { supabase } from '@/lib/supabase';
 import RSS from 'rss';
 
-export const revalidate = 3600; // Cache for 1 hour
+// export const revalidate = 3600; // Cache for 1 hour
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
     const feed = new RSS({
