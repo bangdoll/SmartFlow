@@ -57,8 +57,28 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
         setSelectedTag(null);
     };
 
+    // State for read status
+    const [readItems, setReadItems] = useState<Set<string>>(new Set());
+
+    useEffect(() => {
+        // Load read items from localStorage
+        const stored = localStorage.getItem('read_news');
+        if (stored) {
+            setReadItems(new Set(JSON.parse(stored)));
+        }
+    }, []);
+
+    const markAsRead = (id?: string) => {
+        if (!id) return;
+        const newSet = new Set(readItems);
+        newSet.add(id);
+        setReadItems(newSet);
+        localStorage.setItem('read_news', JSON.stringify(Array.from(newSet)));
+    };
+
     const handleNewsClick = async (id?: string) => {
         if (!id) return;
+        markAsRead(id); // Mark as read
         try {
             await fetch('/api/news/click', {
                 method: 'POST',
@@ -67,6 +87,20 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
             });
         } catch (e) {
             console.error('Failed to track click', e);
+        }
+    };
+
+    const handleShare = (item: NewsItem, platform: 'copy' | 'twitter' | 'facebook') => {
+        const shareUrl = `${window.location.origin}/news/${item.id}`;
+        const text = `[新趨勢] ${item.title}\n💡 ${item.summary_zh?.slice(0, 50)}...`;
+
+        if (platform === 'copy') {
+            navigator.clipboard.writeText(shareUrl);
+            alert('連結已複製！'); // 簡單提示，實際專案可用 Toast
+        } else if (platform === 'twitter') {
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
+        } else if (platform === 'facebook') {
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
         }
     };
 
@@ -169,11 +203,15 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                                 hour: '2-digit',
                                 minute: '2-digit',
                             });
+                            const isRead = item.id ? readItems.has(item.id) : false;
 
                             return (
                                 <article
                                     key={item.id || item.original_url}
-                                    className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm border border-white/50 dark:border-gray-800/50 rounded-xl p-6 hover:shadow-lg hover:scale-[1.01] transition-all duration-300 shadow-sm group"
+                                    className={`relative backdrop-blur-sm border rounded-xl p-6 transition-all duration-300 shadow-sm group ${isRead
+                                            ? 'bg-gray-50/40 dark:bg-gray-900/40 border-gray-200/50 dark:border-gray-800/30 opacity-80 hover:opacity-100'
+                                            : 'bg-white/60 dark:bg-gray-900/60 border-white/50 dark:border-gray-800/50 hover:shadow-lg hover:scale-[1.01]'
+                                        }`}
                                 >
                                     <div className="flex items-center justify-between mb-2">
                                         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
@@ -184,14 +222,17 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                                                 {date}
                                             </span>
                                         </div>
-                                        {item.click_count && item.click_count > 0 && (
-                                            <div className="flex items-center gap-1 text-xs font-medium text-orange-500 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded-full">
-                                                🔥 {item.click_count}
-                                            </div>
-                                        )}
+                                        <div className="flex items-center gap-3">
+                                            {item.click_count && item.click_count > 0 && (
+                                                <div className="flex items-center gap-1 text-xs font-medium text-orange-500 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded-full">
+                                                    🔥 {item.click_count}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
 
-                                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3 leading-tight">
+                                    <h2 className={`text-xl font-bold mb-3 leading-tight transition-colors ${isRead ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-white'
+                                        }`}>
                                         <Link
                                             href={item.original_url}
                                             target="_blank"
@@ -205,14 +246,14 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                                     </h2>
 
                                     {item.summary_zh && (
-                                        <p className="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed whitespace-pre-line">
+                                        <div className={`text-gray-600 dark:text-gray-300 mb-4 leading-relaxed whitespace-pre-line ${isRead ? 'text-gray-500 dark:text-gray-500' : ''}`}>
                                             {item.summary_zh}
-                                        </p>
+                                        </div>
                                     )}
 
-                                    {item.tags && item.tags.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 mt-4">
-                                            {item.tags.map((tag) => (
+                                    <div className="flex items-center justify-between mt-4">
+                                        <div className="flex flex-wrap gap-2">
+                                            {item.tags?.map((tag) => (
                                                 <button
                                                     key={tag}
                                                     type="button"
@@ -227,7 +268,28 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                                                 </button>
                                             ))}
                                         </div>
-                                    )}
+
+                                        {/* Share Buttons */}
+                                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button
+                                                onClick={() => handleShare(item, 'copy')}
+                                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                                                title="複製連結"
+                                            >
+                                                <Share2 className="w-4 h-4" />
+                                            </button>
+                                            {/* X / Twitter (Simplified Icon or text) */}
+                                            <button
+                                                onClick={() => handleShare(item, 'twitter')}
+                                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400 hover:text-black dark:hover:text-white transition-colors"
+                                                title="分享到 X"
+                                            >
+                                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </article>
                             );
                         })}
