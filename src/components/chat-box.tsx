@@ -86,16 +86,24 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
                         <p className="mt-2">關於這篇新聞「{initialContext.title.slice(0, 10)}...」，有什麼想問的嗎？</p>
                         <div className="mt-4 flex flex-wrap justify-center gap-2">
                             <button
-                                onClick={() => append({ role: 'user', content: "解釋這篇新聞的重點" })}
+                                type="button"
+                                onClick={async () => {
+                                    if (isLoading) return;
+                                    await append({ role: 'user', content: "解釋這篇新聞的重點" });
+                                }}
                                 disabled={isLoading}
-                                className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors disabled:opacity-50"
+                                className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-300 transition-colors disabled:opacity-50 cursor-pointer"
                             >
                                 &quot;解釋這篇新聞的重點&quot;
                             </button>
                             <button
-                                onClick={() => append({ role: 'user', content: "這會有什麼影響？" })}
+                                type="button"
+                                onClick={async () => {
+                                    if (isLoading) return;
+                                    await append({ role: 'user', content: "這會有什麼影響？" });
+                                }}
                                 disabled={isLoading}
-                                className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors disabled:opacity-50"
+                                className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-300 transition-colors disabled:opacity-50 cursor-pointer"
                             >
                                 &quot;這會有什麼影響？&quot;
                             </button>
