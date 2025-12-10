@@ -2,7 +2,7 @@
 
 import { NewsItem } from '@/types';
 import { useState, useMemo, useEffect } from 'react';
-import { ExternalLink, Calendar, Tag, X } from 'lucide-react';
+import { Calendar, Tag, ExternalLink, X, Share2 } from 'lucide-react';
 import Link from 'next/link';
 
 interface NewsFeedProps {
@@ -209,8 +209,8 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                                 <article
                                     key={item.id || item.original_url}
                                     className={`relative backdrop-blur-sm border rounded-xl p-6 transition-all duration-300 shadow-sm group ${isRead
-                                            ? 'bg-gray-50/40 dark:bg-gray-900/40 border-gray-200/50 dark:border-gray-800/30 opacity-80 hover:opacity-100'
-                                            : 'bg-white/60 dark:bg-gray-900/60 border-white/50 dark:border-gray-800/50 hover:shadow-lg hover:scale-[1.01]'
+                                        ? 'bg-gray-50/40 dark:bg-gray-900/40 border-gray-200/50 dark:border-gray-800/30 opacity-80 hover:opacity-100'
+                                        : 'bg-white/60 dark:bg-gray-900/60 border-white/50 dark:border-gray-800/50 hover:shadow-lg hover:scale-[1.01]'
                                         }`}
                                 >
                                     <div className="flex items-center justify-between mb-2">
@@ -270,7 +270,7 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                                         </div>
 
                                         {/* Share Buttons */}
-                                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex items-center gap-1">
                                             <button
                                                 onClick={() => handleShare(item, 'copy')}
                                                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
