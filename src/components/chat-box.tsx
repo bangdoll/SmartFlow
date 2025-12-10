@@ -84,7 +84,7 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
                     <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
                         <p>👋 你好！我是您的 AI 導讀助手。</p>
                         <p className="mt-2">關於這篇新聞「{initialContext.title.slice(0, 10)}...」，有什麼想問的嗎？</p>
-                        <div className="mt-4 flex flex-wrap justify-center gap-2">
+                        <div className="mt-4 flex flex-wrap justify-center gap-2 relative z-10">
                             <button
                                 type="button"
                                 onClick={() => {
@@ -98,7 +98,7 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
                                     }
                                 }}
                                 disabled={isLoading}
-                                className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-300 active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
+                                className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-300 active:scale-95 transition-all disabled:opacity-50 cursor-pointer pointer-events-auto relative z-20"
                             >
                                 &quot;解釋這篇新聞的重點&quot;
                             </button>
@@ -115,7 +115,7 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
                                     }
                                 }}
                                 disabled={isLoading}
-                                className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-300 active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
+                                className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-300 active:scale-95 transition-all disabled:opacity-50 cursor-pointer pointer-events-auto relative z-20"
                             >
                                 &quot;這會有什麼影響？&quot;
                             </button>
