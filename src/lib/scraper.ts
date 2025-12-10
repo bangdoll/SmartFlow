@@ -1,283 +1,103 @@
 import * as cheerio from 'cheerio';
 import { ScrapedNews } from '@/types';
 
-// TechCrunch AI Category URL
-const TECHCRUNCH_AI_URL = 'https://techcrunch.com/category/artificial-intelligence/';
-
-export async function scrapeTechCrunch(): Promise<ScrapedNews[]> {
+// 通用 RSS Feed 解析器
+async function parseRSSFeed(
+    feedUrl: string,
+    sourceName: string,
+    limit: number = 10
+): Promise<ScrapedNews[]> {
     try {
-        console.log(`Fetching ${TECHCRUNCH_AI_URL}...`);
-        const response = await fetch(TECHCRUNCH_AI_URL, {
+        console.log(`Fetching RSS: ${feedUrl}...`);
+
+        const response = await fetch(feedUrl, {
             headers: {
-                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'User-Agent': 'Mozilla/5.0 (compatible; SmartFlowBot/1.0)',
             },
-            next: { revalidate: 3600 } // Cache for 1 hour
+            next: { revalidate: 3600 }
         });
 
         if (!response.ok) {
-            throw new Error(`Failed to fetch TechCrunch: ${response.statusText}`);
+            console.log(`RSS feed ${sourceName} returned ${response.status}`);
+            return [];
         }
 
-        const html = await response.text();
-        const $ = cheerio.load(html);
+        const xml = await response.text();
+        const $ = cheerio.load(xml, { xmlMode: true });
         const newsItems: ScrapedNews[] = [];
 
-        // TechCrunch 的結構可能會變，這裡針對目前的結構進行解析
-        // 通常文章列表在 loop-card 或者 post-block 中
-        // 假設結構：.loop-card__title > a (標題與連結), .loop-card__meta (時間)
+        // 解析 RSS items (支持 RSS 2.0 和 Atom)
+        $('item, entry').each((index, element) => {
+            if (index >= limit) return;
 
-        // 注意：TechCrunch 最近改版了，結構可能不同。
-        // 這裡嘗試通用的解析方式，尋找 h2 或 h3 內的連結
+            // RSS 2.0 格式
+            let title = $(element).find('title').first().text().trim();
+            let link = $(element).find('link').first().text().trim();
+            let pubDate = $(element).find('pubDate').first().text().trim();
 
-        $('h2.loop-card__title, h3.loop-card__title').each((_, element) => {
-            const titleLink = $(element).find('a');
-            const title = titleLink.text().trim();
-            const url = titleLink.attr('href');
+            // Atom 格式 fallback
+            if (!link) {
+                link = $(element).find('link').attr('href') || '';
+            }
+            if (!pubDate) {
+                pubDate = $(element).find('published, updated').first().text().trim();
+            }
 
-            // 嘗試抓取時間，通常在附近的 time 元素或 meta 區塊
-            // 這裡簡化處理，如果抓不到時間就用當前時間 (實際應用需更精確)
-            // TechCrunch 通常有 <time class="loop-card__time-datetime">
-            const timeStr = $(element).closest('article').find('time').attr('datetime');
-            const publishedAt = timeStr ? new Date(timeStr).toISOString() : new Date().toISOString();
+            // 移除 CDATA 和清理標題
+            title = title.replace(/<!\[CDATA\[|\]\]>/g, '').trim();
 
-            if (title && url) {
+            if (title && link) {
                 newsItems.push({
                     title,
-                    original_url: url,
-                    source: 'TechCrunch',
-                    published_at: publishedAt,
-                    // 內容暫時留空，後續可以針對單頁再爬取，或者僅用標題摘要
+                    original_url: link,
+                    source: sourceName,
+                    published_at: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
                     content: title
                 });
             }
         });
 
-        console.log(`Found ${newsItems.length} items from TechCrunch.`);
+        console.log(`Found ${newsItems.length} items from ${sourceName}.`);
         return newsItems;
 
     } catch (error) {
-        console.error('Error scraping TechCrunch:', error);
+        console.error(`Error parsing RSS ${sourceName}:`, error);
         return [];
     }
 }
 
-// The Verge AI Category URL
-const VERGE_AI_URL = 'https://www.theverge.com/ai';
-// Wired AI Category URL
-const WIRED_AI_URL = 'https://www.wired.com/category/artificial-intelligence/';
-
-export async function scrapeTheVerge(): Promise<ScrapedNews[]> {
-    try {
-        console.log(`Fetching ${VERGE_AI_URL}...`);
-        const response = await fetch(VERGE_AI_URL, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            },
-            next: { revalidate: 3600 }
-        });
-
-        if (!response.ok) throw new Error(`Failed to fetch The Verge: ${response.statusText}`);
-
-        const html = await response.text();
-        const $ = cheerio.load(html);
-        const newsItems: ScrapedNews[] = [];
-
-        // The Verge - multiple selector strategies
-        const selectors = ['h2 a', 'h3 a', 'a[data-analytics-link="article"]', '.c-compact-river__entry a', '.c-entry-box--compact__title a'];
-        const seen = new Set<string>();
-
-        for (const selector of selectors) {
-            $(selector).each((_, element) => {
-                const link = $(element);
-                const title = link.text().trim();
-                const href = link.attr('href');
-
-                // Filter: must be a Verge article URL and have meaningful title
-                if (title && href && title.length > 10 &&
-                    (href.includes('theverge.com') || href.startsWith('/')) &&
-                    !seen.has(href)) {
-
-                    seen.add(href);
-                    const url = href.startsWith('http') ? href : `https://www.theverge.com${href}`;
-
-                    // Skip non-article URLs
-                    if (url.includes('/authors/') || url.includes('/about/') || url.includes('/contact')) return;
-
-                    newsItems.push({
-                        title,
-                        original_url: url,
-                        source: 'The Verge',
-                        published_at: new Date().toISOString(),
-                        content: title
-                    });
-                }
-            });
-        }
-
-        console.log(`Found ${newsItems.length} items from The Verge.`);
-        return newsItems;
-
-    } catch (error) {
-        console.error('Error scraping The Verge:', error);
-        return [];
-    }
+// TechCrunch AI - 使用 RSS Feed
+export async function scrapeTechCrunch(): Promise<ScrapedNews[]> {
+    return parseRSSFeed(
+        'https://techcrunch.com/category/artificial-intelligence/feed/',
+        'TechCrunch',
+        10
+    );
 }
 
-export async function scrapeWired(): Promise<ScrapedNews[]> {
-    try {
-        console.log(`Fetching ${WIRED_AI_URL}...`);
-        const response = await fetch(WIRED_AI_URL, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            },
-            next: { revalidate: 3600 }
-        });
-
-        if (!response.ok) throw new Error(`Failed to fetch Wired: ${response.statusText}`);
-
-        const html = await response.text();
-        const $ = cheerio.load(html);
-        const newsItems: ScrapedNews[] = [];
-
-        // Wired - multiple selector strategies
-        const wiredSelectors = [
-            '.summary-item__content',
-            'a[class*="SummaryItem"]',
-            'article a',
-            'h2 a', 'h3 a'
-        ];
-        const seenWired = new Set<string>();
-
-        for (const selector of wiredSelectors) {
-            $(selector).each((_, element) => {
-                let title = '';
-                let href = '';
-
-                if (selector.includes('content') || selector.includes('article')) {
-                    const titleEl = $(element).find('h3, h2, a');
-                    title = titleEl.first().text().trim();
-                    const linkEl = $(element).find('a').first();
-                    href = linkEl.attr('href') || '';
-                } else {
-                    const link = $(element);
-                    title = link.text().trim();
-                    href = link.attr('href') || '';
-                }
-
-                if (title && href && title.length > 10 && !seenWired.has(href) &&
-                    (href.includes('wired.com') || href.startsWith('/'))) {
-
-                    seenWired.add(href);
-                    const url = href.startsWith('http') ? href : `https://www.wired.com${href}`;
-
-                    // Skip non-article URLs
-                    if (url.includes('/about/') || url.includes('/contact') || url.includes('/account')) return;
-
-                    newsItems.push({
-                        title,
-                        original_url: url,
-                        source: 'Wired',
-                        published_at: new Date().toISOString(),
-                        content: title
-                    });
-                }
-            });
-        }
-
-        console.log(`Found ${newsItems.length} items from Wired.`);
-        return newsItems;
-
-    } catch (error) {
-        console.error('Error scraping Wired:', error);
-        return [];
-    }
+// Ars Technica - 使用 RSS Feed
+export async function scrapeArsTechnica(): Promise<ScrapedNews[]> {
+    return parseRSSFeed(
+        'https://feeds.arstechnica.com/arstechnica/index',
+        'Ars Technica',
+        10
+    );
 }
 
-// Threads AI Tags - Note: Threads is a JS-rendered SPA, this may have limited success
-const THREADS_AI_TAGS = ['AI', 'ChatGPT', 'OpenAI', 'GenerativeAI'];
-
-export async function scrapeThreads(): Promise<ScrapedNews[]> {
-    const newsItems: ScrapedNews[] = [];
-
-    // Threads URL format for tags: https://www.threads.net/tag/{tag}
-    // Note: This is experimental - Threads may block or require JS rendering
-    for (const tag of THREADS_AI_TAGS) {
-        try {
-            const url = `https://www.threads.net/tag/${tag}`;
-            console.log(`Fetching Threads tag: #${tag}...`);
-
-            const response = await fetch(url, {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                    'Accept-Language': 'en-US,en;q=0.5',
-                },
-                next: { revalidate: 3600 }
-            });
-
-            if (!response.ok) {
-                console.log(`Threads tag #${tag} returned ${response.status}, skipping...`);
-                continue;
-            }
-
-            const html = await response.text();
-            const $ = cheerio.load(html);
-
-            // Threads embeds data in JSON within script tags
-            // Try to extract from __NEXT_DATA__ or similar
-            $('script[type="application/json"]').each((_, element) => {
-                try {
-                    const jsonStr = $(element).html();
-                    if (jsonStr && jsonStr.includes('thread')) {
-                        // Parse and extract thread data if available
-                        const data = JSON.parse(jsonStr);
-                        // This structure varies, so we do a best-effort extraction
-                        console.log(`Found JSON data for Threads #${tag}`);
-                    }
-                } catch {
-                    // JSON parsing failed, skip
-                }
-            });
-
-            // Alternative: Look for any visible text content
-            // Threads renders most content client-side, so this may be empty
-            $('div[data-pressable-container] span').each((_, element) => {
-                const text = $(element).text().trim();
-                if (text && text.length > 20 && text.length < 500) {
-                    // This might capture some thread content
-                    newsItems.push({
-                        title: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
-                        original_url: `https://www.threads.net/tag/${tag}`,
-                        source: 'Threads',
-                        published_at: new Date().toISOString(),
-                        content: text
-                    });
-                }
-            });
-
-        } catch (error) {
-            console.error(`Error scraping Threads tag #${tag}:`, error);
-        }
-    }
-
-    // Deduplicate by title
-    const seen = new Set<string>();
-    const deduped = newsItems.filter(item => {
-        if (seen.has(item.title)) return false;
-        seen.add(item.title);
-        return true;
-    });
-
-    console.log(`Found ${deduped.length} items from Threads (experimental).`);
-    return deduped.slice(0, 10); // Limit to 10 items
+// MIT Technology Review AI - 使用 RSS Feed
+export async function scrapeMITTechReview(): Promise<ScrapedNews[]> {
+    return parseRSSFeed(
+        'https://www.technologyreview.com/feed/',
+        'MIT Technology Review',
+        10
+    );
 }
 
-// Hacker News - Using official Firebase API with parallel requests
+// Hacker News - 使用官方 API (保持原有邏輯但優化)
 export async function scrapeHackerNews(): Promise<ScrapedNews[]> {
     try {
         console.log('Fetching Hacker News top stories...');
 
-        // Get top story IDs
         const topStoriesRes = await fetch('https://hacker-news.firebaseio.com/v0/topstories.json', {
             next: { revalidate: 3600 }
         });
@@ -286,11 +106,10 @@ export async function scrapeHackerNews(): Promise<ScrapedNews[]> {
 
         const storyIds: number[] = await topStoriesRes.json();
 
-        // AI-related keywords to filter
         const aiKeywords = ['ai', 'artificial intelligence', 'machine learning', 'ml', 'llm', 'gpt', 'openai', 'claude', 'anthropic', 'gemini', 'chatgpt', 'neural', 'deep learning'];
 
-        // Fetch first 25 stories in parallel (reduced from 50)
-        const storiesToCheck = storyIds.slice(0, 25);
+        // 並行請求前 20 個故事
+        const storiesToCheck = storyIds.slice(0, 20);
 
         const storyPromises = storiesToCheck.map(async (id) => {
             try {
@@ -320,7 +139,6 @@ export async function scrapeHackerNews(): Promise<ScrapedNews[]> {
                     });
                 }
             }
-            // Limit to 5 AI stories (reduced from 10)
             if (newsItems.length >= 5) break;
         }
 
@@ -333,19 +151,22 @@ export async function scrapeHackerNews(): Promise<ScrapedNews[]> {
     }
 }
 
-// Reddit r/artificial - Using JSON API
+// Reddit r/artificial - 使用 JSON API
 export async function scrapeRedditArtificial(): Promise<ScrapedNews[]> {
     try {
         console.log('Fetching Reddit r/artificial...');
 
-        const response = await fetch('https://www.reddit.com/r/artificial/hot.json?limit=20', {
+        const response = await fetch('https://www.reddit.com/r/artificial/hot.json?limit=15', {
             headers: {
                 'User-Agent': 'SmartFlow-AI-News-Bot/1.0',
             },
             next: { revalidate: 3600 }
         });
 
-        if (!response.ok) throw new Error(`Reddit returned ${response.status}`);
+        if (!response.ok) {
+            console.log(`Reddit returned ${response.status}`);
+            return [];
+        }
 
         const data = await response.json();
         const newsItems: ScrapedNews[] = [];
@@ -354,7 +175,6 @@ export async function scrapeRedditArtificial(): Promise<ScrapedNews[]> {
             for (const post of data.data.children) {
                 const item = post.data;
 
-                // Skip stickied posts and self-posts without content
                 if (item.stickied) continue;
 
                 const url = item.url_overridden_by_dest || `https://www.reddit.com${item.permalink}`;
@@ -370,7 +190,7 @@ export async function scrapeRedditArtificial(): Promise<ScrapedNews[]> {
         }
 
         console.log(`Found ${newsItems.length} items from Reddit r/artificial.`);
-        return newsItems.slice(0, 15);
+        return newsItems.slice(0, 10);
 
     } catch (error) {
         console.error('Error scraping Reddit:', error);
@@ -378,69 +198,11 @@ export async function scrapeRedditArtificial(): Promise<ScrapedNews[]> {
     }
 }
 
-// Ars Technica AI Category
-const ARS_TECHNICA_AI_URL = 'https://arstechnica.com/ai/';
-
-export async function scrapeArsTechnica(): Promise<ScrapedNews[]> {
-    try {
-        console.log(`Fetching ${ARS_TECHNICA_AI_URL}...`);
-
-        const response = await fetch(ARS_TECHNICA_AI_URL, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            },
-            next: { revalidate: 3600 }
-        });
-
-        if (!response.ok) throw new Error(`Ars Technica returned ${response.status}`);
-
-        const html = await response.text();
-        const $ = cheerio.load(html);
-        const newsItems: ScrapedNews[] = [];
-
-        // Ars Technica article structure
-        $('article').each((_, element) => {
-            const titleEl = $(element).find('h2 a, h3 a');
-            const title = titleEl.text().trim();
-            const href = titleEl.attr('href');
-
-            // Get time if available
-            const timeEl = $(element).find('time');
-            const timeStr = timeEl.attr('datetime');
-
-            if (title && href) {
-                const url = href.startsWith('http') ? href : `https://arstechnica.com${href}`;
-
-                newsItems.push({
-                    title,
-                    original_url: url,
-                    source: 'Ars Technica',
-                    published_at: timeStr ? new Date(timeStr).toISOString() : new Date().toISOString(),
-                    content: title
-                });
-            }
-        });
-
-        console.log(`Found ${newsItems.length} items from Ars Technica.`);
-        return newsItems.slice(0, 15);
-
-    } catch (error) {
-        console.error('Error scraping Ars Technica:', error);
-        return [];
-    }
-}
-
-// Google News - Using RSS feeds for Taiwan Chinese news
-// Keywords: AI, 科技, 蘋果 (Apple)
+// Google News - 使用 RSS (台灣繁體中文)
 export async function scrapeGoogleNews(): Promise<ScrapedNews[]> {
     const newsItems: ScrapedNews[] = [];
 
-    // Google News RSS search queries (Taiwan Traditional Chinese)
-    const queries = [
-        'AI 人工智慧',
-        '科技新聞',
-        '蘋果 Apple'
-    ];
+    const queries = ['AI 人工智慧', '科技新聞', '蘋果 Apple'];
 
     try {
         console.log('Fetching Google News RSS...');
@@ -457,17 +219,13 @@ export async function scrapeGoogleNews(): Promise<ScrapedNews[]> {
                     next: { revalidate: 3600 }
                 });
 
-                if (!response.ok) {
-                    console.log(`Google News RSS for "${query}" returned ${response.status}, skipping...`);
-                    continue;
-                }
+                if (!response.ok) continue;
 
                 const xml = await response.text();
                 const $ = cheerio.load(xml, { xmlMode: true });
 
-                // Parse RSS items
                 $('item').each((index, element) => {
-                    if (index >= 5) return; // Limit 5 items per query
+                    if (index >= 3) return; // 每個關鍵字只取 3 則
 
                     const title = $(element).find('title').text().trim();
                     const link = $(element).find('link').text().trim();
@@ -490,7 +248,7 @@ export async function scrapeGoogleNews(): Promise<ScrapedNews[]> {
             }
         }
 
-        // Deduplicate by URL
+        // 去重
         const seen = new Set<string>();
         const deduped = newsItems.filter(item => {
             if (seen.has(item.original_url)) return false;
@@ -499,7 +257,7 @@ export async function scrapeGoogleNews(): Promise<ScrapedNews[]> {
         });
 
         console.log(`Found ${deduped.length} items from Google News.`);
-        return deduped.slice(0, 10); // Limit to 10 items total
+        return deduped.slice(0, 8);
 
     } catch (error) {
         console.error('Error scraping Google News:', error);
@@ -507,18 +265,19 @@ export async function scrapeGoogleNews(): Promise<ScrapedNews[]> {
     }
 }
 
+// 聚合所有來源
 export async function scrapeAllSources(): Promise<ScrapedNews[]> {
-    const [techCrunch, verge, wired, threads, hackerNews, reddit, arsTechnica, googleNews] = await Promise.all([
+    const [techCrunch, arsTechnica, mitTechReview, hackerNews, reddit, googleNews] = await Promise.all([
         scrapeTechCrunch(),
-        scrapeTheVerge(),
-        scrapeWired(),
-        scrapeThreads(),
+        scrapeArsTechnica(),
+        scrapeMITTechReview(),
         scrapeHackerNews(),
         scrapeRedditArtificial(),
-        scrapeArsTechnica(),
         scrapeGoogleNews()
     ]);
 
-    return [...techCrunch, ...verge, ...wired, ...threads, ...hackerNews, ...reddit, ...arsTechnica, ...googleNews];
-}
+    const all = [...techCrunch, ...arsTechnica, ...mitTechReview, ...hackerNews, ...reddit, ...googleNews];
 
+    console.log(`Total scraped: ${all.length} items from all sources.`);
+    return all;
+}
