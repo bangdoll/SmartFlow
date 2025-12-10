@@ -234,19 +234,23 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                                     <h2 className={`text-xl font-bold mb-3 leading-tight transition-colors ${isRead ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-white'
                                         }`}>
                                         <Link
-                                            href={`/news/${item.id}`}
+                                            href={item.original_url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
                                             onClick={() => handleNewsClick(item.id)}
                                             className="hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center gap-2 group-hover:underline decoration-blue-500/30 underline-offset-4"
                                         >
                                             {item.title}
-                                            {/* ExternalLink icon removed from here as it's no longer external */}
+                                            <ExternalLink className="w-4 h-4 text-gray-400 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                                         </Link>
                                     </h2>
 
                                     {item.summary_zh && (
-                                        <div className={`text-gray-600 dark:text-gray-300 mb-4 leading-relaxed whitespace-pre-line ${isRead ? 'text-gray-500 dark:text-gray-500' : ''}`}>
-                                            {item.summary_zh}
-                                        </div>
+                                        <Link href={`/news/${item.id}`} className="block group/summary">
+                                            <div className={`text-gray-600 dark:text-gray-300 mb-4 leading-relaxed whitespace-pre-line ${isRead ? 'text-gray-500 dark:text-gray-500' : ''} group-hover/summary:text-blue-600 dark:group-hover/summary:text-blue-400 transition-colors`}>
+                                                {item.summary_zh}
+                                            </div>
+                                        </Link>
                                     )}
 
                                     <div className="flex items-center justify-between mt-4">
@@ -267,25 +271,35 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                                             ))}
                                         </div>
 
-                                        {/* Share Buttons */}
-                                        <div className="flex items-center gap-1">
-                                            <button
-                                                onClick={() => handleShare(item, 'copy')}
-                                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                                                title="複製連結"
+                                        {/* Share Buttons & Actions */}
+                                        <div className="flex items-center gap-3">
+                                            <Link
+                                                href={`/news/${item.id}`}
+                                                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-xs font-medium hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
                                             >
-                                                <Share2 className="w-4 h-4" />
-                                            </button>
-                                            {/* X / Twitter (Simplified Icon or text) */}
-                                            <button
-                                                onClick={() => handleShare(item, 'twitter')}
-                                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400 hover:text-black dark:hover:text-white transition-colors"
-                                                title="分享到 X"
-                                            >
-                                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
-                                                </svg>
-                                            </button>
+                                                <span className="text-lg">🤖</span>
+                                                AI 導讀
+                                            </Link>
+
+                                            <div className="flex items-center gap-1">
+                                                <button
+                                                    onClick={() => handleShare(item, 'copy')}
+                                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                                                    title="複製連結"
+                                                >
+                                                    <Share2 className="w-4 h-4" />
+                                                </button>
+                                                {/* X / Twitter (Simplified Icon or text) */}
+                                                <button
+                                                    onClick={() => handleShare(item, 'twitter')}
+                                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400 hover:text-black dark:hover:text-white transition-colors"
+                                                    title="分享到 X"
+                                                >
+                                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
+                                                    </svg>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </article>
