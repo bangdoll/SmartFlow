@@ -4,7 +4,8 @@ import { supabase } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { Calendar, ExternalLink, ArrowLeft, Tag, Share2 } from 'lucide-react';
+import { Share2, ArrowLeft, Calendar, ExternalLink, Clock, Tag } from 'lucide-react';
+import { ChatBox } from '@/components/chat-box';
 
 // 強制動態渲染，確保獲取最新數據
 export const dynamic = 'force-dynamic';
@@ -135,6 +136,12 @@ export default async function NewsDetailPage({ params }: Props) {
                 </article>
             </div>
 
+            <ChatBox
+                initialContext={{
+                    title: item.title,
+                    summary: item.summary_zh || item.summary_en || ''
+                }}
+            />
             <Footer />
         </main>
     );
