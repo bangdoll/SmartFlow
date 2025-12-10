@@ -430,16 +430,95 @@ export async function scrapeArsTechnica(): Promise<ScrapedNews[]> {
     }
 }
 
+// Google News - Using RSS feeds for Taiwan Chinese news
+// Keywords: AI, 科技, 蘋果 (Apple)
+export async function scrapeGoogleNews(): Promise<ScrapedNews[]> {
+    const newsItems: ScrapedNews[] = [];
+
+    // Google News RSS search queries (Taiwan Traditional Chinese)
+    const queries = [
+        'AI 人工智慧',
+        '科技新聞',
+        '蘋果 Apple'
+    ];
+
+    try {
+        console.log('Fetching Google News RSS...');
+
+        for (const query of queries) {
+            try {
+                const encodedQuery = encodeURIComponent(query);
+                const rssUrl = `https://news.google.com/rss/search?q=${encodedQuery}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant`;
+
+                const response = await fetch(rssUrl, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (compatible; SmartFlowBot/1.0)',
+                    },
+                    next: { revalidate: 3600 }
+                });
+
+                if (!response.ok) {
+                    console.log(`Google News RSS for "${query}" returned ${response.status}, skipping...`);
+                    continue;
+                }
+
+                const xml = await response.text();
+                const $ = cheerio.load(xml, { xmlMode: true });
+
+                // Parse RSS items
+                $('item').each((index, element) => {
+                    if (index >= 5) return; // Limit 5 items per query
+
+                    const title = $(element).find('title').text().trim();
+                    const link = $(element).find('link').text().trim();
+                    const pubDate = $(element).find('pubDate').text().trim();
+                    const source = $(element).find('source').text().trim() || 'Google News';
+
+                    if (title && link) {
+                        newsItems.push({
+                            title,
+                            original_url: link,
+                            source: `Google News (${source})`,
+                            published_at: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
+                            content: title
+                        });
+                    }
+                });
+
+            } catch (error) {
+                console.error(`Error fetching Google News for "${query}":`, error);
+            }
+        }
+
+        // Deduplicate by URL
+        const seen = new Set<string>();
+        const deduped = newsItems.filter(item => {
+            if (seen.has(item.original_url)) return false;
+            seen.add(item.original_url);
+            return true;
+        });
+
+        console.log(`Found ${deduped.length} items from Google News.`);
+        return deduped.slice(0, 10); // Limit to 10 items total
+
+    } catch (error) {
+        console.error('Error scraping Google News:', error);
+        return [];
+    }
+}
+
 export async function scrapeAllSources(): Promise<ScrapedNews[]> {
-    const [techCrunch, verge, wired, threads, hackerNews, reddit, arsTechnica] = await Promise.all([
+    const [techCrunch, verge, wired, threads, hackerNews, reddit, arsTechnica, googleNews] = await Promise.all([
         scrapeTechCrunch(),
         scrapeTheVerge(),
         scrapeWired(),
         scrapeThreads(),
         scrapeHackerNews(),
         scrapeRedditArtificial(),
-        scrapeArsTechnica()
+        scrapeArsTechnica(),
+        scrapeGoogleNews()
     ]);
 
-    return [...techCrunch, ...verge, ...wired, ...threads, ...hackerNews, ...reddit, ...arsTechnica];
+    return [...techCrunch, ...verge, ...wired, ...threads, ...hackerNews, ...reddit, ...arsTechnica, ...googleNews];
 }
+
