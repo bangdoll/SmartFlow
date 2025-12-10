@@ -64,6 +64,35 @@ export async function runScrapeSortAndSummary() {
                 } else {
                     results.push(data);
                     processedCount++;
+
+                    // 4. 自動發佈到社群媒體
+                    // 嘗試從中文摘要中提取 "關鍵影響"
+                    let takeaway = '';
+                    const match = summary.summary_zh.match(/💡\s*關鍵影響[：:]\s*(.*)/);
+                    if (match && match[1]) {
+                        takeaway = match[1].trim();
+                    }
+
+                    // 非同步執行，不阻塞主流程
+                    const { postToSocialMedia } = await import('@/lib/social');
+                    postToSocialMedia({
+                        title: data.title,
+                        takeaway: takeaway, // 如果沒抓到就是空字串
+                        url: data.original_url, // 或者指向我們網站的連結？通常指向原始新聞比較尊重來源，或指向我們網站增加流量? 
+                        // 使用者原本說 "連結"，通常指原始連結，但為了 Growth，應該指向我們網站？
+                        // 但目前網站沒有單一新聞頁面 (只有列表)，所以指向我們首頁 + hash? 或者直接原始連結?
+                        // 根據 User request: "文案範例... (連結)"
+                        // 為了導流，最好是指向我們網站。但我們網站目前沒有 news/:id 頁面。
+                        // 暫時先用原始連結，這是最安全的做法。
+                        // 或者： https://ai-smart-flow.vercel.app/?tag=AI (如果 tag 存在)
+
+                        // User request said: "這是擴大流量最快的方法" -> implies linking to OUR site.
+                        // But we don't have detail page.
+                        // Let's stick to original_url for now as it provides immediate value, 
+                        // OR if we want traffic, maybe "Read more: https://ai-smart-flow.vercel.app"
+                        // I will use original_url for credibility first.
+                        tags: summary.tags
+                    }).catch(e => console.error('Social post failed:', e));
                 }
             }
         } catch (e) {
