@@ -82,30 +82,37 @@ export async function scrapeTheVerge(): Promise<ScrapedNews[]> {
         const $ = cheerio.load(html);
         const newsItems: ScrapedNews[] = [];
 
-        // The Verge selector strategy (based on standard Chorus structure)
-        $('h2 a').each((_, element) => {
-            const link = $(element);
-            const title = link.text().trim();
-            const href = link.attr('href');
+        // The Verge - multiple selector strategies
+        const selectors = ['h2 a', 'h3 a', 'a[data-analytics-link="article"]', '.c-compact-river__entry a', '.c-entry-box--compact__title a'];
+        const seen = new Set<string>();
 
-            if (title && href) {
-                // Determine absolute URL
-                const url = href.startsWith('http') ? href : `https://www.theverge.com${href}`;
+        for (const selector of selectors) {
+            $(selector).each((_, element) => {
+                const link = $(element);
+                const title = link.text().trim();
+                const href = link.attr('href');
 
-                // Try to find datetime
-                // The Verge usually puts it in a time tag or next to author
-                const timeStr = link.closest('div').find('time').attr('datetime');
-                const publishedAt = timeStr ? new Date(timeStr).toISOString() : new Date().toISOString();
+                // Filter: must be a Verge article URL and have meaningful title
+                if (title && href && title.length > 10 &&
+                    (href.includes('theverge.com') || href.startsWith('/')) &&
+                    !seen.has(href)) {
 
-                newsItems.push({
-                    title,
-                    original_url: url,
-                    source: 'The Verge',
-                    published_at: publishedAt,
-                    content: title
-                });
-            }
-        });
+                    seen.add(href);
+                    const url = href.startsWith('http') ? href : `https://www.theverge.com${href}`;
+
+                    // Skip non-article URLs
+                    if (url.includes('/authors/') || url.includes('/about/') || url.includes('/contact')) return;
+
+                    newsItems.push({
+                        title,
+                        original_url: url,
+                        source: 'The Verge',
+                        published_at: new Date().toISOString(),
+                        content: title
+                    });
+                }
+            });
+        }
 
         console.log(`Found ${newsItems.length} items from The Verge.`);
         return newsItems;
@@ -132,29 +139,50 @@ export async function scrapeWired(): Promise<ScrapedNews[]> {
         const $ = cheerio.load(html);
         const newsItems: ScrapedNews[] = [];
 
-        // Wired selector strategy
-        // Usually in 'summary-item__content'
-        $('.summary-item__content').each((_, element) => {
-            const titleEl = $(element).find('h3, h2');
-            const linkEl = $(element).find('a.summary-item__hed-link');
+        // Wired - multiple selector strategies
+        const wiredSelectors = [
+            '.summary-item__content',
+            'a[class*="SummaryItem"]',
+            'article a',
+            'h2 a', 'h3 a'
+        ];
+        const seenWired = new Set<string>();
 
-            const title = titleEl.text().trim();
-            const href = linkEl.attr('href');
+        for (const selector of wiredSelectors) {
+            $(selector).each((_, element) => {
+                let title = '';
+                let href = '';
 
-            if (title && href) {
-                const url = href.startsWith('http') ? href : `https://www.wired.com${href}`;
-                // Wired usually uses specific formatting for time, simplified here to current time if missing
-                const publishedAt = new Date().toISOString();
+                if (selector.includes('content') || selector.includes('article')) {
+                    const titleEl = $(element).find('h3, h2, a');
+                    title = titleEl.first().text().trim();
+                    const linkEl = $(element).find('a').first();
+                    href = linkEl.attr('href') || '';
+                } else {
+                    const link = $(element);
+                    title = link.text().trim();
+                    href = link.attr('href') || '';
+                }
 
-                newsItems.push({
-                    title,
-                    original_url: url,
-                    source: 'Wired',
-                    published_at: publishedAt,
-                    content: title
-                });
-            }
-        });
+                if (title && href && title.length > 10 && !seenWired.has(href) &&
+                    (href.includes('wired.com') || href.startsWith('/'))) {
+
+                    seenWired.add(href);
+                    const url = href.startsWith('http') ? href : `https://www.wired.com${href}`;
+
+                    // Skip non-article URLs
+                    if (url.includes('/about/') || url.includes('/contact') || url.includes('/account')) return;
+
+                    newsItems.push({
+                        title,
+                        original_url: url,
+                        source: 'Wired',
+                        published_at: new Date().toISOString(),
+                        content: title
+                    });
+                }
+            });
+        }
 
         console.log(`Found ${newsItems.length} items from Wired.`);
         return newsItems;
