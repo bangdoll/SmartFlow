@@ -32,7 +32,7 @@ export async function runScrapeSortAndSummary() {
 
     // 3. 生成摘要並寫入 (限制數量以免超時)
     const results = [];
-    const MAX_PROCESS = 3; // 減少到 3 則以避免超時
+    const MAX_PROCESS = 5; // 每次處理 5 則新聞
     let processedCount = 0;
 
     for (const item of newItems) {
