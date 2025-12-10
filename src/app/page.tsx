@@ -3,8 +3,8 @@ import { SubscribeForm } from '@/components/subscribe-form';
 import { supabase } from '@/lib/supabase';
 import { NewsItem } from '@/types';
 
-// 設定 Revalidation 時間
-export const revalidate = 60;
+// 強制動態渲染，不使用快取
+export const dynamic = 'force-dynamic';
 
 import { HotNewsSection } from '@/components/hot-news';
 
