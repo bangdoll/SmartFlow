@@ -52,7 +52,7 @@ export default async function Home() {
           <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl md:text-6xl">
             <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 flex items-center gap-2">
               全球 AI 科技快報
-              <span className="text-xs px-2 py-1 bg-green-500 text-white rounded-full">v2.1</span>
+              <span className="text-xs px-2 py-1 bg-green-500 text-white rounded-full">v2.2</span>
             </h1>
             <span className="block text-2xl sm:text-3xl font-medium text-gray-600 dark:text-gray-400">
               洞察人工智慧的未來
