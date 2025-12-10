@@ -25,8 +25,14 @@ export async function generateSummary(title: string, content: string) {
       2. Provide a concise summary in English (max 500 words).
       3. Provide a concise summary in Traditional Chinese (繁體中文) (max 600 words).
       4. **CRITICAL**: At the end of the Traditional Chinese summary, add a double line break and append a section starting with "💡 關鍵影響：" followed by one insightful sentence explaining why this news is important for the AI industry or the future.
-      5. Extract 3-5 relevant tags.
-      6. The tone should be professional and objective, suitable for a tech newsletter.
+      5. **NEW**: After the "Key Takeaway", add a Markdown table analyzing the "Potential Benefits" (正面影響) vs "Challenges/Risks" (挑戰與風險).
+         Format:
+         | 正面影響 | 挑戰與風險 |
+         |----------|------------|
+         | Point 1  | Risk 1     |
+         | Point 2  | Risk 2     |
+      6. Extract 3-5 relevant tags.
+      7. The tone should be professional and objective, suitable for a tech newsletter.
     `;
 
         const { object } = await generateObject({
