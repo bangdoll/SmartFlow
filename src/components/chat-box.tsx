@@ -20,6 +20,7 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
     // We can use the 'body' property to send extra data
     const { messages, append, isLoading } = useChat({
         api: '/api/chat',
+        streamProtocol: 'text',
         body: {
             context: initialContext
         }
