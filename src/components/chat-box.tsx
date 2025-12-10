@@ -84,35 +84,25 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
                     <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
                         <p>👋 你好！我是您的 AI 導讀助手。</p>
                         <p className="mt-2">關於這篇新聞「{initialContext.title.slice(0, 10)}...」，有什麼想問的嗎？</p>
-                        <div className="mt-4 flex flex-wrap justify-center gap-2 relative z-10">
-                            <button
-                                type="button"
-                                onMouseDown={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    console.log('[ChatBox] Button 1 mousedown');
-                                    if (isLoading) return;
-                                    append({ role: 'user', content: "解釋這篇新聞的重點" });
-                                }}
-                                disabled={isLoading}
-                                className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:border-blue-400 active:bg-blue-200 transition-all disabled:opacity-50 cursor-pointer select-none"
+                        <div className="mt-4 flex flex-wrap justify-center gap-2">
+                            <span
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => setInput("解釋這篇新聞的重點")}
+                                onKeyDown={(e) => e.key === 'Enter' && setInput("解釋這篇新聞的重點")}
+                                className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:border-blue-400 cursor-pointer select-none"
                             >
                                 &quot;解釋這篇新聞的重點&quot;
-                            </button>
-                            <button
-                                type="button"
-                                onMouseDown={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    console.log('[ChatBox] Button 2 mousedown');
-                                    if (isLoading) return;
-                                    append({ role: 'user', content: "這會有什麼影響？" });
-                                }}
-                                disabled={isLoading}
-                                className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:border-blue-400 active:bg-blue-200 transition-all disabled:opacity-50 cursor-pointer select-none"
+                            </span>
+                            <span
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => setInput("這會有什麼影響？")}
+                                onKeyDown={(e) => e.key === 'Enter' && setInput("這會有什麼影響？")}
+                                className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:border-blue-400 cursor-pointer select-none"
                             >
                                 &quot;這會有什麼影響？&quot;
-                            </button>
+                            </span>
                         </div>
                     </div>
                 )}
