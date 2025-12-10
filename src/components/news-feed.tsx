@@ -1,7 +1,7 @@
 'use client';
 
 import { NewsItem } from '@/types';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { ExternalLink, Calendar, Tag, X } from 'lucide-react';
 import Link from 'next/link';
 
@@ -140,8 +140,8 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                     <button
                         onClick={() => setSortBy('latest')}
                         className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${sortBy === 'latest'
-                                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                            ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                             }`}
                     >
                         最新發布
@@ -149,8 +149,8 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                     <button
                         onClick={() => setSortBy('popular')}
                         className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${sortBy === 'popular'
-                                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                            ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                             }`}
                     >
                         🔥 熱門點擊
