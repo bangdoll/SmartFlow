@@ -30,9 +30,9 @@ export async function runScrapeSortAndSummary() {
 
     console.log(`Found ${newItems.length} new items to process.`);
 
-    // 3. 生成摘要並寫入 (限制數量以免超時，例如最多處理 5 則新新聞)
+    // 3. 生成摘要並寫入 (限制數量以免超時)
     const results = [];
-    const MAX_PROCESS = 5;
+    const MAX_PROCESS = 3; // 減少到 3 則以避免超時
     let processedCount = 0;
 
     for (const item of newItems) {

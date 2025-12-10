@@ -272,8 +272,7 @@ export async function scrapeThreads(): Promise<ScrapedNews[]> {
     return deduped.slice(0, 10); // Limit to 10 items
 }
 
-// Hacker News - Using official Firebase API
-// We search for AI-related stories from the front page and recent posts
+// Hacker News - Using official Firebase API with parallel requests
 export async function scrapeHackerNews(): Promise<ScrapedNews[]> {
     try {
         console.log('Fetching Hacker News top stories...');
@@ -286,42 +285,43 @@ export async function scrapeHackerNews(): Promise<ScrapedNews[]> {
         if (!topStoriesRes.ok) throw new Error('Failed to fetch HN top stories');
 
         const storyIds: number[] = await topStoriesRes.json();
-        const newsItems: ScrapedNews[] = [];
 
         // AI-related keywords to filter
         const aiKeywords = ['ai', 'artificial intelligence', 'machine learning', 'ml', 'llm', 'gpt', 'openai', 'claude', 'anthropic', 'gemini', 'chatgpt', 'neural', 'deep learning'];
 
-        // Fetch first 50 stories and filter for AI content
-        const storiesToCheck = storyIds.slice(0, 50);
+        // Fetch first 25 stories in parallel (reduced from 50)
+        const storiesToCheck = storyIds.slice(0, 25);
 
-        for (const id of storiesToCheck) {
+        const storyPromises = storiesToCheck.map(async (id) => {
             try {
                 const storyRes = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`);
-                if (!storyRes.ok) continue;
-
-                const story = await storyRes.json();
-
-                if (story && story.title && story.url) {
-                    const titleLower = story.title.toLowerCase();
-                    const isAI = aiKeywords.some(kw => titleLower.includes(kw));
-
-                    if (isAI) {
-                        newsItems.push({
-                            title: story.title,
-                            original_url: story.url,
-                            source: 'Hacker News',
-                            published_at: new Date(story.time * 1000).toISOString(),
-                            content: story.title
-                        });
-                    }
-                }
-
-                // Limit to 10 AI stories
-                if (newsItems.length >= 10) break;
-
+                if (!storyRes.ok) return null;
+                return await storyRes.json();
             } catch {
-                continue;
+                return null;
             }
+        });
+
+        const stories = await Promise.all(storyPromises);
+
+        const newsItems: ScrapedNews[] = [];
+        for (const story of stories) {
+            if (story && story.title && story.url) {
+                const titleLower = story.title.toLowerCase();
+                const isAI = aiKeywords.some(kw => titleLower.includes(kw));
+
+                if (isAI) {
+                    newsItems.push({
+                        title: story.title,
+                        original_url: story.url,
+                        source: 'Hacker News',
+                        published_at: new Date(story.time * 1000).toISOString(),
+                        content: story.title
+                    });
+                }
+            }
+            // Limit to 5 AI stories (reduced from 10)
+            if (newsItems.length >= 5) break;
         }
 
         console.log(`Found ${newsItems.length} AI items from Hacker News.`);
