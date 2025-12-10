@@ -30,12 +30,15 @@ export async function runScrapeSortAndSummary() {
 
     console.log(`Found ${newItems.length} new items to process.`);
 
+    // 打亂順序，確保不同來源的新聞都有機會被處理
+    const shuffledItems = newItems.sort(() => Math.random() - 0.5);
+
     // 3. 生成摘要並寫入 (限制數量以免超時)
     const results = [];
     const MAX_PROCESS = 5; // 每次處理 5 則新聞
     let processedCount = 0;
 
-    for (const item of newItems) {
+    for (const item of shuffledItems) {
         if (processedCount >= MAX_PROCESS) break;
 
         try {
