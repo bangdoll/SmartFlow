@@ -2,6 +2,7 @@ import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { supabase } from '@/lib/supabase';
 import { Zap, TrendingUp, Hash } from 'lucide-react';
+import Link from 'next/link';
 
 async function getTrends() {
     // 雖然有 API，但在 Server Component 直接呼叫 DB 更快且不需 fetch localhost
@@ -51,9 +52,10 @@ export default async function TrendsPage() {
 
                 <div className="grid gap-4">
                     {trends.map((item, index) => (
-                        <div
+                        <Link
                             key={item.tag}
-                            className="bg-white/70 dark:bg-gray-800/50 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-xl p-4 flex items-center justify-between hover:scale-[1.01] transition-all duration-300 group"
+                            href={`/archive?tag=${encodeURIComponent(item.tag)}`}
+                            className="bg-white/70 dark:bg-gray-800/50 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-xl p-4 flex items-center justify-between hover:scale-[1.02] hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-300 group cursor-pointer"
                         >
                             <div className="flex items-center gap-4">
                                 <div className={`w-8 h-8 flex items-center justify-center rounded-lg font-bold text-sm ${index < 3
@@ -74,7 +76,7 @@ export default async function TrendsPage() {
                                 </span>
                                 <span className="text-xs text-gray-500 dark:text-gray-400">則新聞</span>
                             </div>
-                        </div>
+                        </Link>
                     ))}
 
                     {trends.length === 0 && (
