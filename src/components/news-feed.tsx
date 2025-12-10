@@ -48,6 +48,47 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedTag, sortBy, initialItems]);
 
+    const loadMore = async (reset = false) => {
+        if (isLoading) return;
+        setIsLoading(true);
+
+        try {
+            const currentCount = reset ? 0 : displayItems.length;
+            const params = new URLSearchParams({
+                offset: currentCount.toString(),
+                limit: '10',
+            });
+
+            if (selectedTag) {
+                params.append('tag', selectedTag);
+            }
+            if (sortBy === 'popular') {
+                params.append('sort', 'popular');
+            }
+
+            const res = await fetch(`/api/news?${params.toString()}`);
+            if (!res.ok) throw new Error('Failed to load news');
+
+            const newItems: NewsItem[] = await res.json();
+
+            if (newItems.length < 10) {
+                setHasMore(false);
+            } else {
+                setHasMore(true);
+            }
+
+            if (reset) {
+                setLoadedItems(newItems);
+            } else {
+                setLoadedItems(prev => [...prev, ...newItems]);
+            }
+        } catch (error) {
+            console.error('Error loading news:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const handleTagClick = (tag: string) => {
         if (selectedTag !== tag) {
             setSelectedTag(tag);
