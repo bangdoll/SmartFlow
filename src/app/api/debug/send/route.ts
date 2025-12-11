@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
     }
 
     // 建構 Email 內容
-    const dateStr = new Date().toLocaleDateString('zh-TW', { month: 'long', day: 'numeric' });
+    const dateStr = new Date().toLocaleDateString('zh-TW', { month: 'long', day: 'numeric', timeZone: 'Asia/Taipei' });
     const emailSubject = `智流 Smart Flow - 全球科技快報 ${dateStr}`;
 
     const newsHtml = newsItems.map(item => `
@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
               <a href="${item.original_url}" style="color: #000; text-decoration: none;">${item.title}</a>
             </h2>
             <div style="font-size: 12px; color: #666; margin-bottom: 8px;">
-              ${item.source} • ${new Date(item.published_at).toLocaleDateString('zh-TW')}
+              ${item.source} • ${new Date(item.published_at).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' })}
             </div>
             <p style="font-size: 14px; color: #333; line-height: 1.6; margin: 0;">
               ${item.summary_zh || item.summary_en || '暫無摘要'}

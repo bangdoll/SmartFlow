@@ -65,7 +65,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                             const date = new Date(item.published_at).toLocaleDateString('zh-TW', {
                                 month: 'long',
                                 day: 'numeric',
-                                year: 'numeric'
+                                year: 'numeric',
+                                timeZone: 'Asia/Taipei',
                             });
                             return (
                                 <article

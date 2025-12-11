@@ -204,6 +204,7 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                                 day: 'numeric',
                                 hour: '2-digit',
                                 minute: '2-digit',
+                                timeZone: 'Asia/Taipei',
                             });
                             const isRead = item.id ? readItems.has(item.id) : false;
 
