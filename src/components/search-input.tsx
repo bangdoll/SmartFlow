@@ -58,7 +58,7 @@ export function SearchInput() {
     };
 
     return (
-        <div ref={containerRef} className={`relative flex items-center transition-all duration-300 ${isOpen ? 'w-28 sm:w-48 md:w-64' : 'w-8 sm:w-10'}`}>
+        <div ref={containerRef} className={`relative flex items-center transition-all duration-300 ${isOpen ? 'w-32 sm:w-48 md:w-64' : 'w-8 sm:w-10'}`}>
             {isOpen ? (
                 <form onSubmit={handleSearch} className="relative w-full">
                     <input
@@ -67,9 +67,9 @@ export function SearchInput() {
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         placeholder="搜尋..."
-                        className="w-full h-8 sm:h-10 pl-8 sm:pl-10 pr-6 sm:pr-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-full text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all shadow-sm"
+                        className="w-full h-8 sm:h-10 pl-7 sm:pl-10 pr-5 sm:pr-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-full text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all shadow-sm"
                     />
-                    <Search className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
+                    <Search className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
                     <button
                         type="button"
                         onClick={clearSearch}
