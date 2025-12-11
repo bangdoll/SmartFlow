@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { useChat } from '@ai-sdk/react';
-import { MessageCircle, X, Send, Bot, User, Minimize2 } from 'lucide-react';
+import { MessageCircle, Send, Bot, User, Minimize2 } from 'lucide-react';
 
 interface ChatBoxProps {
     initialContext: {
@@ -11,21 +10,18 @@ interface ChatBoxProps {
     };
 }
 
+interface Message {
+    id: string;
+    role: 'user' | 'assistant';
+    content: string;
+}
+
 export function ChatBox({ initialContext }: ChatBoxProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [input, setInput] = useState('');
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
-
-    // Pass context to the API with every request or just initializing logic
-    // We can use the 'body' property to send extra data
-    const { messages, append, isLoading } = useChat({
-        api: '/api/chat',
-        streamProtocol: 'text',
-        body: {
-            context: initialContext
-        }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any) as any;
 
     // Auto-scroll to bottom
     useEffect(() => {
@@ -34,16 +30,83 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
         }
     }, [messages, isOpen]);
 
+    const sendMessage = async (content: string) => {
+        if (!content.trim() || isLoading) return;
+
+        const userMessage: Message = {
+            id: Date.now().toString(),
+            role: 'user',
+            content: content.trim(),
+        };
+
+        setMessages(prev => [...prev, userMessage]);
+        setInput('');
+        setIsLoading(true);
+
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    messages: [...messages, userMessage].map(m => ({
+                        role: m.role,
+                        content: m.content,
+                    })),
+                    context: initialContext,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error('API request failed');
+            }
+
+            // Read the streaming response
+            const reader = response.body?.getReader();
+            const decoder = new TextDecoder();
+            let assistantContent = '';
+
+            const assistantMessage: Message = {
+                id: (Date.now() + 1).toString(),
+                role: 'assistant',
+                content: '',
+            };
+
+            setMessages(prev => [...prev, assistantMessage]);
+
+            if (reader) {
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value, { stream: true });
+                    assistantContent += chunk;
+
+                    // Update the assistant message with new content
+                    setMessages(prev =>
+                        prev.map(m =>
+                            m.id === assistantMessage.id
+                                ? { ...m, content: assistantContent }
+                                : m
+                        )
+                    );
+                }
+            }
+        } catch (error) {
+            console.error('Chat error:', error);
+            const errorMessage: Message = {
+                id: (Date.now() + 1).toString(),
+                role: 'assistant',
+                content: '抱歉，發生了錯誤。請稍後再試。',
+            };
+            setMessages(prev => [...prev, errorMessage]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!input.trim() || isLoading) return;
-
-        const userMessage = input;
-        setInput('');
-        await append({
-            role: 'user',
-            content: userMessage,
-        });
+        await sendMessage(input);
     };
 
     if (!isOpen) {
@@ -89,8 +152,8 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
                             <span
                                 role="button"
                                 tabIndex={0}
-                                onClick={() => setInput("解釋這篇新聞的重點")}
-                                onKeyDown={(e) => e.key === 'Enter' && setInput("解釋這篇新聞的重點")}
+                                onClick={() => sendMessage("解釋這篇新聞的重點")}
+                                onKeyDown={(e) => e.key === 'Enter' && sendMessage("解釋這篇新聞的重點")}
                                 className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:border-blue-400 cursor-pointer select-none"
                             >
                                 &quot;解釋這篇新聞的重點&quot;
@@ -98,8 +161,8 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
                             <span
                                 role="button"
                                 tabIndex={0}
-                                onClick={() => setInput("這會有什麼影響？")}
-                                onKeyDown={(e) => e.key === 'Enter' && setInput("這會有什麼影響？")}
+                                onClick={() => sendMessage("這會有什麼影響？")}
+                                onKeyDown={(e) => e.key === 'Enter' && sendMessage("這會有什麼影響？")}
                                 className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:border-blue-400 cursor-pointer select-none"
                             >
                                 &quot;這會有什麼影響？&quot;
@@ -108,12 +171,10 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
                     </div>
                 )}
 
-                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                {messages.map((m: any) => (
+                {messages.map((m) => (
                     <div
                         key={m.id}
-                        className={`flex items-start gap-3 ${m.role === 'user' ? 'flex-row-reverse' : ''
-                            }`}
+                        className={`flex items-start gap-3 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}
                     >
                         <div className={`w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-full ${m.role === 'user'
                             ? 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
@@ -121,17 +182,20 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
                             }`}>
                             {m.role === 'user' ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
                         </div>
-                        <div
-                            className={`flex flex-col max-w-[80%] ${m.role === 'user' ? 'items-end' : 'items-start'
-                                }`}
-                        >
+                        <div className={`flex flex-col max-w-[80%] ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
                             <div
                                 className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${m.role === 'user'
                                     ? 'bg-blue-600 text-white rounded-tr-none'
                                     : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700 rounded-tl-none shadow-sm'
                                     }`}
                             >
-                                {m.content}
+                                {m.content || (isLoading && m.role === 'assistant' ? (
+                                    <span className="flex items-center gap-1">
+                                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                                    </span>
+                                ) : '')}
                             </div>
                         </div>
                     </div>
