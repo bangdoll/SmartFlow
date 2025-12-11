@@ -186,9 +186,9 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
                         </div>
                         <div className={`flex flex-col max-w-[85%] sm:max-w-[80%] ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
                             <div
-                                className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl text-xs sm:text-sm leading-relaxed ${m.role === 'user'
-                                    ? 'bg-blue-600 text-white rounded-tr-none'
-                                    : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700 rounded-tl-none shadow-sm'
+                                className={`px-3 sm:px-4 py-2.5 sm:py-3 rounded-2xl text-[13px] sm:text-sm ${m.role === 'user'
+                                    ? 'bg-blue-600 text-white rounded-tr-none leading-relaxed'
+                                    : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700 rounded-tl-none shadow-sm leading-[1.7] tracking-wide break-words whitespace-pre-wrap'
                                     }`}
                             >
                                 {m.content || (isLoading && m.role === 'assistant' ? (
