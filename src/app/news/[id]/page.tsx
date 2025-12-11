@@ -147,7 +147,6 @@ export default async function NewsDetailPage({ params }: Props) {
                     summary: item.summary_zh || item.summary_en || ''
                 }}
             />
-            <Footer />
         </main>
     );
 }

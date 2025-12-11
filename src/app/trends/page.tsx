@@ -86,8 +86,6 @@ export default async function TrendsPage() {
                     )}
                 </div>
             </div>
-
-            <Footer />
         </main>
     );
 }

@@ -113,8 +113,6 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                     )}
                 </div>
             </div>
-
-            <Footer />
         </main>
     );
 }
