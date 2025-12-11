@@ -19,12 +19,13 @@ import { Calendar, ExternalLink, Tag } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
-export default async function SearchPage({
-    searchParams,
-}: {
-    searchParams: { q: string };
-}) {
-    const query = searchParams.q || '';
+interface SearchPageProps {
+    searchParams: Promise<{ q?: string }>;
+}
+
+export default async function SearchPage({ searchParams }: SearchPageProps) {
+    const params = await searchParams;
+    const query = params.q || '';
 
     // Simple search filtering using Supabase
     let items = [];
@@ -32,11 +33,14 @@ export default async function SearchPage({
         const { data, error } = await supabase
             .from('news_items')
             .select('*')
-            // Using 'or' with 'ilike' for multi-column search
-            .or(`title.ilike.%${query}%,summary_zh.ilike.%${query}%`)
+            // Using 'or' with 'ilike' for multi-column search (title, summary_zh, summary_en, tags)
+            .or(`title.ilike.%${query}%,summary_zh.ilike.%${query}%,summary_en.ilike.%${query}%`)
             .order('published_at', { ascending: false })
             .limit(20);
 
+        if (error) {
+            console.error('Search error:', error);
+        }
         if (data) items = data;
     }
 
