@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { MessageCircle, Send, Bot, User, Minimize2 } from 'lucide-react';
 import { useLanguage } from './language-context';
+import ReactMarkdown from 'react-markdown';
 
 interface ChatBoxProps {
     initialContext: {
@@ -191,13 +192,26 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
                                     : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700 rounded-tl-none shadow-sm leading-[1.7] tracking-wide break-words whitespace-pre-wrap'
                                     }`}
                             >
-                                {m.content || (isLoading && m.role === 'assistant' ? (
+                                {m.content ? (
+                                    m.role === 'assistant' ? (
+                                        <ReactMarkdown
+                                            components={{
+                                                p: ({ children }) => <span>{children}</span>,
+                                                strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                                            }}
+                                        >
+                                            {m.content}
+                                        </ReactMarkdown>
+                                    ) : (
+                                        m.content
+                                    )
+                                ) : (isLoading && m.role === 'assistant' ? (
                                     <span className="flex items-center gap-1">
                                         <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
                                         <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
                                         <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
                                     </span>
-                                ) : '')}
+                                ) : null)}
                             </div>
                         </div>
                     </div>
