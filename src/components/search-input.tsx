@@ -58,7 +58,7 @@ export function SearchInput() {
     };
 
     return (
-        <div ref={containerRef} className={`relative flex items-center transition-all duration-300 ${isOpen ? 'w-48 sm:w-64' : 'w-8 sm:w-10'}`}>
+        <div ref={containerRef} className={`relative flex items-center transition-all duration-300 ${isOpen ? 'w-28 sm:w-48 md:w-64' : 'w-8 sm:w-10'}`}>
             {isOpen ? (
                 <form onSubmit={handleSearch} className="relative w-full">
                     <input
