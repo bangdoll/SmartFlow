@@ -31,11 +31,11 @@ export function LanguageToggle() {
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-1.5 px-2 py-1.5 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                className="flex items-center gap-1 px-1.5 sm:px-2 py-1 sm:py-1.5 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                 aria-label="Select language"
             >
-                <Globe className="w-4 h-4" />
-                <span className="text-sm hidden sm:inline">{currentLang.flag}</span>
+                <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="text-xs sm:text-sm hidden sm:inline">{currentLang.flag}</span>
             </button>
 
             {isOpen && (
@@ -48,8 +48,8 @@ export function LanguageToggle() {
                                 setIsOpen(false);
                             }}
                             className={`w-full flex items-center gap-3 px-4 py-3 text-left text-sm transition-colors ${language === lang.code
-                                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                                ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
                                 }`}
                         >
                             <span className="text-lg">{lang.flag}</span>
