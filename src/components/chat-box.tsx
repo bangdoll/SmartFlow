@@ -124,9 +124,9 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
     }
 
     return (
-        <div className="fixed bottom-6 right-6 z-50 w-[90vw] sm:w-96 h-[500px] max-h-[80vh] flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 animate-in slide-in-from-bottom-10 fade-in">
+        <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-[85vw] sm:w-96 h-[450px] sm:h-[500px] max-h-[75vh] flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 animate-in slide-in-from-bottom-10 fade-in">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+            <div className="flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
                 <div className="flex items-center gap-2">
                     <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-sm">
                         <Bot className="w-5 h-5" />
@@ -176,7 +176,7 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
                 {messages.map((m) => (
                     <div
                         key={m.id}
-                        className={`flex items-start gap-3 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}
+                        className={`flex items-start gap-2 sm:gap-3 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}
                     >
                         <div className={`w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-full ${m.role === 'user'
                             ? 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
@@ -184,9 +184,9 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
                             }`}>
                             {m.role === 'user' ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
                         </div>
-                        <div className={`flex flex-col max-w-[80%] ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
+                        <div className={`flex flex-col max-w-[85%] sm:max-w-[80%] ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
                             <div
-                                className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${m.role === 'user'
+                                className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl text-xs sm:text-sm leading-relaxed ${m.role === 'user'
                                     ? 'bg-blue-600 text-white rounded-tr-none'
                                     : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700 rounded-tl-none shadow-sm'
                                     }`}
