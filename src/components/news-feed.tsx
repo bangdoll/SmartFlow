@@ -6,12 +6,14 @@ import { Calendar, Tag, ExternalLink, X, Share2 } from 'lucide-react';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useLanguage } from './language-context';
 
 interface NewsFeedProps {
     items: NewsItem[];
 }
 
 export function NewsFeed({ items: initialItems }: NewsFeedProps) {
+    const { t, language } = useLanguage();
     const [selectedTag, setSelectedTag] = useState<string | null>(null);
     const [loadedItems, setLoadedItems] = useState<NewsItem[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -165,7 +167,7 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                     </div>
                 ) : (
                     <div className="text-sm text-gray-500 dark:text-gray-400">
-                        顯示最新 AI 趨勢
+                        {t('home.showLatest')}
                     </div>
                 )}
 
@@ -178,7 +180,7 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                             : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                             }`}
                     >
-                        最新發布
+                        {t('home.sortLatest')}
                     </button>
                     <button
                         onClick={() => setSortBy('popular')}
@@ -187,7 +189,7 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                             : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                             }`}
                     >
-                        🔥 熱門點擊
+                        🔥 {t('home.sortPopular')}
                     </button>
                 </div>
             </div>
@@ -315,11 +317,11 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                                 disabled={isLoading}
                                 className="px-6 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                             >
-                                {isLoading ? '載入中...' : '載入更多新聞'}
+                                {isLoading ? t('home.loading') : t('home.loadMore')}
                             </button>
                         ) : (
                             <p className="text-gray-500 dark:text-gray-400 text-sm">
-                                已顯示所有新聞
+                                {t('home.noMore')}
                             </p>
                         )}
                     </div>

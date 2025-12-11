@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { MessageCircle, Send, Bot, User, Minimize2 } from 'lucide-react';
+import { useLanguage } from './language-context';
 
 interface ChatBoxProps {
     initialContext: {
@@ -17,6 +18,7 @@ interface Message {
 }
 
 export function ChatBox({ initialContext }: ChatBoxProps) {
+    const { t, language } = useLanguage();
     const [isOpen, setIsOpen] = useState(false);
     const [input, setInput] = useState('');
     const [messages, setMessages] = useState<Message[]>([]);
@@ -96,7 +98,7 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
             const errorMessage: Message = {
                 id: (Date.now() + 1).toString(),
                 role: 'assistant',
-                content: '抱歉，發生了錯誤。請稍後再試。',
+                content: t('chat.error'),
             };
             setMessages(prev => [...prev, errorMessage]);
         } finally {
@@ -116,7 +118,7 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
                 className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 animate-bounce-subtle"
             >
                 <MessageCircle className="w-6 h-6" />
-                <span className="font-semibold">AI 導讀</span>
+                <span className="font-semibold">{t('chat.button')}</span>
             </button>
         );
     }
@@ -130,8 +132,8 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
                         <Bot className="w-5 h-5" />
                     </div>
                     <div>
-                        <h3 className="font-bold text-sm">Smart Flow AI</h3>
-                        <p className="text-xs text-white/80">隨時為您解答</p>
+                        <h3 className="font-bold text-sm">{t('chat.title')}</h3>
+                        <p className="text-xs text-white/80">{t('chat.subtitle')}</p>
                     </div>
                 </div>
                 <button
@@ -146,26 +148,26 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
             <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-950/50">
                 {messages.length === 0 && (
                     <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
-                        <p>👋 你好！我是您的 AI 導讀助手。</p>
-                        <p className="mt-2">關於這篇新聞「{initialContext.title.slice(0, 10)}...」，有什麼想問的嗎？</p>
+                        <p>{t('chat.greeting')}</p>
+                        <p className="mt-2">{t('chat.askAbout')} 「{initialContext.title.slice(0, 10)}...」</p>
                         <div className="mt-4 flex flex-wrap justify-center gap-2">
                             <span
                                 role="button"
                                 tabIndex={0}
-                                onClick={() => sendMessage("解釋這篇新聞的重點")}
-                                onKeyDown={(e) => e.key === 'Enter' && sendMessage("解釋這篇新聞的重點")}
+                                onClick={() => sendMessage(language === 'en' ? "Explain the key points" : "解釋這篇新聞的重點")}
+                                onKeyDown={(e) => e.key === 'Enter' && sendMessage(language === 'en' ? "Explain the key points" : "解釋這篇新聞的重點")}
                                 className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:border-blue-400 cursor-pointer select-none"
                             >
-                                &quot;解釋這篇新聞的重點&quot;
+                                {t('chat.suggestExplain')}
                             </span>
                             <span
                                 role="button"
                                 tabIndex={0}
-                                onClick={() => sendMessage("這會有什麼影響？")}
-                                onKeyDown={(e) => e.key === 'Enter' && sendMessage("這會有什麼影響？")}
+                                onClick={() => sendMessage(language === 'en' ? "What are the implications?" : "這會有什麼影響？")}
+                                onKeyDown={(e) => e.key === 'Enter' && sendMessage(language === 'en' ? "What are the implications?" : "這會有什麼影響？")}
                                 className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:border-blue-400 cursor-pointer select-none"
                             >
-                                &quot;這會有什麼影響？&quot;
+                                {t('chat.suggestImpact')}
                             </span>
                         </div>
                     </div>
