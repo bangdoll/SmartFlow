@@ -441,16 +441,27 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                         })}
                     </div>
 
-                    {/* Load More Button */}
-                    <div className="mt-8 text-center">
-                        {hasMore ? (
-                            <button
-                                onClick={() => loadMore(false)}
-                                disabled={isLoading}
-                                className="px-6 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-                            >
-                                {isLoading ? t('home.loading') : t('home.loadMore')}
-                            </button>
+                    {/* Infinite Scroll Sentinel */}
+                    <div
+                        ref={(node) => {
+                            if (!node || isLoading || !hasMore) return;
+                            const observer = new IntersectionObserver((entries) => {
+                                if (entries[0].isIntersecting) {
+                                    loadMore(false);
+                                }
+                            }, { threshold: 0.1, rootMargin: '100px' });
+                            observer.observe(node);
+                            return () => observer.disconnect();
+                        }}
+                        className="mt-8 text-center py-8"
+                    >
+                        {isLoading ? (
+                            <div className="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400">
+                                <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                <span>{t('home.loading')}...</span>
+                            </div>
+                        ) : hasMore ? (
+                            <span className="text-gray-400 text-sm">滑動載入更多...</span>
                         ) : (
                             <p className="text-gray-500 dark:text-gray-400 text-sm">
                                 {t('home.noMore')}
