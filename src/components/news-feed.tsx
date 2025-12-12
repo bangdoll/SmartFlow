@@ -78,6 +78,16 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
         };
     }, [isPulling, startY, currentY, isRefreshing]);
 
+    // Toast State
+    const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' } | null>(null);
+
+    useEffect(() => {
+        if (toast) {
+            const timer = setTimeout(() => setToast(null), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [toast]);
+
     const handleRefresh = async () => {
         setIsRefreshing(true);
         try {
@@ -92,13 +102,17 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                     const uniqueNewItems = newItems.filter(i => !existingIds.has(i.id));
 
                     if (uniqueNewItems.length > 0) {
+                        setToast({ message: `已更新 ${uniqueNewItems.length} 則新聞！`, type: 'success' });
                         return [...uniqueNewItems, ...prev];
+                    } else {
+                        setToast({ message: '目前已是最新狀態', type: 'info' });
+                        return prev;
                     }
-                    return prev;
                 });
             }
         } catch (error) {
             console.error('Refresh failed:', error);
+            setToast({ message: '更新失敗，請稍後再試', type: 'info' });
         } finally {
             // Wait a bit to show the animation finish
             setTimeout(() => setIsRefreshing(false), 500);
@@ -257,6 +271,15 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                     <div className={`w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full ${isRefreshing ? 'animate-spin' : ''}`}
                         style={{ transform: !isRefreshing ? `rotate(${currentY * 3}deg)` : undefined }}
                     />
+                </div>
+            </div>
+
+            {/* Toast Notification */}
+            <div
+                className={`fixed top-24 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ${toast ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}
+            >
+                <div className={`px-4 py-2 rounded-full shadow-lg text-sm font-medium text-white ${toast?.type === 'success' ? 'bg-green-500' : 'bg-gray-800/90 backdrop-blur-md'}`}>
+                    {toast?.message}
                 </div>
             </div>
 
