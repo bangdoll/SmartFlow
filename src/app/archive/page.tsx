@@ -5,11 +5,16 @@ import { NewsItem } from '@/types';
 export const revalidate = 3600;
 
 async function getAllNews(): Promise<NewsItem[]> {
+    // 只顯示 24 小時之前的新聞（歷史）
+    const oneDayAgo = new Date();
+    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+
     const { data, error } = await supabase
         .from('news_items')
         .select('*')
+        .lt('published_at', oneDayAgo.toISOString()) // 只取 24 小時前的
         .order('published_at', { ascending: false })
-        .limit(100); // 限制顯示最近 100 則
+        .limit(100);
 
     if (error) {
         console.error('Error fetching news:', error);
