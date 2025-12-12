@@ -91,7 +91,24 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
     const handleRefresh = async () => {
         setIsRefreshing(true);
         try {
-            // Fetch latest 3 items
+            // 1. Try to trigger a manual scrape first
+            setToast({ message: '正在檢查最新新聞...', type: 'info' });
+
+            // Call the manual trigger endpoint
+            const triggerRes = await fetch('/api/cron/manual-trigger', { method: 'POST' });
+            const triggerData = await triggerRes.json();
+
+            // Even if rate limited (success: false), we proceed to fetch items 
+            // because there might be new items from other sources or just standard delay
+
+            if (triggerData.success) {
+                setToast({ message: '分析完成，正在獲取新聞...', type: 'info' });
+            } else {
+                // Rate limited or error, silent log
+                console.log('Manual trigger skipped:', triggerData.message);
+            }
+
+            // 2. Fetch latest 3 items from DB
             const res = await fetch('/api/news?limit=3&offset=0');
             if (res.ok) {
                 const newItems: NewsItem[] = await res.json();
@@ -105,7 +122,12 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                         setToast({ message: `已更新 ${uniqueNewItems.length} 則新聞！`, type: 'success' });
                         return [...uniqueNewItems, ...prev];
                     } else {
-                        setToast({ message: '目前已是最新狀態', type: 'info' });
+                        // If we just ran a scraper and found nothing new
+                        if (triggerData.success) {
+                            setToast({ message: '目前沒有新新聞', type: 'info' });
+                        } else {
+                            setToast({ message: '目前已是最新狀態', type: 'info' });
+                        }
                         return prev;
                     }
                 });
