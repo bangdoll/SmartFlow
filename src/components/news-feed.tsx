@@ -15,48 +15,140 @@ interface NewsFeedProps {
 export function NewsFeed({ items: initialItems }: NewsFeedProps) {
     const { t, language } = useLanguage();
     const [selectedTag, setSelectedTag] = useState<string | null>(null);
+
+    // Store all items in state to allow prepending new ones on refresh
+    const [feedItems, setFeedItems] = useState<NewsItem[]>(initialItems);
+
     const [loadedItems, setLoadedItems] = useState<NewsItem[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const [sortBy, setSortBy] = useState<'latest' | 'popular'>('latest');
 
-    // Filter initial items based on tag
-    const filteredInitialItems = useMemo(() => {
-        // 如果是按熱門排序，我們忽略 initialItems (因為它是 SSR 的最新新聞)，
-        // 而是完全依賴客戶端載入 (因為 initialItems 沒有按熱門排序)
-        // 這裡做一個簡單處理：如果是 popular，我們不使用 initialItems，除非它剛好也是 popular (但後端是按時間取)
-        // 為了簡單起見，切換到 popular 時，我們完全依賴 fetch
-        if (sortBy === 'popular') return [];
+    // Pull to Refresh State
+    const [isPulling, setIsPulling] = useState(false);
+    const [startY, setStartY] = useState(0);
+    const [currentY, setCurrentY] = useState(0);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const pullThreshold = 100; // Pixels to pull to trigger refresh
 
-        if (!selectedTag) return initialItems;
+    useEffect(() => {
+        setFeedItems(initialItems);
+    }, [initialItems]);
+
+    // Touch Event Handlers for Pull to Refresh
+    useEffect(() => {
+        const handleTouchStart = (e: TouchEvent) => {
+            if (window.scrollY === 0) {
+                setStartY(e.touches[0].clientY);
+                setIsPulling(true);
+            }
+        };
+
+        const handleTouchMove = (e: TouchEvent) => {
+            if (!isPulling) return;
+            const y = e.touches[0].clientY;
+            const diff = y - startY;
+            if (diff > 0 && window.scrollY === 0) {
+                // Prevent default pull-to-refresh on some browsers if we want custom
+                // e.preventDefault(); // Optional: might block scrolling if not careful
+                setCurrentY(diff);
+            } else {
+                setIsPulling(false);
+                setCurrentY(0);
+            }
+        };
+
+        const handleTouchEnd = async () => {
+            if (isPulling && currentY > pullThreshold && !isRefreshing) {
+                await handleRefresh();
+            }
+            setIsPulling(false);
+            setCurrentY(0);
+        };
+
+        // Only attach if on mobile/touch device
+        document.addEventListener('touchstart', handleTouchStart);
+        document.addEventListener('touchmove', handleTouchMove);
+        document.addEventListener('touchend', handleTouchEnd);
+
+        return () => {
+            document.removeEventListener('touchstart', handleTouchStart);
+            document.removeEventListener('touchmove', handleTouchMove);
+            document.removeEventListener('touchend', handleTouchEnd);
+        };
+    }, [isPulling, startY, currentY, isRefreshing]);
+
+    const handleRefresh = async () => {
+        setIsRefreshing(true);
+        try {
+            // Fetch latest 3 items
+            const res = await fetch('/api/news?limit=3&offset=0');
+            if (res.ok) {
+                const newItems: NewsItem[] = await res.json();
+
+                setFeedItems(prev => {
+                    // Filter out duplicates based on ID
+                    const existingIds = new Set(prev.map(i => i.id));
+                    const uniqueNewItems = newItems.filter(i => !existingIds.has(i.id));
+
+                    if (uniqueNewItems.length > 0) {
+                        return [...uniqueNewItems, ...prev];
+                    }
+                    return prev;
+                });
+            }
+        } catch (error) {
+            console.error('Refresh failed:', error);
+        } finally {
+            // Wait a bit to show the animation finish
+            setTimeout(() => setIsRefreshing(false), 500);
+        }
+    };
+
+    // Filter logic
+    const displayItems = useMemo(() => {
+        let baseItems = sortBy === 'popular' ? [] : feedItems;
+
+        // If sorting by popular, we rely on loadMore to fetch popular items.
+        // If sorting by latest, we use feedItems (which includes initial + refreshed) + loadedItems (from loadMore)
+
+        let combined = [...baseItems, ...loadedItems];
+
+        // Deduplicate just in case
+        const seen = new Set();
+        combined = combined.filter(item => {
+            const dup = seen.has(item.id);
+            seen.add(item.id);
+            return !dup;
+        });
+
+        if (sortBy === 'popular') return combined; // Popular items are handled by loadedItems mostly
+
+        if (!selectedTag) return combined;
+
         const normalizedTag = selectedTag.trim().toLowerCase();
-        return initialItems.filter(item =>
+        return combined.filter(item =>
             item.tags?.some(t => t.trim().toLowerCase() === normalizedTag)
         );
-    }, [initialItems, selectedTag, sortBy]);
-
-    // Combine initial filtered items with loaded items
-    const displayItems = useMemo(() => {
-        return [...filteredInitialItems, ...loadedItems];
-    }, [filteredInitialItems, loadedItems]);
+    }, [feedItems, loadedItems, selectedTag, sortBy]);
 
     // Reset loaded items when tag or sort changes
     useEffect(() => {
         setLoadedItems([]);
         setHasMore(true);
         // 如果切換到 popular，或者切換了 tag，我們需要重新載入
-        // 因為 initialItems 只包含最新的，所以切換到 popular 時需要立即觸發載入
         if (sortBy === 'popular' || (selectedTag && loadedItems.length === 0)) {
             loadMore(true); // reset=true
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedTag, sortBy, initialItems]);
+    }, [selectedTag, sortBy]); // Removed initialItems from dep to avoid loop
 
     const loadMore = async (reset = false) => {
         if (isLoading) return;
         setIsLoading(true);
 
         try {
+            // If we have refreshed items (prepended), the offset calculation changes.
+            // But easiest way is just rely on list length.
             const currentCount = reset ? 0 : displayItems.length;
             const params = new URLSearchParams({
                 offset: currentCount.toString(),
@@ -84,6 +176,7 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
             if (reset) {
                 setLoadedItems(newItems);
             } else {
+                // We need to be careful not to add duplicates if they are already in feedItems
                 setLoadedItems(prev => [...prev, ...newItems]);
             }
         } catch (error) {
@@ -151,7 +244,22 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 relative">
+            {/* Pull to Refresh Indicator */}
+            <div
+                className="fixed top-20 left-1/2 -translate-x-1/2 z-40 transition-all duration-300 pointer-events-none"
+                style={{
+                    opacity: (currentY > 0 || isRefreshing) ? 1 : 0,
+                    transform: `translateX(-50%) translateY(${isRefreshing ? 20 : Math.min(currentY * 0.5, 50)}px)`
+                }}
+            >
+                <div className="bg-white dark:bg-gray-800 text-blue-600 rounded-full p-2 shadow-lg border border-gray-100 dark:border-gray-700">
+                    <div className={`w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full ${isRefreshing ? 'animate-spin' : ''}`}
+                        style={{ transform: !isRefreshing ? `rotate(${currentY * 3}deg)` : undefined }}
+                    />
+                </div>
+            </div>
+
             {/* 控制列：篩選與排序 */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 {selectedTag ? (
