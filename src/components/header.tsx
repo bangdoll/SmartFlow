@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Suspense } from 'react';
-import { Sparkles } from 'lucide-react';
+import { Waves } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { SearchInput } from '@/components/search-input';
 import { LanguageToggle } from '@/components/language-toggle';
@@ -17,7 +17,7 @@ export function Header() {
                 {/* Logo - simplified on mobile */}
                 <Link href="/" className="flex items-center gap-1.5 sm:gap-2 group flex-shrink-0">
                     <div className="bg-black dark:bg-white text-white dark:text-black p-1 sm:p-1.5 rounded-lg group-hover:scale-105 transition-transform duration-300">
-                        <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <Waves className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
                     <h1 className="text-base sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 whitespace-nowrap">
                         智流 <span className="text-blue-600 dark:text-blue-400">Smart Flow</span>
