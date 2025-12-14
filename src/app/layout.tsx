@@ -31,6 +31,10 @@ export const metadata: Metadata = {
   }
 };
 
+import { GoogleAnalytics } from '@next/third-parties/google';
+
+// ... (existing imports)
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -55,6 +59,9 @@ export default function RootLayout({
             </div>
           </LanguageProvider>
         </ThemeProvider>
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+        )}
       </body>
     </html>
   );
