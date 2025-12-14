@@ -112,11 +112,7 @@ export default async function NewsDetailPage({ params }: Props) {
                         </span>
                     </div>
 
-                    import {AudioPlayer} from '@/components/audio-player';
 
-                    // ... imports remain ...
-
-                    // ... inside the component ...
                     <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight">
                         {item.title}
                     </h1>
