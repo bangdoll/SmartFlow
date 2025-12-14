@@ -212,8 +212,11 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
                                     m.role === 'assistant' ? (
                                         <ReactMarkdown
                                             components={{
-                                                p: ({ children }) => <span>{children}</span>,
+                                                p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
                                                 strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                                                ul: ({ children }) => <ul className="list-disc pl-4 mb-2 last:mb-0">{children}</ul>,
+                                                ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 last:mb-0">{children}</ol>,
+                                                li: ({ children }) => <li className="mb-1 last:mb-0">{children}</li>,
                                             }}
                                         >
                                             {m.content}
