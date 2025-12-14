@@ -267,7 +267,7 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
 
     const handleShare = (item: NewsItem, platform: 'copy' | 'twitter' | 'facebook') => {
         const shareUrl = `${window.location.origin}/news/${item.slug || item.id}`;
-        const text = `[新趨勢] ${item.title}\n💡 ${item.summary_zh?.slice(0, 50)}...`;
+        const text = `[新趨勢] ${item.title}`;
 
         if (platform === 'copy') {
             navigator.clipboard.writeText(shareUrl);
