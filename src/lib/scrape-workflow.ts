@@ -1,6 +1,7 @@
 import { scrapeAllSources } from '@/lib/scraper';
 import { generateSummary } from '@/lib/llm';
 import { supabase } from '@/lib/supabase';
+import { nanoid } from 'nanoid';
 
 export async function runScrapeSortAndSummary() {
     console.log('Starting daily scrape job (integrated)...');
@@ -55,6 +56,7 @@ export async function runScrapeSortAndSummary() {
                         summary_en: summary.summary_en,
                         summary_zh: summary.summary_zh,
                         tags: summary.tags,
+                        slug: nanoid(8),
                     })
                     .select()
                     .single();

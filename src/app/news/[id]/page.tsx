@@ -16,13 +16,21 @@ interface Props {
     params: Promise<{ id: string }>;
 }
 
-async function getNewsItem(id: string) {
-    const { data: item } = await supabase
-        .from('news_items')
-        .select('*')
-        .eq('id', id)
-        .single();
+async function getNewsItem(idOrSlug: string) {
+    // Check if it's a UUID
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug);
 
+    const query = supabase
+        .from('news_items')
+        .select('*');
+
+    if (isUuid) {
+        query.eq('id', idOrSlug);
+    } else {
+        query.eq('slug', idOrSlug);
+    }
+
+    const { data: item } = await query.single();
     return item;
 }
 

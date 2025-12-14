@@ -266,7 +266,7 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
     };
 
     const handleShare = (item: NewsItem, platform: 'copy' | 'twitter' | 'facebook') => {
-        const shareUrl = `${window.location.origin}/news/${item.id}`;
+        const shareUrl = `${window.location.origin}/news/${item.slug || item.id}`;
         const text = `[新趨勢] ${item.title}\n💡 ${item.summary_zh?.slice(0, 50)}...`;
 
         if (platform === 'copy') {
@@ -402,7 +402,7 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                                     </h2>
 
                                     {item.summary_zh && (
-                                        <Link href={`/news/${item.id}`} className="block group/summary">
+                                        <Link href={`/news/${item.slug || item.id}`} className="block group/summary">
                                             <div className={`text-gray-600 dark:text-gray-300 mb-4 leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-table:border-collapse prose-th:bg-blue-50 dark:prose-th:bg-blue-900/30 prose-th:p-2 prose-td:p-2 prose-th:text-left prose-table:w-full prose-table:text-sm ${isRead ? 'text-gray-500 dark:text-gray-500' : ''} group-hover/summary:text-blue-600 dark:group-hover/summary:text-blue-400 transition-colors`}>
                                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{item.summary_zh}</ReactMarkdown>
                                             </div>
@@ -430,7 +430,7 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                                         {/* Share Buttons & Actions */}
                                         <div className="flex items-center gap-3">
                                             <Link
-                                                href={`/news/${item.id}`}
+                                                href={`/news/${item.slug || item.id}`}
                                                 className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-xs font-medium hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
                                             >
                                                 <span className="text-lg">🤖</span>
