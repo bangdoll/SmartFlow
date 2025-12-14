@@ -148,7 +148,7 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
             {/* Messages */}
             <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-950/50">
                 {messages.length === 0 && (
-                    <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-base sm:text-lg">
                         <p>{t('chat.greeting')}</p>
                         <p className="mt-2">{t('chat.askAbout')} 「{initialContext.title.slice(0, 10)}...」</p>
                         <div className="mt-4 flex flex-wrap justify-center gap-2">
@@ -157,7 +157,7 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
                                 tabIndex={0}
                                 onClick={() => sendMessage(language === 'en' ? "Explain the key points" : "解釋這篇新聞的重點")}
                                 onKeyDown={(e) => e.key === 'Enter' && sendMessage(language === 'en' ? "Explain the key points" : "解釋這篇新聞的重點")}
-                                className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:border-blue-400 cursor-pointer select-none"
+                                className="text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:border-blue-400 cursor-pointer select-none"
                             >
                                 {t('chat.suggestExplain')}
                             </span>
@@ -166,7 +166,7 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
                                 tabIndex={0}
                                 onClick={() => sendMessage(language === 'en' ? "What are the implications?" : "這會有什麼影響？")}
                                 onKeyDown={(e) => e.key === 'Enter' && sendMessage(language === 'en' ? "What are the implications?" : "這會有什麼影響？")}
-                                className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:border-blue-400 cursor-pointer select-none"
+                                className="text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:border-blue-400 cursor-pointer select-none"
                             >
                                 {t('chat.suggestImpact')}
                             </span>
@@ -187,7 +187,7 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
                         </div>
                         <div className={`flex flex-col max-w-[85%] sm:max-w-[80%] ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
                             <div
-                                className={`px-3 sm:px-4 py-2.5 sm:py-3 rounded-2xl text-[13px] sm:text-sm ${m.role === 'user'
+                                className={`px-3 sm:px-4 py-2.5 sm:py-3 rounded-2xl text-base sm:text-lg ${m.role === 'user'
                                     ? 'bg-blue-600 text-white rounded-tr-none leading-relaxed'
                                     : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700 rounded-tl-none shadow-sm leading-[1.7] tracking-wide break-words whitespace-pre-wrap'
                                     }`}
@@ -222,7 +222,7 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
             <form onSubmit={handleSubmit} className="p-3 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
                 <div className="relative flex items-center">
                     <input
-                        className="w-full pl-4 pr-12 py-3 bg-gray-100 dark:bg-gray-800 border-transparent focus:bg-white dark:focus:bg-black border focus:border-blue-500 rounded-xl text-sm focus:outline-none transition-all"
+                        className="w-full pl-4 pr-12 py-3 bg-gray-100 dark:bg-gray-800 border-transparent focus:bg-white dark:focus:bg-black border focus:border-blue-500 rounded-xl text-base focus:outline-none transition-all"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         placeholder="輸入您的問題..."
