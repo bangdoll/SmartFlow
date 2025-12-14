@@ -8,6 +8,7 @@ import { Share2, ArrowLeft, Calendar, ExternalLink, Clock, Tag } from 'lucide-re
 import { ChatBox } from '@/components/chat-box';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { AudioPlayer } from '@/components/audio-player';
 
 // 強制動態渲染，確保獲取最新數據
 export const dynamic = 'force-dynamic';
@@ -111,9 +112,17 @@ export default async function NewsDetailPage({ params }: Props) {
                         </span>
                     </div>
 
+                    import {AudioPlayer} from '@/components/audio-player';
+
+                    // ... imports remain ...
+
+                    // ... inside the component ...
                     <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight">
                         {item.title}
                     </h1>
+
+                    <AudioPlayer newsId={item.id} initialAudioUrl={item.audio_url} title={item.title} />
+
 
                     <div className="prose prose-lg dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 mb-8 prose-table:border-collapse prose-table:w-full prose-th:bg-blue-50 dark:prose-th:bg-blue-900/30 prose-th:p-3 prose-td:p-3 prose-th:text-left prose-td:border prose-td:border-gray-200 dark:prose-td:border-gray-700 prose-th:border prose-th:border-gray-200 dark:prose-th:border-gray-700">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{item.summary_zh || item.summary_en || ''}</ReactMarkdown>
