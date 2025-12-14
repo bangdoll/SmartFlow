@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { MessageCircle, Send, Bot, User, Minimize2 } from 'lucide-react';
+import { MessageCircle, Send, Bot, User, Minimize2, Trash2 } from 'lucide-react';
 import { useLanguage } from './language-context';
 import ReactMarkdown from 'react-markdown';
 
@@ -32,6 +32,11 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
     }, [messages, isOpen]);
+
+    const clearMessages = () => {
+        setMessages([]);
+        setInput('');
+    };
 
     const sendMessage = async (content: string) => {
         if (!content.trim() || isLoading) return;
@@ -133,16 +138,27 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
                         <Bot className="w-5 h-5" />
                     </div>
                     <div>
-                        <h3 className="font-bold text-sm">{t('chat.title')}</h3>
-                        <p className="text-xs text-white/80">{t('chat.subtitle')}</p>
+                        <h3 className="font-bold text-base">{t('chat.title')}</h3>
+                        <p className="text-sm text-white/80">{t('chat.subtitle')}</p>
                     </div>
                 </div>
-                <button
-                    onClick={() => setIsOpen(false)}
-                    className="p-1 hover:bg-white/20 rounded-full transition-colors"
-                >
-                    <Minimize2 className="w-5 h-5" />
-                </button>
+                <div className="flex items-center gap-1">
+                    {messages.length > 0 && (
+                        <button
+                            onClick={clearMessages}
+                            className="p-1.5 hover:bg-white/20 rounded-full transition-colors text-white/90 hover:text-white"
+                            title={language === 'en' ? 'Clear chat' : '清除對話'}
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </button>
+                    )}
+                    <button
+                        onClick={() => setIsOpen(false)}
+                        className="p-1 hover:bg-white/20 rounded-full transition-colors"
+                    >
+                        <Minimize2 className="w-5 h-5" />
+                    </button>
+                </div>
             </div>
 
             {/* Messages */}
