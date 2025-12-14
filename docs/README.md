@@ -4,7 +4,10 @@
 
 ## 功能特色
 
-- **自動爬蟲與分析**: 每日定時抓取 TechCrunch 等來源，使用 GPT-4o 生成中英文摘要與「正面影響 vs 挑戰風險」分析。
+- **自動爬蟲與分析**: 每日定時抓取以下權威來源，並使用 GPT-4o 生成分析：
+  - **Tech Media**: TechCrunch, Ars Technica, MIT Technology Review
+  - **Social / Community**: Hacker News, Reddit (r/artificial)
+  - **Aggregator**: Google News (AI & Tech keywords)
 - **AI 導讀助手 (Chat)**: 每則新聞內建互動式 AI 聊天機器人，可深入詢問新聞細節與背景。
 - **AI 語音導讀 (Audio)**: 整合 OpenAI TTS，一鍵朗讀新聞標題與摘要，支援語音快取以節省成本。
 - **行動版體驗優化**:
