@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { NewsItem } from '@/types';
 import { WelcomeSection } from '@/components/welcome-section';
 import { HotNewsSection } from '@/components/hot-news';
+import { PinnedGuideCard } from '@/components/pinned-guide-card';
 
 // 強制動態渲染，不使用快取
 export const dynamic = 'force-dynamic';
@@ -42,6 +43,9 @@ export default async function Home() {
       <div className="relative max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8 pt-8">
         {/* Welcome Section for Newbies/Elderly */}
         <WelcomeSection />
+
+        {/* Pinned User Guide Card - 置頂教學 */}
+        <PinnedGuideCard />
 
         {/* Hot News Section */}
         <HotNewsSection items={hotItems} />
