@@ -44,38 +44,38 @@ export function SubscribeForm() {
                 </div>
             </div>
 
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">訂閱每日 AI 趨勢電子報</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
-                每天早上 8 點，將最新的 AI 新聞摘要直接寄送到您的信箱。
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">不想每天自己來看？</h3>
+            <p className="text-lg text-gray-600 dark:text-gray-400 mb-6 font-medium">
+                留下 Email，我們<strong>每天早上幫你整理一封重點摘要</strong>。
             </p>
 
             <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
                 <input
                     type="email"
                     required
-                    placeholder="您的 Email 地址"
+                    placeholder="請輸入您的 Email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={status === 'loading' || status === 'success'}
-                    className="flex-grow px-4 py-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 dark:disabled:bg-gray-900"
+                    className="flex-grow px-4 py-3 text-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 dark:disabled:bg-gray-900"
                 />
                 <button
                     type="submit"
                     disabled={status === 'loading' || status === 'success'}
-                    className="bg-black dark:bg-white text-white dark:text-black px-6 py-2 rounded-md font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 min-w-[120px]"
+                    className="bg-blue-600 dark:bg-blue-500 text-white px-6 py-3 rounded-lg font-bold text-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 min-w-[140px] shadow-lg shadow-blue-500/20"
                 >
                     {status === 'loading' ? (
                         <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <Loader2 className="w-5 h-5 animate-spin" />
                             處理中
                         </>
                     ) : status === 'success' ? (
                         <>
-                            <CheckCircle className="w-4 h-4" />
-                            已訂閱
+                            <CheckCircle className="w-5 h-5" />
+                            已完成
                         </>
                     ) : (
-                        '訂閱'
+                        '免費寄給我'
                     )}
                 </button>
             </form>
