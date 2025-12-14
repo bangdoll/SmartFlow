@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { Share2, ArrowLeft, Calendar, ExternalLink, Clock, Tag } from 'lucide-react';
+import { Share2, ArrowLeft, Calendar, ExternalLink, Clock, Tag, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ChatBox } from '@/components/chat-box';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -33,6 +33,33 @@ async function getNewsItem(idOrSlug: string) {
 
     const { data: item } = await query.single();
     return item;
+}
+
+async function getAdjacentNews(currentDate: string) {
+    const [prev, next] = await Promise.all([
+        // Previous news (older)
+        supabase
+            .from('news_items')
+            .select('id, slug, title')
+            .lt('published_at', currentDate)
+            .order('published_at', { ascending: false })
+            .limit(1)
+            .single(),
+
+        // Next news (newer)
+        supabase
+            .from('news_items')
+            .select('id, slug, title')
+            .gt('published_at', currentDate)
+            .order('published_at', { ascending: true })
+            .limit(1)
+            .single()
+    ]);
+
+    return {
+        prev: prev.data,
+        next: next.data
+    };
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -80,6 +107,10 @@ export default async function NewsDetailPage({ params }: Props) {
     if (!item) {
         notFound();
     }
+
+
+    // Fetch adjacent news
+    const { prev, next } = await getAdjacentNews(item.published_at);
 
     const date = new Date(item.published_at).toLocaleDateString('zh-TW', {
         year: 'numeric',
@@ -138,18 +169,58 @@ export default async function NewsDetailPage({ params }: Props) {
                         </div>
                     )}
 
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-gray-100 dark:border-gray-800">
-                        <Link
-                            href={item.original_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20"
-                        >
-                            閱讀原文
-                            <ExternalLink className="w-4 h-4" />
-                        </Link>
+                    {/* Navigation Actions */}
+                    <div className="flex flex-col gap-6 pt-8 border-t border-gray-100 dark:border-gray-800">
 
-                        {/* 這裡未來也可以放分享按鈕，但目前已有瀏覽器原生分享或 Header 條 */}
+                        {/* 1. Read Original (Center - Primary Action) */}
+                        <div className="flex justify-center">
+                            <Link
+                                href={item.original_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20 text-lg group"
+                            >
+                                閱讀原文
+                                <ExternalLink className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                            </Link>
+                        </div>
+
+                        {/* 2. Previous / Next Navigation */}
+                        <div className="grid grid-cols-2 gap-4 mt-2">
+                            {prev ? (
+                                <Link
+                                    href={`/news/${prev.slug || prev.id}`}
+                                    className="flex flex-col items-start p-4 rounded-xl border border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group text-left"
+                                >
+                                    <span className="flex items-center gap-1 text-xs font-medium text-gray-400 mb-1 group-hover:text-blue-500 transition-colors">
+                                        <ChevronLeft className="w-3 h-3" />
+                                        上一則
+                                    </span>
+                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-200 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                        {prev.title}
+                                    </span>
+                                </Link>
+                            ) : (
+                                <div /> /* Empty placeholder */
+                            )}
+
+                            {next ? (
+                                <Link
+                                    href={`/news/${next.slug || next.id}`}
+                                    className="flex flex-col items-end p-4 rounded-xl border border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group text-right"
+                                >
+                                    <span className="flex items-center gap-1 text-xs font-medium text-gray-400 mb-1 group-hover:text-blue-500 transition-colors">
+                                        下一則
+                                        <ChevronRight className="w-3 h-3" />
+                                    </span>
+                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-200 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                        {next.title}
+                                    </span>
+                                </Link>
+                            ) : (
+                                <div /> /* Empty placeholder */
+                            )}
+                        </div>
                     </div>
                 </article>
             </div>
