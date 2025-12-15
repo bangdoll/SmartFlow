@@ -98,7 +98,7 @@ export default async function TrendsPage() {
                 </div>
 
                 {/* 1. Weekly Core Message */}
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-8 mb-12 shadow-xl text-white relative overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-6 md:p-8 mb-8 md:mb-12 shadow-xl text-white relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-16 translate-x-16" />
                     <div className="relative z-10">
                         <div className="flex items-center gap-2 mb-3 text-blue-100 font-bold tracking-wider text-sm uppercase">
@@ -117,7 +117,7 @@ export default async function TrendsPage() {
                 </div>
 
                 {/* 2. Keyword Trends with Interpretation */}
-                <div className="grid gap-6 mb-16">
+                <div className="grid gap-4 md:gap-6 mb-12 md:mb-16">
                     <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2 flex items-center gap-2">
                         <Hash className="w-5 h-5 text-gray-500" />
                         本週關鍵趨勢解讀
@@ -126,7 +126,7 @@ export default async function TrendsPage() {
                         <Link
                             key={item.tag}
                             href={`/archive?tag=${encodeURIComponent(item.tag)}`}
-                            className="bg-white/70 dark:bg-gray-800/50 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-xl p-6 flex flex-col gap-4 hover:scale-[1.01] hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-300 group cursor-pointer relative overflow-hidden"
+                            className="bg-white/70 dark:bg-gray-800/50 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-xl p-5 md:p-6 flex flex-col gap-4 hover:scale-[1.01] hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-300 group cursor-pointer relative overflow-hidden"
                         >
                             <div className="absolute top-0 right-0 p-4 opacity-10 font-black text-6xl text-gray-400 pointer-events-none">
                                 {index + 1}
@@ -171,12 +171,12 @@ export default async function TrendsPage() {
                 </div>
 
                 {/* 3. Persona Advice Section */}
-                <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl p-8 border border-gray-200 dark:border-gray-800 mb-12">
+                <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl p-6 md:p-8 border border-gray-200 dark:border-gray-800 mb-12">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 text-center">
                         🎯 如果你是不同角色，這週該關注什麼？
                     </h2>
                     <div className="grid md:grid-cols-3 gap-6">
-                        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                        <div className="bg-white dark:bg-gray-800 p-5 md:p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
                             <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
                                 👤 一般使用者
                             </h3>
@@ -184,7 +184,7 @@ export default async function TrendsPage() {
                                 👉 留意 AI 出錯、隱私與「無法關閉」的產品整合案例
                             </p>
                         </div>
-                        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                        <div className="bg-white dark:bg-gray-800 p-5 md:p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
                             <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
                                 💼 上班族
                             </h3>
@@ -192,7 +192,7 @@ export default async function TrendsPage() {
                                 👉 注意 AI 是否開始重塑工作流程，而不只是提高效率
                             </p>
                         </div>
-                        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                        <div className="bg-white dark:bg-gray-800 p-5 md:p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
                             <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
                                 👑 主管或老闆
                             </h3>
