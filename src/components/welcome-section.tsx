@@ -44,7 +44,7 @@ export function WelcomeSection() {
                         <div className="w-8 h-8 flex items-center justify-center bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 font-bold rounded-full flex-shrink-0">
                             3
                         </div>
-                        <span className="text-gray-700 dark:text-gray-300">點進去閱讀</span>
+                        <span className="text-gray-700 dark:text-gray-300">點內容進去閱讀</span>
                     </div>
                 </div>
             </div>
