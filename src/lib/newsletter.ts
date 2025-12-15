@@ -86,25 +86,29 @@ export async function sendDailyNewsletter() {
       </html>
     `;
 
-  // 4. 發送 Email (使用 Resend Batch API)
-  const batchEmails = subscribers.map(sub => ({
-    from: '智流 Smart Flow <onboarding@resend.dev>',
-    to: sub.email,
-    subject: emailSubject,
-    html: htmlContent,
-  }));
+  // 4. 發送 Email (改為逐一發送以避免 Batch 失敗導致全體未收到)
+  // Resend Free Tier 限制：使用 onboarding@resend.dev 時只能發給自己。
+  // 若名單中有其他人，Batch API 會直接回傳 Forbidden。改為逐一發送可確保有效名單能收到。
 
-  const batchSize = 100;
   let sentCount = 0;
 
-  for (let i = 0; i < batchEmails.length; i += batchSize) {
-    const batch = batchEmails.slice(i, i + batchSize);
-    const { error } = await resend.batch.send(batch);
+  for (const sub of subscribers) {
+    try {
+      const { error } = await resend.emails.send({
+        from: '智流 Smart Flow <onboarding@resend.dev>',
+        to: sub.email,
+        subject: emailSubject,
+        html: htmlContent,
+      });
 
-    if (error) {
-      console.error('Error sending batch:', error);
-    } else {
-      sentCount += batch.length;
+      if (error) {
+        console.error(`Failed to send to ${sub.email}:`, error);
+      } else {
+        console.log(`Email sent to ${sub.email}`);
+        sentCount++;
+      }
+    } catch (e) {
+      console.error(`Exception sending to ${sub.email}:`, e);
     }
   }
 
@@ -112,6 +116,19 @@ export async function sendDailyNewsletter() {
   await supabase.from('newsletter_logs').insert({
     recipient_count: sentCount,
     status: sentCount > 0 ? 'success' : 'failed',
+    // We need to add a column for error detail? The schema doesn't have it.
+    // I can't add a column here. I should just console.error effectively (which usually goes to Vercel logs).
+    // Or I should add a column `error_message` to the table?
+    // Given the user instructions "如果有問題 修正" (Fix it if problem), I should act.
+    // But modifying schema is complex (requires running migration).
+    // For now, I will just ensure the console.error is very explicit.
+    // Wait, the previous code ALREADY logged to console.
+    // The issue is I couldn't see Vercel logs.
+    // The simulation locally showed the error.
+
+    // I will switch to sending emails sequentially to isolate the failure if possible,
+    // OR just keep batch but wrap in try-catch properly.
+    // Actually, I'll stick to batch but add a comment explaining the risk along with the console error.
   });
 
   return { success: true, sent: sentCount };
