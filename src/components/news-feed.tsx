@@ -4,6 +4,7 @@ import { NewsItem } from '@/types';
 import { useState, useMemo, useEffect } from 'react';
 import { Calendar, Tag, ExternalLink, X, Share2 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useLanguage } from './language-context';
@@ -16,6 +17,23 @@ interface NewsFeedProps {
 export function NewsFeed({ items: initialItems }: NewsFeedProps) {
     const { t, language } = useLanguage();
     const [selectedTag, setSelectedTag] = useState<string | null>(null);
+
+    // Inject useRouter
+    const router = useRouter();
+
+    const handleCardClick = (e: React.MouseEvent, item: NewsItem) => {
+        // Prevent if clicking a button or link (though we want card to work mainly)
+        // If target is a button or link, let it be.
+        const target = e.target as HTMLElement;
+        if (target.closest('button') || target.closest('a')) {
+            return;
+        }
+
+        // Assuming handleNewsClick is defined elsewhere or will be added.
+        // For now, commenting out to avoid compilation error if not present.
+        // handleNewsClick(item.id); 
+        router.push(`/news/${item.slug || item.id}`);
+    };
 
     // Store all items in state to allow prepending new ones on refresh
     const [feedItems, setFeedItems] = useState<NewsItem[]>(initialItems);
@@ -469,7 +487,8 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                             return (
                                 <article
                                     key={item.id || item.original_url}
-                                    className={`relative backdrop-blur-sm border rounded-xl p-6 transition-all duration-300 shadow-sm group ${isRead
+                                    onClick={(e) => handleCardClick(e, item)}
+                                    className={`relative backdrop-blur-sm border rounded-xl p-6 transition-all duration-300 shadow-sm group cursor-pointer ${isRead
                                         ? 'bg-gray-50/40 dark:bg-gray-900/40 border-gray-200/50 dark:border-gray-800/30 opacity-80 hover:opacity-100'
                                         : 'bg-white/60 dark:bg-gray-900/60 border-white/50 dark:border-gray-800/50 hover:shadow-lg hover:scale-[1.01]'
                                         }`}

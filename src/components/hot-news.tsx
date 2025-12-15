@@ -3,6 +3,7 @@
 import { NewsItem } from '@/types';
 import { Flame, ExternalLink, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useLanguage } from './language-context';
 import { preprocessMarkdown } from '@/lib/markdown';
 
@@ -79,6 +80,18 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
         }
     };
 
+    // Inject useRouter
+    const router = useRouter();
+
+    const handleCardClick = (e: React.MouseEvent, item: NewsItem) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('button') || target.closest('a')) {
+            return;
+        }
+        handleNewsClick(item.id);
+        router.push(`/news/${item.slug || item.id}`);
+    };
+
     return (
         <section className="mb-12 animate-in slide-in-from-bottom-4 duration-700">
             <div className="flex items-center gap-2 mb-6">
@@ -126,7 +139,8 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
                     return (
                         <article
                             key={item.id || index}
-                            className="group relative flex flex-col h-full bg-gradient-to-br from-white/80 to-white/40 dark:from-gray-900/80 dark:to-gray-900/40 backdrop-blur-md rounded-2xl border border-orange-100/50 dark:border-orange-900/30 p-5 shadow-lg shadow-orange-500/5 hover:shadow-orange-500/10 hover:scale-[1.02] transition-all duration-300"
+                            onClick={(e) => handleCardClick(e, item)}
+                            className="group relative flex flex-col h-full bg-gradient-to-br from-white/80 to-white/40 dark:from-gray-900/80 dark:to-gray-900/40 backdrop-blur-md rounded-2xl border border-orange-100/50 dark:border-orange-900/30 p-5 shadow-lg shadow-orange-500/5 hover:shadow-orange-500/10 hover:scale-[1.02] transition-all duration-300 cursor-pointer"
                         >
                             {/* Rank Badge */}
                             <div className="absolute -top-3 -left-3 w-8 h-8 flex items-center justify-center bg-gradient-to-br from-orange-500 to-red-500 text-white font-bold rounded-lg shadow-md transform rotate-3 group-hover:rotate-6 transition-transform z-10">
@@ -143,13 +157,7 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
                                 </div>
 
                                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 line-clamp-3 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                                    <Link
-                                        href={`/news/${item.slug || item.id}`}
-                                        onClick={() => handleNewsClick(item.id)}
-                                        className="before:absolute before:inset-0 before:z-20"
-                                    >
-                                        {displayTitle}
-                                    </Link>
+                                    {displayTitle}
                                 </h3>
 
                                 {/* Summary Snippet */}
