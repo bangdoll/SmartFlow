@@ -143,9 +143,7 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
 
                             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 line-clamp-3 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
                                 <Link
-                                    href={item.original_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                    href={`/news/${item.slug || item.id}`}
                                     onClick={() => handleNewsClick(item.id)}
                                 >
                                     <span className="absolute inset-0" />

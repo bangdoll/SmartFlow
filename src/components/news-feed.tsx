@@ -495,14 +495,11 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                                     <h2 className={`text-xl font-bold mb-3 leading-tight transition-colors ${isRead ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-white'
                                         }`}>
                                         <Link
-                                            href={item.original_url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
+                                            href={`/news/${item.slug || item.id}`}
                                             onClick={() => handleNewsClick(item.id)}
                                             className="hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center gap-2 group-hover:underline decoration-blue-500/30 underline-offset-4"
                                         >
                                             {displayTitle}
-                                            <ExternalLink className="w-4 h-4 text-gray-400 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                                         </Link>
                                     </h2>
 
