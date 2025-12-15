@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { Resend } from 'resend';
+import { marked } from 'marked';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -47,7 +48,15 @@ export async function sendDailyNewsletter() {
   const dateStr = new Date().toLocaleDateString('zh-TW', { month: 'long', day: 'numeric', timeZone: 'Asia/Taipei' });
   const emailSubject = `智流 Smart Flow - 全球科技快報 ${dateStr}`;
 
-  const newsHtml = newsItems.map(item => `
+  // Pre-process all items to HTML
+  const newsHtml = await Promise.all(newsItems.map(async (item) => {
+    let summaryHtml = '暫無摘要';
+    if (item.summary_zh || item.summary_en) {
+      // Parse markdown to HTML
+      summaryHtml = await marked.parse(item.summary_zh || item.summary_en || '');
+    }
+
+    return `
       <div style="margin-bottom: 24px; border-bottom: 1px solid #eee; padding-bottom: 16px;">
         <h2 style="font-size: 18px; margin: 0 0 8px 0;">
           <a href="${item.original_url}" style="color: #000; text-decoration: none;">${item.title}</a>
@@ -55,11 +64,14 @@ export async function sendDailyNewsletter() {
         <div style="font-size: 12px; color: #666; margin-bottom: 8px;">
           ${item.source} • ${new Date(item.published_at).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' })}
         </div>
-        <p style="font-size: 14px; color: #333; line-height: 1.6; margin: 0;">
-          ${item.summary_zh || item.summary_en || '暫無摘要'}
-        </p>
+        <div style="font-size: 14px; color: #333; line-height: 1.6; margin: 0;">
+          ${summaryHtml}
+        </div>
       </div>
-    `).join('');
+    `;
+  }));
+
+  const newsHtmlString = newsHtml.join('');
 
   const htmlContent = `
       <!DOCTYPE html>
@@ -73,7 +85,38 @@ export async function sendDailyNewsletter() {
         <p style="text-align: center; color: #666;">${dateStr} 全球科技快報</p>
         
         <div style="margin-top: 32px;">
-          ${newsHtml}
+        <style>
+          /* Basic Reset */
+          img { max-width: 100%; height: auto; }
+          
+          /* Typography */
+          h1, h2, h3 { color: #111; }
+          a { color: #0066cc; }
+          
+          /* Table Styles for Email */
+          table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 16px 0;
+            font-size: 13px;
+          }
+          th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+          }
+          th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+          }
+        </style>
+      </head>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; line-height: 1.5;">
+        <h1 style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 12px; margin-bottom: 8px;">智流 Smart Flow</h1>
+        <p style="text-align: center; color: #666; font-size: 14px; margin-top: 0;">${dateStr} 全球科技快報</p>
+        
+        <div style="margin-top: 32px;">
+          ${newsHtmlString}
         </div>
 
         <div style="margin-top: 48px; font-size: 12px; color: #999; text-align: center; border-top: 1px solid #eee; padding-top: 24px;">
