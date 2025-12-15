@@ -88,3 +88,33 @@ export async function generateWeeklyTrends() {
         throw e;
     }
 }
+
+// Helper to get the Monday of the current week (or last Monday)
+function getMonday(d: Date) {
+    d = new Date(d);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day == 0 ? -6 : 1); // adjust when day is sunday
+    return new Date(d.setDate(diff));
+}
+
+export async function saveWeeklyTrendsToDb(trendsData: z.infer<typeof WeeklyTrendsSchema>) {
+    const today = new Date();
+    const weekStartDate = getMonday(today).toISOString().split('T')[0]; // YYYY-MM-DD
+
+    const { error } = await supabase
+        .from('weekly_trends')
+        .upsert({
+            week_start_date: weekStartDate,
+            title: trendsData.title,
+            core_message: trendsData.core_message,
+            trends: trendsData.trends,
+            persona_advice: trendsData.persona_advice,
+            created_at: new Date().toISOString()
+        }, { onConflict: 'week_start_date' });
+
+    if (error) {
+        throw new Error(`Supabase Insert Error: ${error.message}`);
+    }
+
+    return weekStartDate;
+}
