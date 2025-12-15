@@ -1,5 +1,25 @@
 # Changelog
 
+## [2025-12-15] - 全站雙語完善與效能優化 (Full Bilingual & Performance)
+
+### 新增 (Added)
+- **零延遲預翻譯 (Zero-Latency Pre-translation)**: 優化 Cron Job 架構，在新聞抓取後立即進行背景翻譯。用戶瀏覽即時更新的內容時，英文版已準備就緒，消除「Translating...」的等待時間。
+- **嚴格全英文模式 (Universal Strict English Mode)**: 確保在英文語系下，全站任何角落（包含 Header, Footer, 搜尋 placeholder, 訂閱回應）絕不會出現中文字符。
+- **介面完整中文化 (Full UI Localization)**:
+  - **訂閱表單**: 翻譯所有錯誤訊息、成功訊息與提示文字。
+  - **新手教學**: 將 `/guide` 頁面重構為 Client Component，實現完整雙語切換。
+  - **主題切換**: 為 Light/Dark mode 按鈕補上正確的翻譯 tooltip。
+
+### 優化 (Optimized)
+- **Vercel 部署優化**: 
+  - 修正了 `theme-toggle` 導致的 build error。
+  - 將「每週趨勢」排程合併至「每日新聞」排程中，以規避 Vercel Hobby Plan (Max 2 Cron Jobs) 的限制，同時保留完整功能。
+- **資料庫架構**: 在 `news_items` 表新增 `title_en`, `summary_en` 欄位以支援靜態英文內容。
+
+### 修復 (Fixed)
+- **品牌顯示**: 修復 Header Logo 在英文模式下仍顯示「智流」的問題。
+- **搜尋框**: 修復搜尋輸入框 placeholder 與 aria-label 的翻譯遺漏。
+
 ## [2025-12-15] - 每週趨勢與 UX 優化
 
 ### 新增 (Added)
