@@ -79,12 +79,6 @@ export async function sendDailyNewsletter() {
       <head>
         <meta charset="utf-8">
         <title>${emailSubject}</title>
-      </head>
-      <body style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
-        <h1 style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 12px;">智流 Smart Flow</h1>
-        <p style="text-align: center; color: #666;">${dateStr} 全球科技快報</p>
-        
-        <div style="margin-top: 32px;">
         <style>
           /* Basic Reset */
           img { max-width: 100%; height: auto; }
