@@ -28,35 +28,35 @@ export async function generateSummary(title: string, content: string) {
       4. **Chinese Summary Structure (summary_zh)**:
          Must use the following specific Markdown format:
 
-         [Paragraph 1: Background & What happened (Simple terms)]
+          (Start directly with the background and what happened. Do NOT include any label like "[Paragraph 1]".)
+
+          🧠 **白話解讀**
+          [One sentence simple explanation using an analogy if possible]
+
+          ⚠️ **這對你的影響**
+          [One sentence on why a normal person should care]
+
+          ✅ **你不需要做什麼**
+          [One sentence to reassure them, e.g., "Just know this trend, no action needed yet."]
+
+          💡 **關鍵影響**
+          [One insightful sentence about the industry implication]
+
+          | 正面影響 | 挑戰與風險 |
+          |----------|------------|
+          | [Point 1] | [Risk 1] |
+          | [Point 2] | [Risk 2] |
+
+          ---
          
-         🧠 **白話解讀**
-         [One sentence simple explanation using an analogy if possible]
+          🗣️ **你可以這樣跟同事說**
+          [One catchy sentence that makes the reader look smart when sharing, e.g., "Did you know X is replacing Y?"]
 
-         ⚠️ **這對你的影響**
-         [One sentence on why a normal person should care]
-
-         ✅ **你不需要做什麼**
-         [One sentence to reassure them, e.g., "Just know this trend, no action needed yet."]
-
-         💡 **關鍵影響**
-         [One insightful sentence about the industry implication]
-
-         | 正面影響 | 挑戰與風險 |
-         |----------|------------|
-         | [Point 1] | [Risk 1] |
-         | [Point 2] | [Risk 2] |
-
-         ---
-         
-         🗣️ **你可以這樣跟同事說**
-         [One catchy sentence that makes the reader look smart when sharing, e.g., "Did you know X is replacing Y?"]
-
-         👔 **給老闆的建議**
-         [One sentence on whether to invest, ignore, or monitor, specifically for decision makers]
-         
-      5. Extract 3-5 relevant tags.
-      6. The tone should be friendly, reassuring, and easy to understand.
+          👔 **給老闆的建議**
+          [One sentence on whether to invest, ignore, or monitor, specifically for decision makers]
+          
+       5. Extract 3-5 relevant tags.
+       6. The tone should be friendly, reassuring, and easy to understand.
     `;
 
         const { object } = await generateObject({

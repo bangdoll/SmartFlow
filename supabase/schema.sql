@@ -7,10 +7,14 @@ create table if not exists news_items (
   id uuid primary key default uuid_generate_v4(),
   original_url text unique not null, -- 原始連結，作為唯一識別
   title text not null,               -- 新聞標題
+  title_en text,                     -- 英文標題 (翻譯生成)
   source text not null,              -- 來源網站 (如 TechCrunch)
   published_at timestamp with time zone not null, -- 發布時間
   summary_en text,                   -- 英文摘要 (LLM 生成)
+  summary_en text,                   -- 英文摘要 (LLM 生成)
   summary_zh text,                   -- 中文摘要 (LLM 生成)
+  audio_url text,                    -- 中文語音連結 (預設)
+  audio_url_en text,                 -- 英文語音連結 (新增)
   tags text[],                       -- 標籤
   created_at timestamp with time zone default now() -- 建立時間
 );

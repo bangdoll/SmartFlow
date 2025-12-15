@@ -4,31 +4,6 @@ import { supabase } from '@/lib/supabase';
 import { Zap, TrendingUp, Hash } from 'lucide-react';
 import Link from 'next/link';
 
-async function getTrends() {
-    // 雖然有 API，但在 Server Component 直接呼叫 DB 更快且不需 fetch localhost
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-    const { data: items } = await supabase
-        .from('news_items')
-        .select('tags')
-        .gte('published_at', sevenDaysAgo.toISOString());
-
-    const tagCounts: Record<string, number> = {};
-    items?.forEach(item => {
-        const tags = item.tags as string[] | null;
-        tags?.forEach((tag: string) => {
-            const normalizedTag = tag.trim();
-            tagCounts[normalizedTag] = (tagCounts[normalizedTag] || 0) + 1;
-        });
-    });
-
-    return Object.entries(tagCounts)
-        .map(([tag, count]) => ({ tag, count }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 10);
-}
-
 const weeklyCuratedTrends = [
     {
         tag: 'AI',
@@ -74,9 +49,60 @@ const weeklyCuratedTrends = [
     }
 ];
 
+// Helper to get latest trends from DB
+async function getLatestWeeklyTrends() {
+    const { data, error } = await supabase
+        .from('weekly_trends')
+        .select('*')
+        .order('week_start_date', { ascending: false })
+        .limit(1)
+        .single();
+
+    if (error || !data) {
+        // Fallback to static curated data if no DB entry exists
+        return null;
+    }
+
+    return {
+        title: data.title,
+        core_message: data.core_message,
+        trends: data.trends,
+        persona_advice: data.persona_advice
+    };
+}
+
 export default async function TrendsPage() {
-    // In the future, we can merge dynamic DB trends with curated insights.
-    // const trends = await getTrends(); 
+    const dbTrends = await getLatestWeeklyTrends();
+
+    // Use DB data if available, otherwise use static fallback
+    const displayData = dbTrends ? {
+        title: dbTrends.title, // "AI Enters..." 
+        coreMessage: dbTrends.core_message,
+        trends: dbTrends.trends,
+        advice: dbTrends.persona_advice
+    } : {
+        title: "這週 AI 世界，真正在往哪裡走？", // Default Headline
+        coreMessage: "AI 已正式進入「現實摩擦期」：<br />問題不再是能不能做，而是誰該負責、誰要承擔後果。", // Default Core Message (Static has it hardcoded differently in UI, need to unify)
+        trends: weeklyCuratedTrends,
+        advice: {
+            general: "留意 AI 出錯、隱私與「無法關閉」的產品整合案例",
+            employee: "注意 AI 是否開始重塑工作流程，而不只是提高效率",
+            boss: "請正視 AI 導入後的責任歸屬與風險外溢問題"
+        }
+    };
+
+    // If using DB data, title might be different. 
+    // The UI below hardcodes the "Headline" separate from "Core Message".
+    // For DB data, `core_message` is the big text in the blue box.
+    // `title` (from DB) is the "Week's Theme" which we can put in the headline or the blue box title.
+
+    // Let's adapt the UI slightly to use `displayData`.
+
+    // For static fallback, I need to match the structure I created above.
+    // Static fallback `coreMessage` matches the text inside the blue box.
+
+    const trendsList = displayData.trends;
+    const advice = displayData.advice;
 
     return (
         <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 transition-colors duration-500">
@@ -105,13 +131,18 @@ export default async function TrendsPage() {
                             <Zap className="w-4 h-4" />
                             本週智流一句話
                         </div>
-                        <h2 className="text-2xl md:text-3xl font-bold leading-snug mb-4">
-                            AI 已正式進入「現實摩擦期」：<br />
-                            問題不再是能不能做，而是誰該負責、誰要承擔後果。
-                        </h2>
+                        <h2 className="text-2xl md:text-3xl font-bold leading-snug mb-4" dangerouslySetInnerHTML={{ __html: displayData.coreMessage }} />
+
                         <p className="text-blue-50 text-lg leading-relaxed opacity-90">
-                            這一週的新聞焦點，明顯從模型能力與創新展示，<br className="hidden md:inline" />
-                            轉向 <strong>產品整合、使用風險、組織責任與社會影響</strong>。
+                            {/* Sub-description is part of core message in DB? 
+                                The Schema has `core_message` as string. 
+                                The Prompt asks for "Phase". 
+                                The Static fallback has "Title" and "Desc".
+                                Let's simplify: Display core message.
+                                If using DB, we might want to split it or just show it all.
+                                For now, assuming coreMessage contains the main punchline. 
+                            */}
+                            * 這一頁每週日更新，幫你校準方向。
                         </p>
                     </div>
                 </div>
@@ -122,7 +153,7 @@ export default async function TrendsPage() {
                         <Hash className="w-5 h-5 text-gray-500" />
                         本週關鍵趨勢解讀
                     </h2>
-                    {weeklyCuratedTrends.map((item, index) => (
+                    {trendsList.map((item: any, index: number) => (
                         <Link
                             key={item.tag}
                             href={`/archive?tag=${encodeURIComponent(item.tag)}`}
@@ -181,7 +212,7 @@ export default async function TrendsPage() {
                                 👤 一般使用者
                             </h3>
                             <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                                👉 留意 AI 出錯、隱私與「無法關閉」的產品整合案例
+                                👉 {advice.general}
                             </p>
                         </div>
                         <div className="bg-white dark:bg-gray-800 p-5 md:p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
@@ -189,7 +220,7 @@ export default async function TrendsPage() {
                                 💼 上班族
                             </h3>
                             <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                                👉 注意 AI 是否開始重塑工作流程，而不只是提高效率
+                                👉 {advice.employee}
                             </p>
                         </div>
                         <div className="bg-white dark:bg-gray-800 p-5 md:p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
@@ -197,7 +228,7 @@ export default async function TrendsPage() {
                                 👑 主管或老闆
                             </h3>
                             <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                                👉 請正視 AI 導入後的責任歸屬與風險外溢問題
+                                👉 {advice.boss}
                             </p>
                         </div>
                     </div>
@@ -209,6 +240,6 @@ export default async function TrendsPage() {
                     <p>如果你想知道「AI 世界正在累積什麼改變」，下週同一時間，再回來看一次就夠了。</p>
                 </div>
             </div>
-        </main >
+        </main>
     );
 }

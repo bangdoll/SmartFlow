@@ -1,11 +1,12 @@
 export interface NewsItem {
-    id?: string;
+    id: string;
     original_url: string;
     title: string;
+    title_en?: string | null;  // Added for bilingual support
     source: string;
     published_at: string; // ISO string
-    summary_en?: string;
-    summary_zh?: string;
+    summary_zh?: string | null;
+    summary_en?: string | null; // Added for bilingual support
     tags?: string[];
     click_count?: number;
     slug?: string;

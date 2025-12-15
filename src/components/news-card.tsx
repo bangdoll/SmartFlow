@@ -4,6 +4,8 @@ import { NewsItem } from '@/types';
 import { ExternalLink, Calendar, Tag } from 'lucide-react';
 import Link from 'next/link';
 import { useTagFilter } from './tag-filter-context';
+import { useLanguage } from './language-context';
+import { preprocessMarkdown } from '@/lib/markdown';
 
 interface NewsCardProps {
     news: NewsItem;
@@ -11,14 +13,19 @@ interface NewsCardProps {
 
 export function NewsCard({ news }: NewsCardProps) {
     const { setSelectedTag } = useTagFilter();
+    const { language } = useLanguage();
 
-    const date = new Date(news.published_at).toLocaleDateString('zh-TW', {
+    const date = new Date(news.published_at).toLocaleDateString(language === 'en' ? 'en-US' : 'zh-TW', {
+        year: 'numeric',
         month: 'long',
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
         timeZone: 'Asia/Taipei',
     });
+
+    const displayTitle = (language === 'en' && news.title_en) ? news.title_en : news.title;
+    const displaySummary = (language === 'en' && news.summary_en) ? news.summary_en : news.summary_zh;
 
     return (
         <article className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm border border-white/50 dark:border-gray-800/50 rounded-xl p-6 hover:shadow-lg hover:scale-[1.01] transition-all duration-300 group shadow-sm">
@@ -33,14 +40,14 @@ export function NewsCard({ news }: NewsCardProps) {
 
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3 leading-tight">
                 <Link href={news.original_url} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-2">
-                    {news.title}
+                    {displayTitle}
                     <ExternalLink className="w-4 h-4 text-gray-400" />
                 </Link>
             </h2>
 
-            {news.summary_zh && (
+            {displaySummary && (
                 <p className="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
-                    {news.summary_zh}
+                    {preprocessMarkdown(displaySummary)}
                 </p>
             )}
 

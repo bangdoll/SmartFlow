@@ -9,7 +9,7 @@ import { LanguageToggle } from '@/components/language-toggle';
 import { useLanguage } from '@/components/language-context';
 
 export function Header() {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
 
     return (
         <header className="fixed top-0 left-0 right-0 z-50 bg-white/70 dark:bg-black/70 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 transition-colors">
@@ -20,7 +20,7 @@ export function Header() {
                         <Waves className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
                     <h1 className="text-base sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 whitespace-nowrap">
-                        智流 <span className="text-blue-600 dark:text-blue-400">Smart Flow</span>
+                        {language === 'zh-TW' && "智流 "} <span className="text-blue-600 dark:text-blue-400">Smart Flow</span>
                     </h1>
                 </Link>
 

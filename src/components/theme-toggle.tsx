@@ -2,10 +2,11 @@
 
 import * as React from "react"
 import { Moon, Sun, Monitor } from "lucide-react"
-import { useTheme } from "next-themes"
+import { useLanguage } from '@/components/language-context';
 
 export function ThemeToggle() {
     const { setTheme, theme } = useTheme()
+    const { t } = useLanguage();
     const [mounted, setMounted] = React.useState(false)
 
     React.useEffect(() => {
@@ -28,7 +29,7 @@ export function ThemeToggle() {
                     ? "bg-gray-100 text-yellow-500 shadow-sm"
                     : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                     }`}
-                title="淺色模式"
+                title={t('theme.light')}
             >
                 <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
@@ -38,7 +39,7 @@ export function ThemeToggle() {
                     ? "bg-gray-100 dark:bg-gray-800 text-blue-500 shadow-sm"
                     : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                     }`}
-                title="跟隨系統"
+                title={t('theme.system')}
             >
                 <Monitor className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
@@ -48,7 +49,7 @@ export function ThemeToggle() {
                     ? "bg-gray-800 text-blue-400 shadow-sm"
                     : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                     }`}
-                title="深色模式"
+                title={t('theme.dark')}
             >
                 <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>

@@ -61,10 +61,7 @@ export default async function Home() {
           <HotNewsSection items={hotItems} />
         </div>
 
-        <div className="mb-4 flex items-center gap-2">
-          <div className="h-1 w-1 rounded-full bg-blue-500" />
-          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200">最新動態</h2>
-        </div>
+
 
         <NewsFeed items={items} />
 

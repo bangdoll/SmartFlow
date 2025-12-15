@@ -7,20 +7,24 @@ interface AudioPlayerProps {
     newsId: string;
     initialAudioUrl?: string | null;
     title?: string;
+    language?: 'en' | 'zh-TW';
 }
 
-export function AudioPlayer({ newsId, initialAudioUrl, title }: AudioPlayerProps) {
+export function AudioPlayer({ newsId, initialAudioUrl, title, language = 'zh-TW' }: AudioPlayerProps) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [audioUrl, setAudioUrl] = useState<string | null>(initialAudioUrl || null);
     const [progress, setProgress] = useState(0);
+    const [speed, setSpeed] = useState(1);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
+    const speeds = [1, 1.2, 1.5, 2];
+
     useEffect(() => {
-        if (initialAudioUrl) {
-            setAudioUrl(initialAudioUrl);
-        }
-    }, [initialAudioUrl]);
+        setAudioUrl(initialAudioUrl || null);
+        setIsPlaying(false);
+        setProgress(0);
+    }, [initialAudioUrl, language]);
 
     const handlePlayClick = async () => {
         if (isPlaying) {
@@ -35,7 +39,10 @@ export function AudioPlayer({ newsId, initialAudioUrl, title }: AudioPlayerProps
                 const res = await fetch('/api/tts', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ newsId }),
+                    body: JSON.stringify({
+                        newsId,
+                        lang: language
+                    }),
                 });
 
                 if (!res.ok) throw new Error('Failed to generate audio');
@@ -43,9 +50,6 @@ export function AudioPlayer({ newsId, initialAudioUrl, title }: AudioPlayerProps
                 const data = await res.json();
                 setAudioUrl(data.audioUrl);
 
-                // Audio will auto-play due to useEffect or we trigger it here once src is set
-                // But safer to wait for state update or set src directly on new Audio obj?
-                // Let's rely on the <audio> tag updating src
             } catch (error) {
                 console.error('TTS Error:', error);
                 alert('無法生成語音，請稍後再試。');
@@ -53,27 +57,21 @@ export function AudioPlayer({ newsId, initialAudioUrl, title }: AudioPlayerProps
                 setIsLoading(false);
             }
         } else {
-            audioRef.current?.play();
-            setIsPlaying(true);
+            if (audioRef.current) {
+                audioRef.current.playbackRate = speed;
+                audioRef.current.play();
+                setIsPlaying(true);
+            }
         }
     };
 
-    // Auto-play when audioUrl is set (if it was triggered by a user click)
-    // Complexity: User interaction required for audio play.
-    // If user clicked Play -> Loading -> URL Set -> We want it to play.
-    useEffect(() => {
-        if (audioUrl && !isPlaying && !initialAudioUrl) {
-            // This condition is tricky. "initialAudioUrl" logic handles pre-existing.
-            // If we just fetched it (!initialAudioUrl check is imperfect if we passed it in props initially... wait)
-            // Let's simplify: If we just finished loading (was loading is true -> false), try play?
-            // Easier: check header of function.
-        }
-    }, [audioUrl]);
-
-    // Better logic for auto-play after fetch:
-    const onAudioSrcSet = () => {
-        if (!isPlaying && !isLoading) { // If we were waiting
-            audioRef.current?.play().then(() => setIsPlaying(true)).catch(e => console.log('Autoplay blocked', e));
+    const toggleSpeed = () => {
+        const currentIndex = speeds.indexOf(speed);
+        const nextIndex = (currentIndex + 1) % speeds.length;
+        const newSpeed = speeds[nextIndex];
+        setSpeed(newSpeed);
+        if (audioRef.current) {
+            audioRef.current.playbackRate = newSpeed;
         }
     };
 
@@ -100,7 +98,17 @@ export function AudioPlayer({ newsId, initialAudioUrl, title }: AudioPlayerProps
                 onTimeUpdate={handleTimeUpdate}
                 onEnded={handleEnded}
                 onLoadedData={() => {
-                    if (isLoading) { setIsLoading(false); audioRef.current?.play(); setIsPlaying(true); }
+                    if (isLoading) {
+                        setIsLoading(false);
+                        if (audioRef.current) {
+                            audioRef.current.playbackRate = speed;
+                            audioRef.current.play();
+                            setIsPlaying(true);
+                        }
+                    } else if (audioRef.current) {
+                        // Ensure speed persists if src changes or reloads
+                        audioRef.current.playbackRate = speed;
+                    }
                 }}
             />
 
@@ -135,7 +143,14 @@ export function AudioPlayer({ newsId, initialAudioUrl, title }: AudioPlayerProps
                 </div>
             </div>
 
-            {/* Optional time display? Keep it simple for now as per design aesthetic */}
+            {/* Speed Toggle Button - Moved to Root Flex Container */}
+            <button
+                onClick={toggleSpeed}
+                className="flex-shrink-0 h-8 px-2 text-xs font-bold text-blue-600 bg-blue-100 hover:bg-blue-200 dark:text-blue-300 dark:bg-blue-900/60 dark:hover:bg-blue-900/80 rounded-md transition-colors border border-blue-200 dark:border-blue-700 flex items-center justify-center"
+                title="調整播放速度"
+            >
+                {speed}x
+            </button>
         </div>
     );
 }

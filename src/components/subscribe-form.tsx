@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import { Loader2, Mail, CheckCircle, AlertCircle } from 'lucide-react';
+import { useLanguage } from './language-context';
 
 export function SubscribeForm() {
+    const { t } = useLanguage();
     const [email, setEmail] = useState('');
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
@@ -23,11 +25,11 @@ export function SubscribeForm() {
             const data = await res.json();
 
             if (!res.ok) {
-                throw new Error(data.error || '訂閱失敗，請稍後再試。');
+                throw new Error(data.error || t('subscribe.failed'));
             }
 
             setStatus('success');
-            setMessage('訂閱成功！感謝您的支持。');
+            setMessage(t('subscribe.success'));
             setEmail('');
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
@@ -44,16 +46,16 @@ export function SubscribeForm() {
                 </div>
             </div>
 
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">我們不是幫你追新聞，是幫你避免被新聞害到。</h3>
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{t('subscribe.description')}</h3>
             <p className="text-lg text-gray-600 dark:text-gray-400 mb-6 font-medium">
-                留下 Email，錯過這 3 則，<strong>你可能半年後才發現自己做錯決策</strong>。
+                {t('subscribe.subDescription')}
             </p>
 
             <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
                 <input
                     type="email"
                     required
-                    placeholder="請輸入您的 Email"
+                    placeholder={t('subscribe.placeholder')}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={status === 'loading' || status === 'success'}
@@ -67,15 +69,15 @@ export function SubscribeForm() {
                     {status === 'loading' ? (
                         <>
                             <Loader2 className="w-5 h-5 animate-spin" />
-                            處理中
+                            {t('subscribe.submitting')}
                         </>
                     ) : status === 'success' ? (
                         <>
                             <CheckCircle className="w-5 h-5" />
-                            已完成
+                            {t('subscribe.success')}
                         </>
                     ) : (
-                        '免費寄給我'
+                        t('subscribe.button')
                     )}
                 </button>
             </form>

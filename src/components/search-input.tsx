@@ -4,9 +4,12 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Search, X } from 'lucide-react';
 
+import { useLanguage } from '@/components/language-context';
+
 export function SearchInput() {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { t } = useLanguage();
     const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState('');
     const inputRef = useRef<HTMLInputElement>(null);
@@ -66,7 +69,7 @@ export function SearchInput() {
                         type="text"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        placeholder="搜尋..."
+                        placeholder={t('search.placeholder')}
                         className="w-full h-8 sm:h-10 pl-7 sm:pl-10 pr-5 sm:pr-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-full text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all shadow-sm"
                     />
                     <Search className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
@@ -82,7 +85,7 @@ export function SearchInput() {
                 <button
                     onClick={() => setIsOpen(true)}
                     className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
-                    aria-label="開啟搜尋"
+                    aria-label={t('search.label')}
                 >
                     <Search className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>

@@ -7,6 +7,7 @@ import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useLanguage } from './language-context';
+import { preprocessMarkdown } from '@/lib/markdown';
 
 interface NewsFeedProps {
     items: NewsItem[];
@@ -23,6 +24,8 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const [sortBy, setSortBy] = useState<'latest' | 'popular'>('latest');
+    const [translatingIds, setTranslatingIds] = useState<Set<string>>(new Set());
+
 
     // Pull to Refresh State
     const [isPulling, setIsPulling] = useState(false);
@@ -177,6 +180,60 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
             loadMore(true); // reset=true
         }
     }, [selectedTag, sortBy]); // Removed initialItems from dep to avoid loop
+
+    // Batch Translation Logic (Moved here to access displayItems)
+    useEffect(() => {
+        if (language !== 'en') {
+            setTranslatingIds(new Set());
+            return;
+        }
+
+        const itemsToTranslate = displayItems.filter(
+            item => !item.title_en && !translatingIds.has(item.id)
+        );
+
+        if (itemsToTranslate.length === 0) return;
+
+        const ids = itemsToTranslate.map(i => i.id);
+
+        // Optimistically mark as translating
+        setTranslatingIds(prev => {
+            const next = new Set(prev);
+            ids.forEach(id => next.add(id));
+            return next;
+        });
+
+        // Call Batch API
+        // Debounce? No, just call it.
+        fetch('/api/translate/batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids }),
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.results) {
+                    const updateList = (list: NewsItem[]) => list.map(item => {
+                        const updated = data.results.find((u: any) => u.id === item.id);
+                        if (updated) {
+                            return { ...item, title_en: updated.title_en, summary_en: updated.summary_en };
+                        }
+                        return item;
+                    });
+                    setFeedItems(prev => updateList(prev));
+                    setLoadedItems(prev => updateList(prev));
+                }
+            })
+            .catch(err => console.error('Batch translate error:', err))
+            .finally(() => {
+                setTranslatingIds(prev => {
+                    const next = new Set(prev);
+                    ids.forEach(id => next.delete(id));
+                    return next;
+                });
+            });
+
+    }, [language, displayItems, translatingIds]);
 
     const loadMore = async (reset = false) => {
         if (isLoading) return;
@@ -348,12 +405,19 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                 </div>
             </div>
 
+            {/* 新聞列表標題 */}
+            <div className="mb-4 flex items-center gap-2">
+                <div className="h-1 w-1 rounded-full bg-blue-500" />
+                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200">{t('home.latest')}</h2>
+            </div>
+
             {/* 新聞列表 */}
             {displayItems.length > 0 ? (
                 <>
                     <div className="space-y-6">
                         {displayItems.map((item) => {
-                            const date = new Date(item.published_at).toLocaleDateString('zh-TW', {
+                            const date = new Date(item.published_at).toLocaleDateString(language === 'en' ? 'en-US' : 'zh-TW', {
+                                year: 'numeric',
                                 month: 'long',
                                 day: 'numeric',
                                 hour: '2-digit',
@@ -361,6 +425,46 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                                 timeZone: 'Asia/Taipei',
                             });
                             const isRead = item.id ? readItems.has(item.id) : false;
+
+                            // Bilingual logic with Strict Mode
+                            const showEn = language === 'en';
+                            const hasEn = !!item.title_en;
+                            const isTranslatingItem = translatingIds.has(item.id);
+
+                            // Display Data
+                            const displayTitle = showEn
+                                ? (item.title_en || 'Translating title...')
+                                : item.title;
+
+                            const displaySummary = showEn
+                                ? (item.summary_en || 'Translating summary...')
+                                : item.summary_zh;
+
+                            // Strict Mode Block: If EN requested but missing, show Loading state
+                            if (showEn && !hasEn) {
+                                return (
+                                    <article
+                                        key={item.id || item.original_url}
+                                        className="relative backdrop-blur-sm border rounded-xl p-6 bg-white/40 dark:bg-gray-900/40 border-white/50 dark:border-gray-800/50 animate-pulse"
+                                    >
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <div className="h-4 w-20 bg-gray-200 dark:bg-gray-800 rounded"></div>
+                                            <div className="h-4 w-4 bg-gray-200 dark:bg-gray-800 rounded-full"></div>
+                                            <div className="h-4 w-24 bg-gray-200 dark:bg-gray-800 rounded"></div>
+                                        </div>
+                                        <div className="h-8 w-3/4 bg-gray-200 dark:bg-gray-800 rounded mb-4"></div>
+                                        <div className="space-y-2">
+                                            <div className="h-4 w-full bg-gray-200 dark:bg-gray-800 rounded"></div>
+                                            <div className="h-4 w-full bg-gray-200 dark:bg-gray-800 rounded"></div>
+                                            <div className="h-4 w-2/3 bg-gray-200 dark:bg-gray-800 rounded"></div>
+                                        </div>
+                                        {/* Optional: translating label */}
+                                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-600 dark:text-blue-400 font-medium bg-white/80 dark:bg-gray-900/80 px-4 py-2 rounded-full shadow-sm border border-blue-100 dark:border-blue-900">
+                                            Translating...
+                                        </div>
+                                    </article>
+                                );
+                            }
 
                             return (
                                 <article
@@ -397,15 +501,15 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                                             onClick={() => handleNewsClick(item.id)}
                                             className="hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center gap-2 group-hover:underline decoration-blue-500/30 underline-offset-4"
                                         >
-                                            {item.title}
+                                            {displayTitle}
                                             <ExternalLink className="w-4 h-4 text-gray-400 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                                         </Link>
                                     </h2>
 
-                                    {item.summary_zh && (
-                                        <Link href={`/news/${item.slug || item.id}`} className="block group/summary">
+                                    {displaySummary && (
+                                        <Link href={`/news/${item.id}`} className="block group/summary">
                                             <div className={`text-gray-600 dark:text-gray-300 mb-4 leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-table:border-collapse prose-th:bg-blue-50 dark:prose-th:bg-blue-900/30 prose-th:p-2 prose-td:p-2 prose-th:text-left prose-table:w-full prose-table:text-sm ${isRead ? 'text-gray-500 dark:text-gray-500' : ''} group-hover/summary:text-blue-600 dark:group-hover/summary:text-blue-400 transition-colors`}>
-                                                <ReactMarkdown remarkPlugins={[remarkGfm]}>{item.summary_zh}</ReactMarkdown>
+                                                <ReactMarkdown remarkPlugins={[remarkGfm]}>{preprocessMarkdown(displaySummary)}</ReactMarkdown>
                                             </div>
                                         </Link>
                                     )}
@@ -431,11 +535,11 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                                         {/* Share Buttons & Actions */}
                                         <div className="flex items-center gap-3">
                                             <Link
-                                                href={`/news/${item.slug || item.id}`}
+                                                href={`/news/${item.id}`} // Force ID
                                                 className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-xs font-medium hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
                                             >
                                                 <span className="text-lg">🤖</span>
-                                                AI 導讀
+                                                {t('feed.aiGuide')}
                                             </Link>
 
                                             <div className="flex items-center gap-1">

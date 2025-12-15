@@ -1,21 +1,21 @@
-# Global AI Trends Automation Website <!-- Trigger Vercel Deploy --> (全球 AI 趨勢自動化網站)
+# 全球 AI 趨勢自動化網站 (Global AI Trends Automation Website)
 
 這是一個全自動化的 AI 新聞聚合與電子報發送系統。每日自動從 TechCrunch 等來源爬取 AI 新聞，使用 OpenAI 生成中英文摘要，並透過 Resend 發送電子報。
 
 ## 功能特色
 
 - **自動爬蟲與分析**: 每日定時抓取以下權威來源，並使用 GPT-4o 生成分析：
-  - **Tech Media**: TechCrunch, Ars Technica, MIT Technology Review
-  - **Social / Community**: Hacker News, Reddit (r/artificial)
-  - **Aggregator**: Google News (AI & Tech keywords)
+  - **科技媒體**: TechCrunch, Ars Technica, MIT Technology Review
+  - **社群討論**: Hacker News, Reddit (r/artificial)
+  - **聚合來源**: Google News (AI & Tech 關鍵字)
 - **AI 導讀助手 (Chat)**: 每則新聞內建互動式 AI 聊天機器人，可深入詢問新聞細節與背景。
-- **AI 語音導讀 (Audio)**: 整合 OpenAI TTS，一鍵朗讀新聞標題與摘要，支援語音快取以節省成本。
+- **AI 語音導讀 (Audio)**: 整合 OpenAI TTS，一鍵朗讀新聞標題與摘要（支援中英雙語），支援語音快取以節省成本。
 - **長輩/新手友善 (Elderly Friendly)**: 
   - **白話介面**: 首頁提供「1-2-3 步驟」教學，將網站定位為「每日科技早報」。
   - **置頂教學**: 完整的圖文指南頁面 (`/guide`)，降低使用門檻。
 - **行動版體驗優化**:
-  - **Pull-to-Refresh**: 手機下拉即可即時觸發爬蟲，分析並獲取最新新聞。
-  - **Infinite Scroll**: 滑動至底部自動載入歷史新聞，閱讀不中斷。
+  - **下拉更新 (Pull-to-Refresh)**: 手機下拉即可即時觸發爬蟲，分析並獲取最新新聞。
+  - **無限捲動 (Infinite Scroll)**: 滑動至底部自動載入歷史新聞，閱讀不中斷。
   - **PWA 支援**: 可加入手機主畫面，擁有原生 App icon 與操作體驗。
   - **流暢導覽**: 新聞詳細頁支援「上一則/下一則」快速切換，閱讀不中斷。
 - **全站搜尋**: 支援標題與摘要的關鍵字搜尋。
@@ -24,20 +24,17 @@
 - **流量分析 (GA4)**: 完整整合 Google Analytics，追蹤網站即時流量與使用者行為。
 - **電子報與 RSS**: 每日 8 點 (GMT+8) 自動發信，並提供標準 `/feed.xml` 訂閱源。
 - **社群整合**: 支援自動發布至 X (Twitter)，並動態生成 Open Graph 預覽圖。
-- **🤖 AI 智能導讀 (AI Agentic Chat)**: 針對每則新聞提供具備上下文意識的聊天助手。
-- **📊 每週趨勢 (Weekly Trends)**: 自動化每週洞察儀表板，支援手機版導航與優化閱讀體驗，分析全球 AI 趨勢走向。
-- **👵 長輩友善設計 (Senior Friendly UX)**: 優化觸控目標與清晰介面，體貼不熟悉科技的使用者。
-- **🌍 多語言支援**: 內容自動處理並摘要為繁體中文。
+- **雙語支援**: 全站介面與新聞內容（標題、摘要、語音）皆支援中英文即時切換。
 
 ## 技術堆疊
 
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Database**: Supabase
+- **框架**: Next.js 14 (App Router)
+- **語言**: TypeScript
+- **樣式**: Tailwind CSS
+- **資料庫**: Supabase
 - **AI**: OpenAI API (Vercel AI SDK)
-- **Email**: Resend
-- **Deployment**: Vercel (Cron Jobs)
+- **郵件**: Resend
+- **部署**: Vercel (Cron Jobs)
 
 ## 本地開發
 

@@ -12,8 +12,9 @@
 
 ## 資料庫遷移 (SQL)
 
-請在 **SQL Editor** 中執行以下語法：
+請在 **SQL Editor** 中執行以下語法，以支援雙語音訊：
 
 ```sql
-ALTER TABLE news_items ADD COLUMN IF NOT EXISTS audio_url text;
+ALTER TABLE news_items ADD COLUMN IF NOT EXISTS audio_url text;    -- 中文語音
+ALTER TABLE news_items ADD COLUMN IF NOT EXISTS audio_url_en text; -- 英文語音
 ```
