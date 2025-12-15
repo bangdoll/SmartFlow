@@ -45,7 +45,7 @@ export default function GuidePage() {
                             <ol className="list-decimal pl-5 space-y-2 marker:text-blue-500">
                                 <li><strong>打開網站</strong>：您已經在這裡了！</li>
                                 <li><strong>往下滑</strong>：瀏覽最新的新聞卡片。</li>
-                                <li><strong>點選新聞</strong>：點內容進去閱讀。</li>
+                                <li><strong>點選新聞</strong>：點標題看原文，點內容進去閱讀。</li>
                             </ol>
                             <div className="mt-4 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 shadow-md">
                                 <img src="/images/guide/welcome.png" alt="首頁歡迎區塊" className="w-full" />
