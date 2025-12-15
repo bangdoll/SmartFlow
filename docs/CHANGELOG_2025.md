@@ -1,5 +1,23 @@
 # 版本更新日誌 (Version Changelog - 2025)
 
+## [2025-12-15] - 每週趨勢與 UX 優化
+
+### 新增 (Added)
+- **每週趨勢自動化 (Weekly Trends Automation)**: 實作透過 `/api/cron/weekly-trends` 自動生成每週報告的功能。
+- **趨勢資料庫 (Trends Database)**: 新增 `weekly_trends` 資料表架構，用於儲存歷史洞察數據。
+- **手機版導航 (Mobile Navigation)**: 將「趨勢 (Trends)」頁面連結加入手機版選單。
+- **長輩友善聊天介面 (Senior Friendly Chat)**: 極大化「清除對話 (Trash)」按鈕，提升手機版大齡使用者的易用性。
+
+### 變更 (Changed)
+- **聊天介面大改版 (Chat UI Overhaul)**:
+  - 移除 AI 回應中的數字列表，以防止版面跑位。
+  - 強制段落行內顯示 (`display: contents`)，修復列表標記對齊問題。
+  - 極大化聊天操作按鈕的點擊範圍。
+- **內容清理 (Content Cleanup)**: 透過前端過濾器移除了舊摘要中殘留的佔位符文字 (`[Paragraph 1...]`)。
+
+### 修復 (Fixed)
+- **Markdown 渲染 (Markdown Rendering)**: 修復了生成列表中過多的空白導致數字與文字錯位的視覺問題。
+
 ## [2025-12-15] 閱讀體驗持續優化
 - **新聞導覽 (Navigation)**: 在新聞詳細頁底部新增「上一則/下一則」導覽按鈕，並將「閱讀原文」按鈕置中放大，提供更流暢的閱讀動線。
 

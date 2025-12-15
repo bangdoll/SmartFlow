@@ -142,21 +142,21 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
                         <p className="text-sm text-white/80">{t('chat.subtitle')}</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-8">
                     {messages.length > 0 && (
                         <button
                             onClick={clearMessages}
-                            className="p-1.5 hover:bg-white/20 rounded-full transition-colors text-white/90 hover:text-white"
+                            className="p-3 hover:bg-white/20 rounded-full transition-colors text-white/90 hover:text-white bg-white/10"
                             title={language === 'en' ? 'Clear chat' : '清除對話'}
                         >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-8 h-8" />
                         </button>
                     )}
                     <button
                         onClick={() => setIsOpen(false)}
-                        className="p-1 hover:bg-white/20 rounded-full transition-colors"
+                        className="p-1.5 hover:bg-white/20 rounded-full transition-colors"
                     >
-                        <Minimize2 className="w-5 h-5" />
+                        <Minimize2 className="w-7 h-7" />
                     </button>
                 </div>
             </div>
@@ -204,19 +204,21 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
                         <div className={`flex flex-col max-w-[85%] sm:max-w-[80%] ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
                             <div
                                 className={`px-3 sm:px-4 py-2.5 sm:py-3 rounded-2xl text-base sm:text-lg ${m.role === 'user'
-                                    ? 'bg-blue-600 text-white rounded-tr-none leading-relaxed'
-                                    : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700 rounded-tl-none shadow-sm leading-[1.7] tracking-wide break-words whitespace-pre-wrap'
+                                    ? 'bg-blue-600 text-white rounded-tr-none leading-relaxed whitespace-pre-wrap'
+                                    : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700 rounded-tl-none shadow-sm leading-[1.7] tracking-wide break-words [&_li_p]:!inline [&_li_p]:!m-0'
                                     }`}
                             >
                                 {m.content ? (
                                     m.role === 'assistant' ? (
                                         <ReactMarkdown
                                             components={{
-                                                p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                                                p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
                                                 strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                                                ul: ({ children }) => <ul className="list-disc pl-4 mb-2 last:mb-0">{children}</ul>,
-                                                ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 last:mb-0">{children}</ol>,
-                                                li: ({ children }) => <li className="mb-1 last:mb-0">{children}</li>,
+                                                // User requested to remove "1. 2. 3." and just use paragraphs.
+                                                // We override list elements to render as plain blocks (divs) to visually flatten them.
+                                                ul: ({ children }) => <div className="space-y-2 mb-2">{children}</div>,
+                                                ol: ({ children }) => <div className="space-y-2 mb-2">{children}</div>,
+                                                li: ({ children }) => <div className="mb-1">{children}</div>,
                                             }}
                                         >
                                             {m.content}
