@@ -35,10 +35,12 @@ export function preprocessMarkdown(content: string | null): string {
     processed = processed.replace(/\(Start directly with a paragraph explaining.*?\)/gi, '');
 
     // 6. Fix: Dense Emoji Paragraphs -> Separate Blocks
-    // Target: 🧠, ⚠️, ✅, 💡, 🗣️, 👔
-    // We want to ensure they start on a new line.
+    // We use alternation (A|B|C) instead of character class [ABC] because 
+    // emojis are surrogate pairs and character classes can split them without 'u' flag/proper handling.
     const emojis = ['🧠', '⚠️', '✅', '💡', '🗣️', '👔', '✨', '👉'];
-    const emojiPattern = new RegExp(`([^\\n])\\s*([${emojis.join('')}])`, 'g');
+    // Escape special regex chars if any (none of these are special except maybe ?)
+    const cursor = emojis.join('|');
+    const emojiPattern = new RegExp(`([^\\n])\\s*(${cursor})`, 'g');
     processed = processed.replace(emojiPattern, '$1\n\n$2');
 
     // 7. Enhance: Make "Advice" sections bold or blockquote?
