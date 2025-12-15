@@ -4,6 +4,7 @@ import { NewsItem } from '@/types';
 import { useState, useMemo, useEffect } from 'react';
 import { Calendar, Tag, ExternalLink, X, Share2 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useLanguage } from './language-context';
@@ -15,6 +16,7 @@ interface NewsFeedProps {
 
 export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
     const { t, language } = useLanguage();
+    const router = useRouter(); // Inject router
     const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
     // Store all items in state to allow prepending new ones on refresh
@@ -499,7 +501,10 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                             href={item.original_url}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            onClick={() => handleNewsClick(item.id)}
+                                            onClick={(e) => {
+                                                e.stopPropagation(); // Stop bubble so it doesn't trigger card click if any
+                                                handleNewsClick(item.id);
+                                            }}
                                             className="hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center gap-2 group-hover:underline decoration-blue-500/30 underline-offset-4"
                                         >
                                             {displayTitle}
@@ -507,16 +512,22 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                         </Link>
                                     </h2>
 
-                                    {/* Summary - LINK TO INTERNAL DETAIL PAGE */}
+                                    {/* Summary - ONCLICK NAVIGATE (Hybrid Approach) */}
                                     {displaySummary && (
-                                        <Link
-                                            href={`/news/${item.slug || item.id}`}
+                                        <div
+                                            onClick={(e) => {
+                                                // If user clicks a link INSIDE summary, let it work normally
+                                                if ((e.target as HTMLElement).tagName === 'A') return;
+
+                                                handleNewsClick(item.id);
+                                                router.push(`/news/${item.slug || item.id}`);
+                                            }}
                                             className="block group/summary cursor-pointer"
                                         >
                                             <div className={`text-gray-600 dark:text-gray-300 mb-4 leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-table:border-collapse prose-th:bg-blue-50 dark:prose-th:bg-blue-900/30 prose-th:p-2 prose-td:p-2 prose-th:text-left prose-table:w-full prose-table:text-sm ${isRead ? 'text-gray-500 dark:text-gray-500' : ''} group-hover/summary:text-blue-600 dark:group-hover/summary:text-blue-400 transition-colors`}>
                                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{preprocessMarkdown(displaySummary)}</ReactMarkdown>
                                             </div>
-                                        </Link>
+                                        </div>
                                     )}
 
                                     {/* Footer Actions */}

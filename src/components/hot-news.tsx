@@ -3,6 +3,7 @@
 import { NewsItem } from '@/types';
 import { Flame, ExternalLink, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useLanguage } from './language-context';
 import { preprocessMarkdown } from '@/lib/markdown';
 
@@ -79,6 +80,9 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
         }
     };
 
+    // Inject useRouter
+    const router = useRouter();
+
     return (
         <section className="mb-12 animate-in slide-in-from-bottom-4 duration-700">
             <div className="flex items-center gap-2 mb-6">
@@ -92,36 +96,13 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
 
             <div className="grid gap-6 md:grid-cols-3">
                 {hotItems.map((item, index) => {
+                    // ... vars ...
                     const showEn = language === 'en';
                     const hasEn = !!item.title_en;
+                    const displayTitle = showEn ? (item.title_en || 'Translating...') : item.title;
+                    const displaySummary = showEn ? (item.summary_en || 'Translating...') : item.summary_zh;
 
-                    const displayTitle = showEn
-                        ? (item.title_en || 'Translating...')
-                        : item.title;
-                    const displaySummary = showEn
-                        ? (item.summary_en || 'Translating...')
-                        : item.summary_zh;
-
-                    // Strict Mode: Skeleton
-                    if (showEn && !hasEn) {
-                        return (
-                            <article
-                                key={item.id || index}
-                                className="relative h-full flex flex-col bg-white/40 dark:bg-gray-900/40 backdrop-blur-md rounded-2xl border border-orange-100/50 dark:border-orange-900/30 p-5 animate-pulse"
-                            >
-                                <div className="absolute -top-3 -left-3 w-8 h-8 bg-gray-200 dark:bg-gray-800 rounded-lg shadow-md"></div>
-                                <div className="flex items-center gap-2 mb-3 ml-2">
-                                    <div className="h-3 w-16 bg-gray-200 dark:bg-gray-800 rounded"></div>
-                                </div>
-                                <div className="h-6 w-full bg-gray-200 dark:bg-gray-800 rounded mb-2"></div>
-                                <div className="h-6 w-2/3 bg-gray-200 dark:bg-gray-800 rounded mb-4"></div>
-                                <div className="mt-auto h-16 w-full bg-gray-200 dark:bg-gray-800 rounded"></div>
-                                <div className="mt-4 flex justify-end">
-                                    <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800"></div>
-                                </div>
-                            </article>
-                        );
-                    }
+                    if (showEn && !hasEn) { /* Skeleton */ return <div key={index} className="skeleton" />; }
 
                     return (
                         <article
@@ -142,13 +123,16 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
                                     </span>
                                 </div>
 
-                                {/* Title - EXTERNAL LINK */}
+                                {/* Title - EXTERNAL LINK (Standard) */}
                                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 line-clamp-3 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
                                     <Link
                                         href={item.original_url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        onClick={() => handleNewsClick(item.id)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleNewsClick(item.id);
+                                        }}
                                         className="hover:underline"
                                     >
                                         {displayTitle}
@@ -156,23 +140,29 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
                                     </Link>
                                 </h3>
 
-                                {/* Summary Snippet - INTERNAL LINK */}
-                                <Link
-                                    href={`/news/${item.slug || item.id}`}
-                                    className="block mt-auto"
+                                {/* Summary Snippet - ONCLICK NAVIGATE */}
+                                <div
+                                    onClick={() => {
+                                        handleNewsClick(item.id);
+                                        router.push(`/news/${item.slug || item.id}`);
+                                    }}
+                                    className="block mt-auto cursor-pointer"
                                 >
                                     <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
                                         {preprocessMarkdown(displaySummary || null)}
                                     </p>
-                                </Link>
+                                </div>
 
                                 <div className="mt-4 flex justify-end">
-                                    <Link
-                                        href={`/news/${item.slug || item.id}`}
-                                        className="p-2 rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 group-hover:bg-orange-100 dark:group-hover:bg-orange-900/40 transition-colors"
+                                    <button
+                                        onClick={() => {
+                                            handleNewsClick(item.id);
+                                            router.push(`/news/${item.slug || item.id}`);
+                                        }}
+                                        className="p-2 rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 group-hover:bg-orange-100 dark:group-hover:bg-orange-900/40 transition-colors hover:scale-110 active:scale-95"
                                     >
                                         <ArrowUpRight className="w-4 h-4" />
-                                    </Link>
+                                    </button>
                                 </div>
                             </div>
                         </article>
