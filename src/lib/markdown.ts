@@ -34,8 +34,15 @@ export function preprocessMarkdown(content: string | null): string {
     processed = processed.replace(/\[Paragraph 1.*?\]/gi, ''); // General broad catch
     processed = processed.replace(/\(Start directly with a paragraph explaining.*?\)/gi, '');
 
-    // Trim extra newlines created by removal
-    processed = processed.replace(/^\s*[\r\n]/gm, '');
+    // 6. Fix: Dense Emoji Paragraphs -> Separate Blocks
+    // Target: 🧠, ⚠️, ✅, 💡, 🗣️, 👔
+    // We want to ensure they start on a new line.
+    const emojis = ['🧠', '⚠️', '✅', '💡', '🗣️', '👔', '✨', '👉'];
+    const emojiPattern = new RegExp(`([^\\n])\\s*([${emojis.join('')}])`, 'g');
+    processed = processed.replace(emojiPattern, '$1\n\n$2');
+
+    // 7. Enhance: Make "Advice" sections bold or blockquote?
+    // Let's just ensure spacing first.
 
     return processed;
 }
