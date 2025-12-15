@@ -5,6 +5,7 @@ import { NewsItem } from '@/types';
 import { WelcomeSection } from '@/components/welcome-section';
 import { HotNewsSection } from '@/components/hot-news';
 import { PinnedGuideCard } from '@/components/pinned-guide-card';
+import { DailyInsight } from '@/components/daily-insight';
 
 // 強制動態渲染，不使用快取
 export const dynamic = 'force-dynamic';
@@ -47,8 +48,18 @@ export default async function Home() {
         {/* Pinned User Guide Card - 置頂教學 */}
         <PinnedGuideCard />
 
-        {/* Hot News Section */}
-        <HotNewsSection items={hotItems} />
+        {/* Daily Insight Section - 今日一句 (Uses the #1 Hot News or #1 Latest) */}
+        <DailyInsight insightItem={hotItems[0] || items[0] || null} />
+
+        {/* Hot News Section (Skip first if used in Daily Insight? Optional. Let's keep it for now but maybe later filter out) */}
+        {/* Actually user request says "daily one sentence conclusion, below is news". 
+            So "Daily Insight" IS the top thing. 
+            Maybe we should remove the top item from Hot News to avoid duplication? 
+            Let's keep duplication for now to avoid complexity in logic "don't show if already top". 
+            Or just keep it, it's fine. */}
+        <div className="mb-8">
+          <HotNewsSection items={hotItems} />
+        </div>
 
         <div className="mb-4 flex items-center gap-2">
           <div className="h-1 w-1 rounded-full bg-blue-500" />

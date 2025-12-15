@@ -23,16 +23,32 @@ export async function generateSummary(title: string, content: string) {
       Requirements:
       1. Translate the title into Traditional Chinese (繁體中文).
       2. Provide a concise summary in English (max 500 words).
-      3. Provide a concise summary in Traditional Chinese (繁體中文) (max 600 words).
-      4. **CRITICAL**: At the end of the Traditional Chinese summary, add a double line break and append a section starting with "💡 關鍵影響：" followed by one insightful sentence explaining why this news is important for the AI industry or the future.
-      5. **NEW**: After the "Key Takeaway", add a Markdown table analyzing the "Potential Benefits" (正面影響) vs "Challenges/Risks" (挑戰與風險).
-         Format:
+      3. **Content Style Strategy**: Write for a general audience who doesn not understand AI jargon. Use simple analogies.
+      
+      4. **Chinese Summary Structure (summary_zh)**:
+         Must use the following specific Markdown format:
+
+         [Paragraph 1: Background & What happened (Simple terms)]
+         
+         🧠 **白話解讀**
+         [One sentence simple explanation using an analogy if possible]
+
+         ⚠️ **這對你的影響**
+         [One sentence on why a normal person should care]
+
+         ✅ **你不需要做什麼**
+         [One sentence to reassure them, e.g., "Just know this trend, no action needed yet."]
+
+         💡 **關鍵影響**
+         [One insightful sentence about the industry implication]
+
          | 正面影響 | 挑戰與風險 |
          |----------|------------|
-         | Point 1  | Risk 1     |
-         | Point 2  | Risk 2     |
-      6. Extract 3-5 relevant tags.
-      7. The tone should be professional and objective, suitable for a tech newsletter.
+         | [Point 1] | [Risk 1] |
+         | [Point 2] | [Risk 2] |
+         
+      5. Extract 3-5 relevant tags.
+      6. The tone should be friendly, reassuring, and easy to understand.
     `;
 
         const { object } = await generateObject({
