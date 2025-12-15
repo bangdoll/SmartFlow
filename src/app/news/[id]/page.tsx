@@ -100,6 +100,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
 }
 
+// Helper to fix common Markdown formatting issues
+function preprocessMarkdown(content: string | null): string {
+    if (!content) return '';
+
+    let processed = content;
+
+    // 1. Ensure empty line before table headers
+    // 找尋像 "...文字| 標題 | 標題 |" 這樣的情況，並強制換行
+    processed = processed.replace(/([^\n])\n(\|.*?\|.*?\|)/g, '$1\n\n$2');
+
+    // 2. 針對 Screenshot 中的情況： "...挑戰。 | 正面影響 |" (同一行)
+    processed = processed.replace(/([^\n])(\|.*?\|.*?\|)/g, '$1\n\n$2');
+
+    return processed;
+}
+
 export default async function NewsDetailPage({ params }: Props) {
     const { id } = await params;
     const item = await getNewsItem(id);
@@ -120,6 +136,8 @@ export default async function NewsDetailPage({ params }: Props) {
         minute: '2-digit',
         timeZone: 'Asia/Taipei',
     });
+
+    const summary = preprocessMarkdown(item.summary_zh || item.summary_en);
 
     return (
         <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 transition-colors duration-500">
@@ -152,7 +170,7 @@ export default async function NewsDetailPage({ params }: Props) {
 
 
                     <div className="prose prose-lg dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 mb-8 prose-table:border-collapse prose-table:w-full prose-th:bg-blue-50 dark:prose-th:bg-blue-900/30 prose-th:p-3 prose-td:p-3 prose-th:text-left prose-td:border prose-td:border-gray-200 dark:prose-td:border-gray-700 prose-th:border prose-th:border-gray-200 dark:prose-th:border-gray-700">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{item.summary_zh || item.summary_en || ''}</ReactMarkdown>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{summary}</ReactMarkdown>
                     </div>
 
                     {item.tags && item.tags.length > 0 && (
