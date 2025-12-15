@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { runScrapeSortAndSummary } from '@/lib/scrape-workflow';
 import { sendDailyNewsletter } from '@/lib/newsletter';
 import { generateWeeklyTrends, saveWeeklyTrendsToDb } from '@/lib/trends-generator';
+import { translatePendingItems } from '@/lib/translation-service';
 
 // 設定最大執行時間 (Vercel Hobby 10s/60s，合併後更需注意)
 // 爬蟲限制了處理數量，電子報應該也很快
@@ -27,7 +28,12 @@ export async function GET(req: NextRequest) {
         const newsletterResult = await sendDailyNewsletter();
         console.log('Newsletter result:', newsletterResult);
 
-        // 3. (每周一) 執行週報趨勢分析
+        // 3. 執行中翻英 (Pre-translation)
+        // 這會確保用戶打開網站時，最新的新聞已經有英文版，無需等待
+        const translatedCount = await translatePendingItems(20);
+        console.log('Translated Pending Items:', translatedCount);
+
+        // 4. (每周一) 執行週報趨勢分析
         // Monday = 1
         const today = new Date();
         let weeklyTrendsResult = null;
@@ -49,6 +55,7 @@ export async function GET(req: NextRequest) {
             success: true,
             scrape: scrapeResult,
             newsletter: newsletterResult,
+            translated: translatedCount,
             weeklyTrends: weeklyTrendsResult
         });
 
