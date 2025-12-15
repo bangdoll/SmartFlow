@@ -130,7 +130,16 @@ export function NewsContent({ item, prev, next }: NewsContentProps) {
                     language={language}
                 />
 
-                <div className="prose prose-lg dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 mb-8 prose-table:border-collapse prose-table:w-full prose-th:bg-blue-50 dark:prose-th:bg-blue-900/30 prose-th:p-3 prose-td:p-3 prose-th:text-left prose-td:border prose-td:border-gray-200 dark:prose-td:border-gray-700 prose-th:border prose-th:border-gray-200 dark:prose-th:border-gray-700">
+                <div className="prose prose-lg dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 mb-8 
+                    leading-loose tracking-wide
+                    prose-p:mb-6 prose-headings:font-bold prose-headings:tracking-tight
+                    prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline
+                    prose-img:rounded-xl prose-img:shadow-lg
+                    prose-table:w-full prose-table:border-collapse prose-table:my-8 prose-table:shadow-sm prose-table:rounded-lg prose-table:overflow-hidden
+                    prose-th:bg-gray-50 dark:prose-th:bg-gray-800/50 prose-th:p-4 prose-th:text-left prose-th:font-bold prose-th:text-gray-900 dark:prose-th:text-white
+                    prose-td:p-4 prose-td:border-t prose-td:border-gray-100 dark:prose-td:border-gray-800
+                    prose-li:marker:text-blue-500
+                    ">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{processedSummary}</ReactMarkdown>
                 </div>
 

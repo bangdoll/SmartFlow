@@ -38,10 +38,9 @@ export function NewsCard({ news }: NewsCardProps) {
                 </span>
             </div>
 
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3 leading-tight">
-                <Link href={news.original_url} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-2">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3 leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                <Link href={`/news/${news.slug || news.id}`} className="flex items-center gap-2">
                     {displayTitle}
-                    <ExternalLink className="w-4 h-4 text-gray-400" />
                 </Link>
             </h2>
 
