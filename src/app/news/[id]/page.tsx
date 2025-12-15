@@ -106,12 +106,37 @@ function preprocessMarkdown(content: string | null): string {
 
     let processed = content;
 
-    // 1. Ensure empty line before table headers
-    // 找尋像 "...文字| 標題 | 標題 |" 這樣的情況，並強制換行
-    processed = processed.replace(/([^\n])\n(\|.*?\|.*?\|)/g, '$1\n\n$2');
+    // 1. Fix: Text stuck to table (Same line)
+    // Ex: "Introduction. | Header 1 | Header 2 | |---|---|"
+    // Replaces char -> newline -> newline -> header -> newline -> separator
+    processed = processed.replace(
+        /([^|\n])(\s*)(\|.*?\|.*?\|)(\s*)(\|[-:]+[-| :]*\|)/g,
+        '$1\n\n$3\n$5'
+    );
 
-    // 2. 針對 Screenshot 中的情況： "...挑戰。 | 正面影響 |" (同一行)
-    processed = processed.replace(/([^\n])(\|.*?\|.*?\|)/g, '$1\n\n$2');
+    // 2. Fix: Text stuck to table (Next line but no blank line)
+    // Ex: "Introduction.\n| Header 1 | Header 2 |\n|---|---|"
+    processed = processed.replace(
+        /([^|\n])\n(\|.*?\|.*?\|)\n(\|[-:]+[-| :]*\|)/g,
+        '$1\n\n$2\n$3'
+    );
+
+    // 3. Fix: Header stuck to Separator (Same line, no preceding text issue)
+    // Ex: "| Header | Header | |---|---|" -> "| Header | Header |\n|---|---|"
+    processed = processed.replace(
+        /(\|.*?\|.*?\|)(\s*)(\|[-:]+[-| :]*\|)/g,
+        '$1\n$3'
+    );
+
+    // 4. Ensure empty line before table if pattern is just "newline + pipe"
+    // Fallback for general cases where previous text is clean but just missing blank line
+    // Look for separator line, find previous header line, ensure blank line before header.
+    // Regex: (HeaderLine match) (Newline) (SeparatorLine)
+    // We already handled explicit text above, this handles generic cases.
+    processed = processed.replace(
+        /([^\n])\n((\|.*?\|){2,})\n(\|[-:]+[-| :]*\|)/g,
+        '$1\n\n$2\n$4'
+    );
 
     return processed;
 }
