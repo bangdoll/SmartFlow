@@ -63,7 +63,7 @@ export default async function Home() {
 
 
 
-        <NewsFeed items={items} />
+        <NewsFeed initialItems={items} />
 
         <div className="mt-20">
           <SubscribeForm />

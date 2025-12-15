@@ -36,7 +36,7 @@ export default async function ArchivePage() {
                 </p>
             </div>
 
-            <NewsFeed items={newsItems} />
+            <NewsFeed initialItems={newsItems} />
         </div>
     );
 }
