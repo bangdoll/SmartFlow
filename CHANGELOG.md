@@ -1,4 +1,4 @@
-# 版本更新日誌 (Version Changelog - 2025)
+# Changelog
 
 ## [2025-12-15] - 每週趨勢與 UX 優化
 
