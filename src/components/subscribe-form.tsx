@@ -46,7 +46,7 @@ export function SubscribeForm() {
 
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">不想每天自己來看？</h3>
             <p className="text-lg text-gray-600 dark:text-gray-400 mb-6 font-medium">
-                留下 Email，我們<strong>每天早上幫你整理一封重點摘要</strong>。
+                留下 Email，我們每天寄一封<strong>「不超過 60 秒看完」</strong>的重點摘要給你。
             </p>
 
             <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">

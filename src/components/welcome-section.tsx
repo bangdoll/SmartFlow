@@ -7,17 +7,18 @@ export function WelcomeSection() {
 
             {/* 歡迎標題區 */}
             <div className="mb-8">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                    👋 歡迎來到《智流》
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4 leading-tight">
+                    每天 5 分鐘，搞懂 AI 正在怎麼影響你我的生活與工作
                 </h1>
-                <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                    這裡每天幫你整理<strong>全世界最新的重要科技與 AI 新聞</strong>，<br className="hidden md:inline" />
-                    不用搜尋、不用設定，<strong>打開就能看</strong>。
+                <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
+                    不用懂 AI、不用追新聞。<br className="hidden md:inline" />
+                    我們每天幫你挑 3 則「<strong>你該知道、不看會吃虧</strong>」的科技重點。
                 </p>
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800">
-                    <p className="text-blue-800 dark:text-blue-200 font-medium flex items-start gap-2">
-                        <span>👉</span>
-                        <span>不懂 AI 也沒關係，把它當成一份「<strong>科技早報</strong>」就好。</span>
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-5 rounded-2xl border border-blue-100 dark:border-blue-800">
+                    <p className="text-blue-800 dark:text-blue-200 font-medium leading-relaxed">
+                        <span className="block mb-2 text-xl">💡</span>
+                        如果你看不懂 AI，代表你是正常人。<br />
+                        這個網站不是寫給工程師的，是寫給還在過生活的人。
                     </p>
                 </div>
             </div>
