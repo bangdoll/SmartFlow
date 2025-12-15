@@ -4,36 +4,18 @@ import { NewsItem } from '@/types';
 import { useState, useMemo, useEffect } from 'react';
 import { Calendar, Tag, ExternalLink, X, Share2 } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useLanguage } from './language-context';
 import { preprocessMarkdown } from '@/lib/markdown';
 
 interface NewsFeedProps {
-    items: NewsItem[];
+    initialItems?: NewsItem[];
 }
 
-export function NewsFeed({ items: initialItems }: NewsFeedProps) {
+export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
     const { t, language } = useLanguage();
     const [selectedTag, setSelectedTag] = useState<string | null>(null);
-
-    // Inject useRouter
-    const router = useRouter();
-
-    const handleCardClick = (e: React.MouseEvent, item: NewsItem) => {
-        // Prevent if clicking a button or link (though we want card to work mainly)
-        // If target is a button or link, let it be.
-        const target = e.target as HTMLElement;
-        if (target.closest('button') || target.closest('a')) {
-            return;
-        }
-
-        // Assuming handleNewsClick is defined elsewhere or will be added.
-        // For now, commenting out to avoid compilation error if not present.
-        // handleNewsClick(item.id); 
-        router.push(`/news/${item.slug || item.id}`);
-    };
 
     // Store all items in state to allow prepending new ones on refresh
     const [feedItems, setFeedItems] = useState<NewsItem[]>(initialItems);
@@ -487,8 +469,7 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                             return (
                                 <article
                                     key={item.id || item.original_url}
-                                    onClick={(e) => handleCardClick(e, item)}
-                                    className={`relative backdrop-blur-sm border rounded-xl p-6 transition-all duration-300 shadow-sm group cursor-pointer ${isRead
+                                    className={`relative backdrop-blur-sm border rounded-xl p-6 transition-all duration-300 shadow-sm group ${isRead
                                         ? 'bg-gray-50/40 dark:bg-gray-900/40 border-gray-200/50 dark:border-gray-800/30 opacity-80 hover:opacity-100'
                                         : 'bg-white/60 dark:bg-gray-900/60 border-white/50 dark:border-gray-800/50 hover:shadow-lg hover:scale-[1.01]'
                                         }`}
@@ -512,23 +493,25 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                                         </div>
                                     </div>
 
-                                    {/* Title - Linked */}
+                                    {/* Title - LINK TO EXTERNAL ORIGINAL URL */}
                                     <h2 className={`text-xl font-bold mb-3 leading-tight transition-colors ${isRead ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-white'}`}>
                                         <Link
-                                            href={`/news/${item.slug || item.id}`}
+                                            href={item.original_url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
                                             onClick={() => handleNewsClick(item.id)}
-                                            className="hover:text-blue-600 dark:hover:text-blue-400 block"
+                                            className="hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center gap-2 group-hover:underline decoration-blue-500/30 underline-offset-4"
                                         >
                                             {displayTitle}
+                                            <ExternalLink className="w-4 h-4 text-gray-400 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                                         </Link>
                                     </h2>
 
-                                    {/* Summary - Linked */}
+                                    {/* Summary - LINK TO INTERNAL DETAIL PAGE */}
                                     {displaySummary && (
                                         <Link
                                             href={`/news/${item.slug || item.id}`}
-                                            onClick={() => handleNewsClick(item.id)}
-                                            className="block group/summary"
+                                            className="block group/summary cursor-pointer"
                                         >
                                             <div className={`text-gray-600 dark:text-gray-300 mb-4 leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-table:border-collapse prose-th:bg-blue-50 dark:prose-th:bg-blue-900/30 prose-th:p-2 prose-td:p-2 prose-th:text-left prose-table:w-full prose-table:text-sm ${isRead ? 'text-gray-500 dark:text-gray-500' : ''} group-hover/summary:text-blue-600 dark:group-hover/summary:text-blue-400 transition-colors`}>
                                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{preprocessMarkdown(displaySummary)}</ReactMarkdown>
