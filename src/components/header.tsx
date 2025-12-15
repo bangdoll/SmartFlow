@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Suspense } from 'react';
-import { Waves } from 'lucide-react';
+import { Waves, TrendingUp } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { SearchInput } from '@/components/search-input';
 import { LanguageToggle } from '@/components/language-toggle';
@@ -26,10 +26,17 @@ export function Header() {
 
                 {/* Navigation */}
                 <nav className="flex items-center gap-1 sm:gap-3">
-                    {/* Desktop-only nav links */}
-                    <Link href="/trends" className="hidden md:block text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
-                        {t('nav.trends')}
+                    {/* Trends - Icon on mobile, Text on desktop */}
+                    <Link
+                        href="/trends"
+                        className="p-2 sm:p-0 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
+                        title={t('nav.trends')}
+                    >
+                        <TrendingUp className="w-5 h-5 md:hidden" />
+                        <span className="hidden md:block text-sm font-medium">{t('nav.trends')}</span>
                     </Link>
+
+                    {/* Desktop-only nav links */}
                     <Link href="/archive" className="hidden md:block text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
                         {t('nav.archive')}
                     </Link>
