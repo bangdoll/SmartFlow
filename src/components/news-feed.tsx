@@ -270,8 +270,9 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
         const text = `[新趨勢] ${item.title}`;
 
         if (platform === 'copy') {
-            navigator.clipboard.writeText(shareUrl);
-            alert('連結已複製！'); // 簡單提示，實際專案可用 Toast
+            const copyText = `${text} ${shareUrl}`;
+            navigator.clipboard.writeText(copyText);
+            setToast({ message: '連結已複製！', type: 'success' });
         } else if (platform === 'twitter') {
             window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
         } else if (platform === 'facebook') {
