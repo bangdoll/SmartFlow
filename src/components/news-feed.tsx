@@ -474,50 +474,59 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
                                         : 'bg-white/60 dark:bg-gray-900/60 border-white/50 dark:border-gray-800/50 hover:shadow-lg hover:scale-[1.01]'
                                         }`}
                                 >
-                                    <div className="flex items-center justify-between mb-2">
-                                        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                                            <span className="font-semibold text-blue-600 dark:text-blue-400">{item.source}</span>
-                                            <span>•</span>
-                                            <span className="flex items-center gap-1">
-                                                <Calendar className="w-3 h-3" />
-                                                {date}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            {item.click_count && item.click_count > 0 && (
-                                                <div className="flex items-center gap-1 text-xs font-medium text-orange-500 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded-full">
-                                                    🔥 {item.click_count}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
+                                    {/* Helper Link to make whole card clickable */}
+                                    <Link
+                                        href={`/news/${item.slug || item.id}`}
+                                        onClick={() => handleNewsClick(item.id)}
+                                        className="absolute inset-0 z-0"
+                                        aria-label={`Read more about ${displayTitle}`}
+                                    />
 
-                                    <h2 className={`text-xl font-bold mb-3 leading-tight transition-colors ${isRead ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-white'
-                                        }`}>
-                                        <Link
-                                            href={`/news/${item.slug || item.id}`}
-                                            onClick={() => handleNewsClick(item.id)}
-                                            className="hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center gap-2 group-hover:underline decoration-blue-500/30 underline-offset-4"
-                                        >
+                                    <div className="relative z-10 pointer-events-none">
+                                        {/* Header Row */}
+                                        <div className="flex items-center justify-between mb-2">
+                                            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                                                <span className="font-semibold text-blue-600 dark:text-blue-400">{item.source}</span>
+                                                <span>•</span>
+                                                <span className="flex items-center gap-1">
+                                                    <Calendar className="w-3 h-3" />
+                                                    {date}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                {item.click_count && item.click_count > 0 && (
+                                                    <div className="flex items-center gap-1 text-xs font-medium text-orange-500 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded-full">
+                                                        🔥 {item.click_count}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Title (Text Only, Click handled by Card) */}
+                                        <h2 className={`text-xl font-bold mb-3 leading-tight transition-colors ${isRead ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400'
+                                            }`}>
                                             {displayTitle}
-                                        </Link>
-                                    </h2>
+                                        </h2>
 
-                                    {displaySummary && (
-                                        <Link href={`/news/${item.id}`} className="block group/summary">
-                                            <div className={`text-gray-600 dark:text-gray-300 mb-4 leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-table:border-collapse prose-th:bg-blue-50 dark:prose-th:bg-blue-900/30 prose-th:p-2 prose-td:p-2 prose-th:text-left prose-table:w-full prose-table:text-sm ${isRead ? 'text-gray-500 dark:text-gray-500' : ''} group-hover/summary:text-blue-600 dark:group-hover/summary:text-blue-400 transition-colors`}>
+                                        {/* Summary (Text Only) */}
+                                        {displaySummary && (
+                                            <div className={`text-gray-600 dark:text-gray-300 mb-4 leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-table:border-collapse prose-th:bg-blue-50 dark:prose-th:bg-blue-900/30 prose-th:p-2 prose-td:p-2 prose-th:text-left prose-table:w-full prose-table:text-sm ${isRead ? 'text-gray-500 dark:text-gray-500' : ''} group-hover:text-blue-600/80 dark:group-hover:text-blue-400/80 transition-colors`}>
                                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{preprocessMarkdown(displaySummary)}</ReactMarkdown>
                                             </div>
-                                        </Link>
-                                    )}
+                                        )}
+                                    </div>
 
-                                    <div className="flex items-center justify-between mt-4">
+                                    {/* Footer Actions (Must be clickable, so z-20 and pointer-events-auto) */}
+                                    <div className="relative z-20 flex items-center justify-between mt-4 pointer-events-auto">
                                         <div className="flex flex-wrap gap-2">
                                             {item.tags?.map((tag) => (
                                                 <button
                                                     key={tag}
                                                     type="button"
-                                                    onClick={() => handleTagClick(tag)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation(); // Prevent card click
+                                                        handleTagClick(tag);
+                                                    }}
                                                     className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer ${selectedTag === tag
                                                         ? 'bg-blue-500 text-white shadow-md scale-105'
                                                         : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:text-blue-600 dark:hover:text-blue-400'
@@ -531,9 +540,12 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
 
                                         {/* Share Buttons & Actions */}
                                         <div className="flex items-center gap-3">
+                                            {/* We can keep AI Guide button as a separate distinct action if we want, even if card goes there too. 
+                                                But maybe redundant? Let's keep it for visual cue. */}
                                             <Link
-                                                href={`/news/${item.id}`} // Force ID
+                                                href={`/news/${item.slug || item.id}`}
                                                 className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-xs font-medium hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                                                onClick={(e) => e.stopPropagation()}
                                             >
                                                 <span className="text-lg">🤖</span>
                                                 {t('feed.aiGuide')}
@@ -541,15 +553,20 @@ export function NewsFeed({ items: initialItems }: NewsFeedProps) {
 
                                             <div className="flex items-center gap-1">
                                                 <button
-                                                    onClick={() => handleShare(item, 'copy')}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleShare(item, 'copy');
+                                                    }}
                                                     className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                                                     title="複製連結"
                                                 >
                                                     <Share2 className="w-4 h-4" />
                                                 </button>
-                                                {/* X / Twitter (Simplified Icon or text) */}
                                                 <button
-                                                    onClick={() => handleShare(item, 'twitter')}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleShare(item, 'twitter');
+                                                    }}
                                                     className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400 hover:text-black dark:hover:text-white transition-colors"
                                                     title="分享到 X"
                                                 >
