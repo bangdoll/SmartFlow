@@ -8,11 +8,11 @@ export function WelcomeSection() {
             {/* 歡迎標題區 */}
             <div className="mb-8">
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4 leading-tight">
-                    每天 5 分鐘，搞懂 AI 正在怎麼影響你我的生活與工作
+                    我們幫你判斷：這則 AI 新聞，要不要理。
                 </h1>
                 <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
-                    不用懂 AI、不用追新聞。<br className="hidden md:inline" />
-                    我們每天幫你挑 3 則「<strong>你該知道、不看會吃虧</strong>」的科技重點。
+                    不是快訊，是幫你避開 AI 風險的導覽。<br className="hidden md:inline" />
+                    每天 5 分鐘，挑 3 則「<strong>不看會吃虧</strong>」的重點，省下你的焦慮。
                 </p>
                 <div className="bg-blue-50 dark:bg-blue-900/20 p-5 rounded-2xl border border-blue-100 dark:border-blue-800">
                     <p className="text-blue-800 dark:text-blue-200 font-medium leading-relaxed">

@@ -44,9 +44,9 @@ export function SubscribeForm() {
                 </div>
             </div>
 
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">不想每天自己來看？</h3>
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">我們不是幫你追新聞，是幫你避免被新聞害到。</h3>
             <p className="text-lg text-gray-600 dark:text-gray-400 mb-6 font-medium">
-                留下 Email，我們每天寄一封<strong>「不超過 60 秒看完」</strong>的重點摘要給你。
+                留下 Email，錯過這 3 則，<strong>你可能半年後才發現自己做錯決策</strong>。
             </p>
 
             <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">

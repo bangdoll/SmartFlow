@@ -46,6 +46,14 @@ export async function generateSummary(title: string, content: string) {
          |----------|------------|
          | [Point 1] | [Risk 1] |
          | [Point 2] | [Risk 2] |
+
+         ---
+         
+         🗣️ **你可以這樣跟同事說**
+         [One catchy sentence that makes the reader look smart when sharing, e.g., "Did you know X is replacing Y?"]
+
+         👔 **給老闆的建議**
+         [One sentence on whether to invest, ignore, or monitor, specifically for decision makers]
          
       5. Extract 3-5 relevant tags.
       6. The tone should be friendly, reassuring, and easy to understand.
