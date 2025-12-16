@@ -523,23 +523,28 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                     </h2>
 
                                     {/* Summary - Regular Div (Clicks bubble to Card) */}
-                                    {/* Summary - Wrapped in Link for Native Behavior (Click vs Select) */}
+                                    {/* Summary - Regular Div with Click Handler */}
                                     {displaySummary && (
-                                        <div className="mb-4 relative z-0">
-                                            <Link
-                                                href={`/news/${item.id}`}
-                                                className="block text-gray-600 dark:text-gray-300 leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-table:border-collapse prose-th:bg-blue-50 dark:prose-th:bg-blue-900/30 prose-th:p-2 prose-td:p-2 prose-th:text-left prose-table:w-full prose-table:text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors no-underline"
-                                                onClick={(e) => e.stopPropagation()} // Prevent double-triggering parent onClick
-                                            >
+                                        <div
+                                            className="mb-4 cursor-pointer"
+                                            onClick={(e) => {
+                                                // Allow text selection to happen without triggering nav immediately if user is dragging
+                                                // BUT for simplicity per user request: Just Navigate.
+                                                // If we want to allow selection: checking selection is flaky.
+                                                // Let's rely on event bubbling to the parent article, OR explicit handle.
+                                                // Bubbling is safer.
+                                                // e.stopPropagation(); // DO NOT STOP PROPAGATION, let it bubble to article
+                                            }}
+                                        >
+                                            <div className={`text-gray-600 dark:text-gray-300 leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-table:border-collapse prose-th:bg-blue-50 dark:prose-th:bg-blue-900/30 prose-th:p-2 prose-td:p-2 prose-th:text-left prose-table:w-full prose-table:text-sm ${isRead ? 'text-gray-500 dark:text-gray-500' : ''} group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors`}>
                                                 <ReactMarkdown
                                                     remarkPlugins={[remarkGfm]}
-                                                    // CRITICAL: Restrict elements to prevent nested interactive elements (links/buttons) inside summary
                                                     allowedElements={['p', 'span', 'strong', 'em', 'br', 'code', 'ul', 'ol', 'li']}
                                                     unwrapDisallowed={true}
                                                 >
                                                     {preprocessMarkdown(displaySummary)}
                                                 </ReactMarkdown>
-                                            </Link>
+                                            </div>
                                         </div>
                                     )}
 
