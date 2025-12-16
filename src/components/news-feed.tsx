@@ -536,9 +536,10 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                         </div>
                                     )}
 
-                                    {/* Footer Actions */}
-                                    <div className="flex items-center justify-between mt-auto">
-                                        <div className="flex flex-wrap gap-2">
+                                    {/* Footer Actions - Responsive Layout */}
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-auto">
+                                        {/* Tags Section */}
+                                        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                                             {item.tags?.map((tag) => (
                                                 <button
                                                     key={tag}
@@ -562,57 +563,62 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                             ))}
                                         </div>
 
-                                        {/* Explicit Read More Button (Internal) */}
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleNewsClick(item.id);
-                                                // Short ID Hard Nav
-                                                window.location.href = `/news/${item.id.substring(0, 8)}`;
-                                            }}
-                                            className="flex items-center gap-1 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors z-10 relative cursor-pointer"
-                                        >
-                                            {t('news.readMore') || 'Read Analysis'} <ArrowUpRight className="w-4 h-4" />
-                                        </button>
-
-                                        {/* Share Buttons & Actions */}
-                                        <div className="flex items-center gap-3">
+                                        {/* Actions Group (Read More + Share) */}
+                                        <div className="flex items-center justify-end gap-3 w-full sm:w-auto">
+                                            {/* Explicit Read More Button (Internal) */}
                                             <button
-                                                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-xs font-medium hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors z-10 relative cursor-pointer"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     handleNewsClick(item.id);
                                                     // Short ID Hard Nav
                                                     window.location.href = `/news/${item.id.substring(0, 8)}`;
                                                 }}
+                                                className="flex items-center gap-1 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors z-10 relative cursor-pointer whitespace-nowrap"
+                                                suppressHydrationWarning
                                             >
-                                                <span className="text-lg">🤖</span>
-                                                {t('feed.aiGuide')}
+                                                {t('news.readMore') || 'Read Analysis'} <ArrowUpRight className="w-4 h-4" />
                                             </button>
 
-                                            <div className="flex items-center gap-1">
+                                            {/* Share Buttons & Actions */}
+                                            <div className="flex items-center gap-3">
                                                 <button
+                                                    className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-xs font-medium hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors z-10 relative cursor-pointer whitespace-nowrap"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        handleShare(item, 'copy');
+                                                        handleNewsClick(item.id);
+                                                        // Short ID Hard Nav
+                                                        window.location.href = `/news/${item.id.substring(0, 8)}`;
                                                     }}
-                                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors z-10 relative cursor-pointer"
-                                                    title="複製連結"
+                                                    suppressHydrationWarning
                                                 >
-                                                    <Share2 className="w-4 h-4" />
+                                                    <span className="text-lg">🤖</span>
+                                                    {t('feed.aiGuide')}
                                                 </button>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleShare(item, 'twitter');
-                                                    }}
-                                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400 hover:text-black dark:hover:text-white transition-colors z-10 relative cursor-pointer"
-                                                    title="分享到 X"
-                                                >
-                                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
-                                                    </svg>
-                                                </button>
+
+                                                <div className="flex items-center gap-1">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleShare(item, 'copy');
+                                                        }}
+                                                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors z-10 relative cursor-pointer"
+                                                        title="複製連結"
+                                                    >
+                                                        <Share2 className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleShare(item, 'twitter');
+                                                        }}
+                                                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400 hover:text-black dark:hover:text-white transition-colors z-10 relative cursor-pointer"
+                                                        title="分享到 X"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
