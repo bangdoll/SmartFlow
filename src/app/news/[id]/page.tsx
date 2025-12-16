@@ -31,16 +31,13 @@ const getNewsItem = cache(async (id: string) => {
     if (uuidRegex.test(id)) {
         query = query.eq('id', id);
     } else if (shortUuidRegex.test(id)) {
-        // Handle 8-char Short ID logic
-        // Postgres UUID column doesn't support LIKE directly unless cast to text.
-        // Supabase Postgrest filter 'ilike' usually works on text columns. 
-        // We might need to filter client side or use a specific filter if ID is UUID type.
-        // Using 'eq' won't work. Using 'ilike' on UUID might fail if strict.
-        // Safest approach without changing DB schema: Use .ilike('id::text', ...) if supported, 
-        // OR fetch logic: .or(`id.ilike.${id}%`)
-        // Let's try explicit casting hint if possible, or just standard ilike if Supabase supports auto-cast.
-        // Actually, Supabase js lib handles it usually.
-        query = query.ilike('id', `${id}%`);
+        // Handle 8-char Short ID logic using Range Query (UUID type safe)
+        // Prefix is the first 8 chars group of UUID (e.g. 12345678-...)
+        // We construct the Min and Max possible UUIDs for this prefix.
+        const minUUID = `${id}-0000-0000-0000-000000000000`;
+        const maxUUID = `${id}-ffff-ffff-ffff-ffffffffffff`;
+
+        query = query.gte('id', minUUID).lte('id', maxUUID);
     } else {
         // Assume slug
         query = query.eq('slug', id);
