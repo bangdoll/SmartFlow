@@ -4,7 +4,9 @@ import { streamText } from 'ai';
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-  const { messages, context } = await req.json();
+  const { messages, context, language = 'zh-TW' } = await req.json();
+
+  const isEnglish = language === 'en';
 
   const systemPrompt = `
     你是一個專業的 AI 新聞導讀助手，你的名字叫 "Smart Flow AI"。
@@ -17,7 +19,7 @@ export async function POST(req: Request) {
     請遵守以下規則：
     1. 回答需簡潔扼要，語氣親切專業。
     2. 如果使用者的問題與本新聞無關，請禮貌地引導回新聞主題，或是簡單回答後拉回主題。
-    3. 盡量使用繁體中文回答。
+    3. **${isEnglish ? 'Please answer in English.' : '請使用繁體中文回答。'}**
     4. 解釋專業術語時，請用通俗易懂的比喻。
     5. **請勿使用數字列表 (1. 2. 3.)**。如果要分點說明，請直接分段，段落之間空一行即可。
   `;

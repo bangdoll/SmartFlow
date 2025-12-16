@@ -61,6 +61,7 @@ export function ChatBox({ initialContext }: ChatBoxProps) {
                         content: m.content,
                     })),
                     context: initialContext,
+                    language: language, // Explicitly pass current language
                 }),
             });
 

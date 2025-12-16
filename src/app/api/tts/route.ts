@@ -118,15 +118,34 @@ export async function POST(req: NextRequest) {
         }
 
         // 2. Generate Audio using OpenAI TTS
-        // Preprocess variables
-        // Note: For English, title might ideally be EN too, but schema implies 'title' is unified (likely ZH).
-        // If we want EN title, we might need to translate or extract if stored. For now, use existing title.
-        const cleanTitle = newsItem.title || '';
-
+        let cleanTitle = newsItem.title || '';
         let cleanSummary = '';
         let rawSummary = (newsItem as any)[summaryColumn] || ''; // Changed to 'let' for potential reassignment
 
         if (targetLang === 'en') {
+            // ENGLISH MODE
+
+            // A. Handle Title
+            if ((newsItem as any).title_en) {
+                cleanTitle = (newsItem as any).title_en;
+            } else {
+                console.log('Missing title_en, translating title...');
+                const titleTranslation = await openai.chat.completions.create({
+                    model: "gpt-4o",
+                    messages: [
+                        { role: "system", content: "Translate this news title to English. Only output the translation." },
+                        { role: "user", content: cleanTitle }
+                    ]
+                });
+                const translatedTitle = titleTranslation.choices[0]?.message?.content?.trim();
+                if (translatedTitle) {
+                    cleanTitle = translatedTitle;
+                    // Async update DB
+                    supabase.from('news_items').update({ title_en: translatedTitle }).eq('id', newsId).then();
+                }
+            }
+
+            // B. Handle Summary
             // For English, check if we have summary_en. If not, generate (translate) it from summary_zh.
             if (!rawSummary && (newsItem as any).summary_zh) {
                 console.log('Missing summary_en, generating translation...');
