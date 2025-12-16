@@ -77,9 +77,9 @@ export function Header() {
                     </div>
 
                     {/* Subscribe button - desktop only */}
-                    <Link href="/#subscribe" className="hidden lg:inline-flex bg-black dark:bg-white text-white dark:text-black px-3 py-1.5 rounded-full text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors whitespace-nowrap">
+                    <a href="/#subscribe" className="hidden lg:inline-flex bg-black dark:bg-white text-white dark:text-black px-3 py-1.5 rounded-full text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors whitespace-nowrap">
                         {t('nav.subscribe')}
-                    </Link>
+                    </a>
                 </nav>
             </div>
         </header>
