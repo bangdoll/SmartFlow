@@ -146,7 +146,7 @@ export function AudioPlayer({ newsId, initialAudioUrl, title, language = 'zh-TW'
             {/* Speed Toggle Button - Moved to Root Flex Container */}
             <button
                 onClick={toggleSpeed}
-                className="flex-shrink-0 h-8 px-2 text-xs font-bold text-blue-600 bg-blue-100 hover:bg-blue-200 dark:text-blue-300 dark:bg-blue-900/60 dark:hover:bg-blue-900/80 rounded-md transition-colors border border-blue-200 dark:border-blue-700 flex items-center justify-center"
+                className="flex-shrink-0 min-w-[3rem] h-9 px-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 rounded-lg transition-all shadow-sm flex items-center justify-center tracking-wide"
                 title="調整播放速度"
             >
                 {speed}x
