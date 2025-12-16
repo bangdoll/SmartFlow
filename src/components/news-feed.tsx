@@ -330,7 +330,7 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
     };
 
     const handleShare = (item: NewsItem, platform: 'copy' | 'twitter' | 'facebook') => {
-        const shareUrl = `${window.location.origin}/news/${item.slug || item.id}`;
+        const shareUrl = `${window.location.origin}/news/${item.id.substring(0, 8)}`; // Use Short ID
         const text = `[新趨勢] ${item.title}`;
 
         if (platform === 'copy') {
@@ -347,8 +347,9 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
     // Simplified click handler with HARD NAVIGATION
     const handleCardClick = (item: NewsItem) => {
         handleNewsClick(item.id);
-        // FORCE BROWSER NAVIGATION: Bypasses Next.js router entirely to rule out client-side routing failures.
-        window.location.href = `/news/${item.id}`;
+        // FORCE BROWSER NAVIGATION: Use Short ID (8 chars) per user request
+        const shortId = item.id.substring(0, 8);
+        window.location.href = `/news/${shortId}`;
     };
 
     return (
@@ -538,7 +539,8 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                             className="mb-4 cursor-pointer"
                                             onClick={(e) => {
                                                 // Hard Navigation to bypass any Router/State issues
-                                                window.location.href = `/news/${item.id}`;
+                                                const shortId = item.id.substring(0, 8);
+                                                window.location.href = `/news/${shortId}`;
                                             }}
                                         >
                                             <div className={`text-gray-600 dark:text-gray-300 leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-table:border-collapse prose-th:bg-blue-50 dark:prose-th:bg-blue-900/30 prose-th:p-2 prose-td:p-2 prose-th:text-left prose-table:w-full prose-table:text-sm ${isRead ? 'text-gray-500 dark:text-gray-500' : ''} group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors`}>
@@ -580,12 +582,12 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                         </div>
 
                                         {/* Explicit Read More Button (Internal) */}
-                                        {/* We can                                        {/* Explicit Read More Button (Internal) */}
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 handleNewsClick(item.id);
-                                                router.push(`/news/${item.id}`);
+                                                // Short ID Hard Nav
+                                                window.location.href = `/news/${item.id.substring(0, 8)}`;
                                             }}
                                             className="flex items-center gap-1 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors z-10 relative cursor-pointer"
                                         >
@@ -599,7 +601,8 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     handleNewsClick(item.id);
-                                                    router.push(`/news/${item.id}`);
+                                                    // Short ID Hard Nav
+                                                    window.location.href = `/news/${item.id.substring(0, 8)}`;
                                                 }}
                                             >
                                                 <span className="text-lg">🤖</span>

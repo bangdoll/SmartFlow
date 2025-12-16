@@ -23,14 +23,27 @@ interface Props {
 const getNewsItem = cache(async (id: string) => {
     // Check if valid UUID
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    // Check if Short UUID (8 chars)
+    const shortUuidRegex = /^[0-9a-f]{8}$/i;
+
     let query = supabase.from('news_items').select('*, title_en');
 
     if (uuidRegex.test(id)) {
         query = query.eq('id', id);
+    } else if (shortUuidRegex.test(id)) {
+        // Handle 8-char Short ID logic
+        // Postgres UUID column doesn't support LIKE directly unless cast to text.
+        // Supabase Postgrest filter 'ilike' usually works on text columns. 
+        // We might need to filter client side or use a specific filter if ID is UUID type.
+        // Using 'eq' won't work. Using 'ilike' on UUID might fail if strict.
+        // Safest approach without changing DB schema: Use .ilike('id::text', ...) if supported, 
+        // OR fetch logic: .or(`id.ilike.${id}%`)
+        // Let's try explicit casting hint if possible, or just standard ilike if Supabase supports auto-cast.
+        // Actually, Supabase js lib handles it usually.
+        query = query.ilike('id', `${id}%`);
     } else {
-        // Assume slug if not UUID (future proofing)
-        // For now, ID is UUID. If slug added, handle here.
-        query = query.eq('slug', id); // Changed from query.eq('id', id) to query.eq('slug', id) for correctness
+        // Assume slug
+        query = query.eq('slug', id);
     }
 
     const { data: item, error } = await query.single();

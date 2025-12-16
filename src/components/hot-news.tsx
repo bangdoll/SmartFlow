@@ -113,8 +113,8 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
                             key={item.id || index}
                             onClick={() => {
                                 handleNewsClick(item.id);
-                                // FORCE HARD NAVIGATION
-                                window.location.href = `/news/${item.id}`;
+                                // FORCE HARD NAVIGATION with Short ID
+                                window.location.href = `/news/${item.id.substring(0, 8)}`;
                             }}
                             className="group relative flex flex-col h-full bg-gradient-to-br from-white/80 to-white/40 dark:from-gray-900/80 dark:to-gray-900/40 backdrop-blur-md rounded-2xl border border-orange-100/50 dark:border-orange-900/30 p-5 shadow-lg shadow-orange-500/5 hover:shadow-orange-500/10 hover:scale-[1.02] transition-all duration-300 cursor-pointer"
                         >
@@ -153,7 +153,7 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
                                 <div
                                     className="block mt-auto group/summary cursor-pointer"
                                     onClick={(e) => {
-                                        window.location.href = `/news/${item.id}`;
+                                        window.location.href = `/news/${item.id.substring(0, 8)}`;
                                     }}
                                 >
                                     <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 group-hover/summary:text-orange-600 dark:group-hover/summary:text-orange-400 transition-colors">
