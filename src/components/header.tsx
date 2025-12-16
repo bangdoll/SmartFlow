@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { Waves, TrendingUp, Clock } from 'lucide-react';
-import { NavButton } from '@/components/nav-button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { SearchInput } from '@/components/search-input';
 import { LanguageToggle } from '@/components/language-toggle';
@@ -29,37 +28,47 @@ export function Header() {
                 {/* Navigation */}
                 <nav className="flex items-center gap-1 sm:gap-2 relative z-[101]">
                     {/* Mobile: Trends Icon */}
-                    <NavButton
+                    <Link
                         href="/trends"
-                        mobileOnly
-                        icon={<TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />}
+                        className="w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all md:hidden active:scale-95 relative z-[102]"
                         title={t('nav.trends')}
-                    />
+                        prefetch={false}
+                    >
+                        <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </Link>
 
                     {/* Mobile: Archive Icon */}
-                    <NavButton
+                    <Link
                         href="/archive"
-                        mobileOnly
-                        icon={<Clock className="w-5 h-5 sm:w-6 sm:h-6" />}
+                        className="w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all md:hidden active:scale-95 relative z-[102]"
                         title={t('nav.archive')}
-                    />
+                        prefetch={false}
+                    >
+                        <Clock className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </Link>
 
                     {/* Desktop: Trends Text */}
-                    <NavButton
+                    <Link
                         href="/trends"
-                        desktopOnly
-                        label={t('nav.trends')}
-                    />
+                        className="hidden md:flex h-9 px-4 items-center justify-center rounded-lg text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all min-w-[4rem] relative z-[102]"
+                        title={t('nav.trends')}
+                        prefetch={false}
+                    >
+                        <span suppressHydrationWarning>{t('nav.trends')}</span>
+                    </Link>
 
                     {/* Desktop: Archive Text */}
-                    <NavButton
+                    <Link
                         href="/archive"
-                        desktopOnly
-                        label={t('nav.archive')}
-                    />
+                        className="hidden md:flex h-9 px-4 items-center justify-center rounded-lg text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all min-w-[4rem] relative z-[102]"
+                        title={t('nav.archive')}
+                        prefetch={false}
+                    >
+                        <span suppressHydrationWarning>{t('nav.archive')}</span>
+                    </Link>
 
                     {/* Icon buttons */}
-                    <div className="flex items-center gap-0.5 sm:gap-1 ml-1">
+                    <div className="flex items-center gap-0.5 sm:gap-1 ml-1 relative z-[102]">
                         <Suspense fallback={<div className="w-8 h-8" />}>
                             <SearchInput />
                         </Suspense>
