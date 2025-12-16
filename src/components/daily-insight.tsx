@@ -23,33 +23,24 @@ export function DailyInsight({ insightItem }: DailyInsightProps) {
 
     if (!item) return null;
 
-    // Strict Mode Logic
+    // Strict Modes handled by Text Replacement within stable structure to prevent Hydration Mismatch
     const showEn = language === 'en';
     const hasEn = !!item.title_en;
 
-    // If EN wanted but missing, show Skeleton
-    if (showEn && !hasEn) {
-        return (
-            <section className="mb-12">
-                <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/10 border border-amber-200 dark:border-amber-800/30 rounded-2xl p-6 md:p-8 shadow-sm relative overflow-hidden animate-pulse">
-                    <div className="flex flex-col md:flex-row gap-6 items-center">
-                        <div className="w-14 h-14 bg-amber-200/50 dark:bg-amber-800/50 rounded-full"></div>
-                        <div className="flex-1 w-full">
-                            <div className="h-4 w-32 bg-amber-200/50 dark:bg-amber-800/50 rounded mb-4"></div>
-                            <div className="h-8 w-3/4 bg-amber-200/50 dark:bg-amber-800/50 rounded mb-4"></div>
-                            <div className="h-4 w-24 bg-amber-200/50 dark:bg-amber-800/50 rounded"></div>
-                        </div>
-                    </div>
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-amber-600 dark:text-amber-500 font-bold bg-white/50 px-4 py-1 rounded-full">Translating...</div>
-                </div>
-            </section>
-        );
+    let displayTitle = item.title;
+    let isTranslating = false;
+
+    if (showEn) {
+        if (item.title_en) {
+            displayTitle = item.title_en;
+        } else {
+            displayTitle = 'Translating...';
+            isTranslating = true;
+        }
     }
 
-    const displayTitle = (language === 'en' && item.title_en) ? item.title_en : item.title;
-
     return (
-        <section className="mb-12">
+        <section className={`mb-12 ${isTranslating ? 'animate-pulse' : ''}`}>
             <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/10 border border-amber-200 dark:border-amber-800/30 rounded-2xl p-6 md:p-8 shadow-sm relative overflow-hidden group">
 
                 {/* Decorative Background Element */}
@@ -67,24 +58,36 @@ export function DailyInsight({ insightItem }: DailyInsightProps) {
                     <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                             <h2 className="text-sm font-bold tracking-wider text-amber-700 dark:text-amber-500 uppercase">
-                                ☀️ {t('insight.label')}
+                                ☀️ <span suppressHydrationWarning>{t('insight.label')}</span>
                             </h2>
                             <span className="text-xs text-amber-600/60 dark:text-amber-500/50 hidden sm:inline-block">|</span>
-                            <span className="text-xs text-amber-600/60 dark:text-amber-500/50 hidden sm:inline-block">{t('insight.sub')}</span>
+                            <span className="text-xs text-amber-600/60 dark:text-amber-500/50 hidden sm:inline-block" suppressHydrationWarning>{t('insight.sub')}</span>
                         </div>
 
-                        <h3 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3 leading-snug">
+                        <h3
+                            className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3 leading-snug cursor-pointer hover:underline decoration-amber-500/30 underline-offset-4"
+                            onClick={() => {
+                                const shortId = item.id.substring(0, 8);
+                                window.location.href = `/news/${shortId}`;
+                            }}
+                            suppressHydrationWarning
+                        >
                             {displayTitle}
                         </h3>
 
                         <div className="flex items-center gap-4 mt-4">
-                            <Link
-                                href={`/news/${item.id}`} // Force ID to avoid 404
+                            <button
+                                onClick={() => {
+                                    // Hard Nav with Short ID
+                                    const shortId = item.id.substring(0, 8);
+                                    window.location.href = `/news/${shortId}`;
+                                }}
                                 className="inline-flex items-center gap-2 text-amber-700 dark:text-amber-400 font-bold hover:gap-3 transition-all group-hover:underline decoration-2 underline-offset-4"
+                                suppressHydrationWarning
                             >
                                 {t('insight.action')}
                                 <ArrowRight className="w-4 h-4" />
-                            </Link>
+                            </button>
                         </div>
                     </div>
                 </div>
