@@ -1,5 +1,3 @@
-import { Header } from '@/components/header';
-import { Footer } from '@/components/footer';
 import { supabase } from '@/lib/supabase';
 import { cache } from 'react';
 import { notFound } from 'next/navigation';
@@ -178,7 +176,7 @@ export default async function NewsDetailPage({ params }: Props) {
     return (
         <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 transition-colors duration-500">
             <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
-            <Header />
+            {/* Header handled by layout */}
             <NewsContent item={item} prev={prev} next={next} />
         </main>
     );
