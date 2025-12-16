@@ -27,12 +27,13 @@ export function Header() {
                 {/* Navigation */}
                 <nav className="flex items-center gap-1 sm:gap-3">
                     {/* Trends - Icon on mobile, Text on desktop */}
+                    {/* Trends - Icon on mobile, Text on desktop */}
                     <Link
                         href="/trends"
-                        className="p-2 sm:p-0 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
+                        className="p-3 sm:p-0 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors active:scale-95"
                         title={t('nav.trends')}
                     >
-                        <TrendingUp className="w-5 h-5 md:hidden" />
+                        <TrendingUp className="w-6 h-6 md:hidden" />
                         <span className="hidden md:block text-sm font-medium">{t('nav.trends')}</span>
                     </Link>
 
