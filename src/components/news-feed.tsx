@@ -2,7 +2,7 @@
 
 import { NewsItem } from '@/types';
 import { useState, useMemo, useEffect } from 'react';
-import { Calendar, Tag, ExternalLink, X, Share2 } from 'lucide-react';
+import { Calendar, Tag, ExternalLink, X, Share2, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
@@ -512,22 +512,25 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                         </Link>
                                     </h2>
 
-                                    {/* Summary - ONCLICK NAVIGATE (Hybrid Approach) */}
+                                    {/* Summary - LINK TO INTERNAL DETAIL PAGE (Safe Wrapper) */}
                                     {displaySummary && (
-                                        <div
-                                            onClick={(e) => {
-                                                // If user clicks a link INSIDE summary, let it work normally
-                                                if ((e.target as HTMLElement).tagName === 'A') return;
-
-                                                handleNewsClick(item.id);
-                                                router.push(`/news/${item.slug || item.id}`);
-                                            }}
+                                        <Link
+                                            href={`/news/${item.slug || item.id}`}
                                             className="block group/summary cursor-pointer"
+                                            onClick={() => handleNewsClick(item.id)}
                                         >
                                             <div className={`text-gray-600 dark:text-gray-300 mb-4 leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-table:border-collapse prose-th:bg-blue-50 dark:prose-th:bg-blue-900/30 prose-th:p-2 prose-td:p-2 prose-th:text-left prose-table:w-full prose-table:text-sm ${isRead ? 'text-gray-500 dark:text-gray-500' : ''} group-hover/summary:text-blue-600 dark:group-hover/summary:text-blue-400 transition-colors`}>
-                                                <ReactMarkdown remarkPlugins={[remarkGfm]}>{preprocessMarkdown(displaySummary)}</ReactMarkdown>
+                                                <ReactMarkdown
+                                                    remarkPlugins={[remarkGfm]}
+                                                    components={{
+                                                        // Disable nested links to ensure valid HTML wrapper
+                                                        a: ({ node, ...props }) => <span {...props} className="font-medium text-blue-500" />
+                                                    }}
+                                                >
+                                                    {preprocessMarkdown(displaySummary)}
+                                                </ReactMarkdown>
                                             </div>
-                                        </div>
+                                        </Link>
                                     )}
 
                                     {/* Footer Actions */}
@@ -538,13 +541,17 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                                     key={tag}
                                                     type="button"
                                                     onClick={(e) => {
-                                                        e.stopPropagation(); // Prevent card click
-                                                        handleTagClick(tag);
+                                                        e.stopPropagation();
+                                                        e.preventDefault();
+                                                        setSelectedTag(tag);
                                                     }}
-                                                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer ${selectedTag === tag
-                                                        ? 'bg-blue-500 text-white shadow-md scale-105'
-                                                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:text-blue-600 dark:hover:text-blue-400'
-                                                        }`}
+                                                    className={`
+                                                        inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors z-20 relative
+                                                        ${selectedTag === tag
+                                                            ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
+                                                        }
+                                                    `}
                                                 >
                                                     <Tag className="w-3 h-3" />
                                                     {tag}
@@ -552,9 +559,18 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                             ))}
                                         </div>
 
+                                        {/* Explicit Read More Button */}
+                                        <Link
+                                            href={`/news/${item.slug || item.id}`}
+                                            onClick={() => handleNewsClick(item.id)}
+                                            className="flex items-center gap-1 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                                        >
+                                            {t('news.readMore') || 'Read Analysis'} <ArrowUpRight className="w-4 h-4" />
+                                        </Link>
+
                                         {/* Share Buttons & Actions */}
                                         <div className="flex items-center gap-3">
-                                            {/* We can keep AI Guide button as a separate distinct action if we want, even if card goes there too. 
+                                            {/* We can keep AI Guide button as a separate distinct action if we want, even if card goes there too.
                                                 But maybe redundant? Let's keep it for visual cue. */}
                                             <Link
                                                 href={`/news/${item.slug || item.id}`}

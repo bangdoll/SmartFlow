@@ -80,7 +80,7 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
         }
     };
 
-    // Inject useRouter
+    // Inject useRouter - actually not needed if we use Links
     const router = useRouter();
 
     return (
@@ -96,7 +96,6 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
 
             <div className="grid gap-6 md:grid-cols-3">
                 {hotItems.map((item, index) => {
-                    // ... vars ...
                     const showEn = language === 'en';
                     const hasEn = !!item.title_en;
                     const displayTitle = showEn ? (item.title_en || 'Translating...') : item.title;
@@ -123,7 +122,7 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
                                     </span>
                                 </div>
 
-                                {/* Title - EXTERNAL LINK (Standard) */}
+                                {/* Title - EXTERNAL LINK */}
                                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 line-clamp-3 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
                                     <Link
                                         href={item.original_url}
@@ -140,29 +139,25 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
                                     </Link>
                                 </h3>
 
-                                {/* Summary Snippet - ONCLICK NAVIGATE */}
-                                <div
-                                    onClick={() => {
-                                        handleNewsClick(item.id);
-                                        router.push(`/news/${item.slug || item.id}`);
-                                    }}
-                                    className="block mt-auto cursor-pointer"
+                                {/* Summary Snippet - INTERNAL LINK (Safe) */}
+                                <Link
+                                    href={`/news/${item.slug || item.id}`}
+                                    className="block mt-auto group/summary"
+                                    onClick={() => handleNewsClick(item.id)}
                                 >
-                                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 group-hover/summary:text-orange-600 dark:group-hover/summary:text-orange-400 transition-colors">
                                         {preprocessMarkdown(displaySummary || null)}
                                     </p>
-                                </div>
+                                </Link>
 
                                 <div className="mt-4 flex justify-end">
-                                    <button
-                                        onClick={() => {
-                                            handleNewsClick(item.id);
-                                            router.push(`/news/${item.slug || item.id}`);
-                                        }}
+                                    <Link
+                                        href={`/news/${item.slug || item.id}`}
+                                        onClick={() => handleNewsClick(item.id)}
                                         className="p-2 rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 group-hover:bg-orange-100 dark:group-hover:bg-orange-900/40 transition-colors hover:scale-110 active:scale-95"
                                     >
                                         <ArrowUpRight className="w-4 h-4" />
-                                    </button>
+                                    </Link>
                                 </div>
                             </div>
                         </article>
