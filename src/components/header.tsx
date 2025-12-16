@@ -13,7 +13,7 @@ export function Header() {
     const { t, language } = useLanguage();
 
     return (
-        <header className="fixed top-0 left-0 right-0 z-50 bg-white/70 dark:bg-black/70 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 transition-colors">
+        <header className="fixed top-0 left-0 right-0 z-[100] bg-white/70 dark:bg-black/70 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 transition-colors">
             <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
                 {/* Logo - simplified on mobile */}
                 <Link href="/" className="flex items-center gap-1.5 sm:gap-2 group flex-shrink-0 py-2 relative z-50">
@@ -27,7 +27,7 @@ export function Header() {
                 </Link>
 
                 {/* Navigation */}
-                <nav className="flex items-center gap-1 sm:gap-2 relative z-40">
+                <nav className="flex items-center gap-1 sm:gap-2 relative z-[101]">
                     {/* Mobile: Trends Icon */}
                     <NavButton
                         href="/trends"
