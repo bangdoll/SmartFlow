@@ -31,7 +31,7 @@ export async function generateSummary(title: string, content: string) {
           (Start directly with the background and what happened. Do NOT include any label like "[Paragraph 1]".)
 
           🧠 **白話解讀**
-          [One sentence simple explanation using an analogy if possible]
+          [One sentence simple explanation using an analogy if possible. **Constraint: Maximum 50 characters for this section.**]
 
           ⚠️ **這對你的影響**
           [One sentence on why a normal person should care]
