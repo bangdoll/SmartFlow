@@ -364,9 +364,8 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
         // Prevent default just in case certain browsers treat div clicks oddly
         e.preventDefault();
         handleNewsClick(item.id);
-        // Use encodeURIComponent for robust handling of Chinese slugs
-        const slug = item.slug ? encodeURIComponent(item.slug) : item.id;
-        router.push(`/news/${slug}`);
+        // FORCE ID NAVIGATION: Bypass slug encoding issues entirely to ensure consistent behavior across languages
+        router.push(`/news/${item.id}`);
     };
 
     return (
@@ -590,13 +589,12 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                         </div>
 
                                         {/* Explicit Read More Button (Internal) */}
-                                        {/* We can let this bubble or handle it explicitly. Explicit is safer for clarity. */}
+                                        {/* We can                                        {/* Explicit Read More Button (Internal) */}
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 handleNewsClick(item.id);
-                                                const slug = item.slug ? encodeURIComponent(item.slug) : item.id;
-                                                router.push(`/news/${slug}`);
+                                                router.push(`/news/${item.id}`);
                                             }}
                                             className="flex items-center gap-1 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors z-10 relative cursor-pointer"
                                         >
@@ -610,8 +608,7 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     handleNewsClick(item.id);
-                                                    const slug = item.slug ? encodeURIComponent(item.slug) : item.id;
-                                                    router.push(`/news/${slug}`);
+                                                    router.push(`/news/${item.id}`);
                                                 }}
                                             >
                                                 <span className="text-lg">🤖</span>
