@@ -476,8 +476,17 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                         : 'bg-white/60 dark:bg-gray-900/60 border-white/50 dark:border-gray-800/50 hover:shadow-lg hover:scale-[1.01]'
                                         }`}
                                 >
-                                    {/* Header Row */}
-                                    <div className="flex items-center justify-between mb-2">
+                                    {/* --- ABSOLUTE OVERLAY LINK (The Solution) --- */}
+                                    {/* This transparent link covers the entire card background but sits below interactive elements (z-0) */}
+                                    <Link
+                                        href={`/news/${item.slug || item.id}`}
+                                        className="absolute inset-0 z-0"
+                                        aria-label="Read full analysis"
+                                        onClick={() => handleNewsClick(item.id)}
+                                    />
+
+                                    {/* Header Row - Interactive (z-20) */}
+                                    <div className="relative z-20 flex items-center justify-between mb-2">
                                         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                                             <span className="font-semibold text-blue-600 dark:text-blue-400">{item.source}</span>
                                             <span>•</span>
@@ -495,8 +504,8 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                         </div>
                                     </div>
 
-                                    {/* Title - LINK TO EXTERNAL ORIGINAL URL */}
-                                    <h2 className={`text-xl font-bold mb-3 leading-tight transition-colors ${isRead ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-white'}`}>
+                                    {/* Title - EXTERNAL LINK (z-20) */}
+                                    <h2 className={`relative z-20 text-xl font-bold mb-3 leading-tight transition-colors ${isRead ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-white'}`}>
                                         <Link
                                             href={item.original_url}
                                             target="_blank"
@@ -512,29 +521,19 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                         </Link>
                                     </h2>
 
-                                    {/* Summary - LINK TO INTERNAL DETAIL PAGE (Safe Wrapper) */}
+                                    {/* Summary - POINTER EVENTS NONE (Pass through to Overlay Link) */}
                                     {displaySummary && (
-                                        <Link
-                                            href={`/news/${item.slug || item.id}`}
-                                            className="block group/summary cursor-pointer"
-                                            onClick={() => handleNewsClick(item.id)}
-                                        >
-                                            <div className={`text-gray-600 dark:text-gray-300 mb-4 leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-table:border-collapse prose-th:bg-blue-50 dark:prose-th:bg-blue-900/30 prose-th:p-2 prose-td:p-2 prose-th:text-left prose-table:w-full prose-table:text-sm ${isRead ? 'text-gray-500 dark:text-gray-500' : ''} group-hover/summary:text-blue-600 dark:group-hover/summary:text-blue-400 transition-colors`}>
-                                                <ReactMarkdown
-                                                    remarkPlugins={[remarkGfm]}
-                                                    components={{
-                                                        // Disable nested links to ensure valid HTML wrapper
-                                                        a: ({ node, ...props }) => <span {...props} className="font-medium text-blue-500" />
-                                                    }}
-                                                >
+                                        <div className="relative z-10 pointer-events-none mb-4">
+                                            <div className={`text-gray-600 dark:text-gray-300 leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-table:border-collapse prose-th:bg-blue-50 dark:prose-th:bg-blue-900/30 prose-th:p-2 prose-td:p-2 prose-th:text-left prose-table:w-full prose-table:text-sm ${isRead ? 'text-gray-500 dark:text-gray-500' : ''} group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors`}>
+                                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                                     {preprocessMarkdown(displaySummary)}
                                                 </ReactMarkdown>
                                             </div>
-                                        </Link>
+                                        </div>
                                     )}
 
-                                    {/* Footer Actions */}
-                                    <div className="flex items-center justify-between mt-4">
+                                    {/* Footer Actions - Interactive (z-20) */}
+                                    <div className="relative z-20 flex items-center justify-between mt-auto">
                                         <div className="flex flex-wrap gap-2">
                                             {item.tags?.map((tag) => (
                                                 <button
@@ -546,7 +545,7 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                                         setSelectedTag(tag);
                                                     }}
                                                     className={`
-                                                        inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors z-20 relative
+                                                        inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer
                                                         ${selectedTag === tag
                                                             ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
                                                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
@@ -562,7 +561,10 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                         {/* Explicit Read More Button */}
                                         <Link
                                             href={`/news/${item.slug || item.id}`}
-                                            onClick={() => handleNewsClick(item.id)}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleNewsClick(item.id);
+                                            }}
                                             className="flex items-center gap-1 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
                                         >
                                             {t('news.readMore') || 'Read Analysis'} <ArrowUpRight className="w-4 h-4" />
@@ -570,12 +572,13 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
 
                                         {/* Share Buttons & Actions */}
                                         <div className="flex items-center gap-3">
-                                            {/* We can keep AI Guide button as a separate distinct action if we want, even if card goes there too.
-                                                But maybe redundant? Let's keep it for visual cue. */}
                                             <Link
                                                 href={`/news/${item.slug || item.id}`}
                                                 className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-xs font-medium hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
-                                                onClick={(e) => e.stopPropagation()}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleNewsClick(item.id);
+                                                }}
                                             >
                                                 <span className="text-lg">🤖</span>
                                                 {t('feed.aiGuide')}

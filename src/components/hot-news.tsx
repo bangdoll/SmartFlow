@@ -113,8 +113,17 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
                                 {index + 1}
                             </div>
 
-                            <div className="relative z-10 flex flex-col h-full">
-                                <div className="flex items-center gap-2 text-xs font-medium text-orange-600 dark:text-orange-400 mb-3 ml-2">
+                            {/* --- ABSOLUTE OVERLAY LINK --- */}
+                            <Link
+                                href={`/news/${item.slug || item.id}`}
+                                className="absolute inset-0 z-0"
+                                aria-label="Read full analysis"
+                                onClick={() => handleNewsClick(item.id)}
+                            />
+
+                            <div className="relative z-10 flex flex-col h-full pointer-events-none">
+                                {/* Interactive Header Elements within pointer-events-none container need pointer-events-auto */}
+                                <div className="flex items-center gap-2 text-xs font-medium text-orange-600 dark:text-orange-400 mb-3 ml-2 pointer-events-auto">
                                     <span>{item.source}</span>
                                     <span>•</span>
                                     <span className="flex items-center gap-1">
@@ -122,8 +131,8 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
                                     </span>
                                 </div>
 
-                                {/* Title - EXTERNAL LINK */}
-                                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 line-clamp-3 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                                {/* Title - EXTERNAL LINK (z-20, pointer-events-auto) */}
+                                <h3 className="pointer-events-auto relative z-20 text-lg font-bold text-gray-900 dark:text-white mb-3 line-clamp-3 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
                                     <Link
                                         href={item.original_url}
                                         target="_blank"
@@ -139,21 +148,20 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
                                     </Link>
                                 </h3>
 
-                                {/* Summary Snippet - INTERNAL LINK (Safe) */}
-                                <Link
-                                    href={`/news/${item.slug || item.id}`}
-                                    className="block mt-auto group/summary"
-                                    onClick={() => handleNewsClick(item.id)}
-                                >
+                                {/* Summary Snippet - Fallthrough to Overlay Link (z-0) */}
+                                <div className="block mt-auto group/summary">
                                     <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 group-hover/summary:text-orange-600 dark:group-hover/summary:text-orange-400 transition-colors">
                                         {preprocessMarkdown(displaySummary || null)}
                                     </p>
-                                </Link>
+                                </div>
 
-                                <div className="mt-4 flex justify-end">
+                                <div className="mt-4 flex justify-end pointer-events-auto relative z-20">
                                     <Link
                                         href={`/news/${item.slug || item.id}`}
-                                        onClick={() => handleNewsClick(item.id)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleNewsClick(item.id);
+                                        }}
                                         className="p-2 rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 group-hover:bg-orange-100 dark:group-hover:bg-orange-900/40 transition-colors hover:scale-110 active:scale-95"
                                     >
                                         <ArrowUpRight className="w-4 h-4" />
