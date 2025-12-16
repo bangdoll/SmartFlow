@@ -523,29 +523,28 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                     </h2>
 
                                     {/* Summary - Regular Div (Clicks bubble to Card) */}
-                                    {/* Summary - Regular Div with Click Handler */}
+                                    {/* Summary - Wrapped in Native Link (HTML5 Standard) */}
                                     {displaySummary && (
-                                        <div
-                                            className="mb-4 cursor-pointer"
+                                        <Link
+                                            href={`/news/${item.id}`}
+                                            className="block mb-4 cursor-pointer no-underline relative z-0"
                                             onClick={(e) => {
-                                                // Allow text selection to happen without triggering nav immediately if user is dragging
-                                                // BUT for simplicity per user request: Just Navigate.
-                                                // If we want to allow selection: checking selection is flaky.
-                                                // Let's rely on event bubbling to the parent article, OR explicit handle.
-                                                // Bubbling is safer.
-                                                // e.stopPropagation(); // DO NOT STOP PROPAGATION, let it bubble to article
+                                                // Allow native link behavior. 
+                                                // Stop propagation to prevent double-firing if parent has onClick (though it shouldn't matter as we navigate).
+                                                e.stopPropagation();
                                             }}
                                         >
                                             <div className={`text-gray-600 dark:text-gray-300 leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-table:border-collapse prose-th:bg-blue-50 dark:prose-th:bg-blue-900/30 prose-th:p-2 prose-td:p-2 prose-th:text-left prose-table:w-full prose-table:text-sm ${isRead ? 'text-gray-500 dark:text-gray-500' : ''} group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors`}>
                                                 <ReactMarkdown
                                                     remarkPlugins={[remarkGfm]}
-                                                    allowedElements={['p', 'span', 'strong', 'em', 'br', 'code', 'ul', 'ol', 'li']}
+                                                    // CRITICAL: NO 'a' tags here to prevent invalid nested interactive content
+                                                    allowedElements={['p', 'span', 'strong', 'em', 'br', 'code', 'ul', 'ol', 'li', 'blockquote', 'table', 'thead', 'tbody', 'tr', 'th', 'td']}
                                                     unwrapDisallowed={true}
                                                 >
                                                     {preprocessMarkdown(displaySummary)}
                                                 </ReactMarkdown>
                                             </div>
-                                        </div>
+                                        </Link>
                                     )}
 
                                     {/* Footer Actions */}

@@ -148,12 +148,16 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
                                     </a>
                                 </h3>
 
-                                {/* Summary Snippet - Regular Div (Bubbles to Card) */}
-                                <div className="block mt-auto group/summary cursor-pointer">
+                                {/* Summary Snippet - Wrapped in Native Link */}
+                                <Link
+                                    href={`/news/${item.id}`}
+                                    className="block mt-auto group/summary cursor-pointer no-underline relative z-0"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
                                     <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 group-hover/summary:text-orange-600 dark:group-hover/summary:text-orange-400 transition-colors">
                                         {preprocessMarkdown(displaySummary || null)}
                                     </p>
-                                </div>
+                                </Link>
 
                                 <div className="mt-4 flex justify-end">
                                     <button
