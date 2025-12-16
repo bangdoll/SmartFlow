@@ -41,11 +41,6 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
     }, [initialItems]);
 
     // Touch Event Handlers for Pull to Refresh
-    const [hasMounted, setHasMounted] = useState(false);
-    useEffect(() => {
-        setHasMounted(true);
-    }, []);
-
     useEffect(() => {
         const handleTouchStart = (e: TouchEvent) => {
             if (window.scrollY === 0) {
@@ -431,10 +426,16 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                 <>
                     <div className="space-y-6">
                         {displayItems.map((item) => {
-                            // Hydration Safe Language: Use 'en' (server default) until mounted
-                            const safeLanguage = hasMounted ? language : 'en';
+                            // Direct Language (No 'en' fallback, avoids flash but requires suppression)
+                            const showEn = language === 'en';
+                            const hasEn = !!item.title_en;
+                            const isTranslatingItem = translatingIds.has(item.id);
 
-                            const date = new Date(item.published_at).toLocaleDateString(safeLanguage === 'en' ? 'en-US' : 'zh-TW', {
+                            // Hydration Mismatch Specifics:
+                            // Server renders 'en' format. Client (zh) renders 'zh' format.
+                            // We MUST use suppressHydrationWarning on elements that differ.
+
+                            const date = new Date(item.published_at).toLocaleDateString(language === 'en' ? 'en-US' : 'zh-TW', {
                                 year: 'numeric',
                                 month: 'long',
                                 day: 'numeric',
@@ -442,53 +443,31 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                 minute: '2-digit',
                                 timeZone: 'Asia/Taipei',
                             });
+
                             const isRead = item.id ? readItems.has(item.id) : false;
 
-                            // Bilingual logic with Strict Mode
-                            const showEn = safeLanguage === 'en';
-                            const hasEn = !!item.title_en;
-                            const isTranslatingItem = translatingIds.has(item.id);
+                            // Display Logic: Handle 'Translating' state via Text, not Structure to avoid Hydration Mismatch
+                            let displayTitle = item.title;
+                            let displaySummary = item.summary_zh;
+                            let isTranslating = false;
 
-                            // Display Data
-                            const displayTitle = showEn
-                                ? (item.title_en || 'Translating title...')
-                                : item.title;
-
-                            const displaySummary = showEn
-                                ? (item.summary_en || 'Translating summary...')
-                                : item.summary_zh;
-
-                            // Strict Mode Block: If EN requested but missing, show Loading state
-                            if (showEn && !hasEn) {
-                                return (
-                                    <article
-                                        key={item.id || item.original_url}
-                                        className="relative backdrop-blur-sm border rounded-xl p-6 bg-white/40 dark:bg-gray-900/40 border-white/50 dark:border-gray-800/50 animate-pulse"
-                                    >
-                                        <div className="flex items-center gap-2 mb-4">
-                                            <div className="h-4 w-20 bg-gray-200 dark:bg-gray-800 rounded"></div>
-                                            <div className="h-4 w-4 bg-gray-200 dark:bg-gray-800 rounded-full"></div>
-                                            <div className="h-4 w-24 bg-gray-200 dark:bg-gray-800 rounded"></div>
-                                        </div>
-                                        <div className="h-8 w-3/4 bg-gray-200 dark:bg-gray-800 rounded mb-4"></div>
-                                        <div className="space-y-2">
-                                            <div className="h-4 w-full bg-gray-200 dark:bg-gray-800 rounded"></div>
-                                            <div className="h-4 w-full bg-gray-200 dark:bg-gray-800 rounded"></div>
-                                            <div className="h-4 w-2/3 bg-gray-200 dark:bg-gray-800 rounded"></div>
-                                        </div>
-                                        {/* Optional: translating label */}
-                                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-600 dark:text-blue-400 font-medium bg-white/80 dark:bg-gray-900/80 px-4 py-2 rounded-full shadow-sm border border-blue-100 dark:border-blue-900">
-                                            Translating...
-                                        </div>
-                                    </article>
-                                );
+                            if (showEn) {
+                                if (hasEn) {
+                                    displayTitle = item.title_en!;
+                                    displaySummary = item.summary_en;
+                                } else {
+                                    displayTitle = 'Translating title...';
+                                    displaySummary = 'Translating summary...';
+                                    isTranslating = true;
+                                }
                             }
 
+                            // Render strictly same structure to allow suppressHydrationWarning to work
                             return (
                                 <article
                                     key={item.id || item.original_url}
                                     onClick={() => handleCardClick(item)}
-                                    className={`relative backdrop-blur-sm border rounded-xl p-6 transition-all duration-300 shadow-sm group cursor-pointer ${isRead
+                                    className={`relative backdrop-blur-sm border rounded-xl p-6 transition-all duration-300 shadow-sm group cursor-pointer ${isTranslating ? 'animate-pulse' : ''} ${isRead
                                         ? 'bg-gray-50/40 dark:bg-gray-900/40 border-gray-200/50 dark:border-gray-800/30 opacity-80 hover:opacity-100'
                                         : 'bg-white/60 dark:bg-gray-900/60 border-white/50 dark:border-gray-800/50 hover:shadow-lg hover:scale-[1.01]'
                                         }`}
@@ -501,7 +480,7 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                                             <span className="font-semibold text-blue-600 dark:text-blue-400">{item.source}</span>
                                             <span>•</span>
-                                            <span className="flex items-center gap-1">
+                                            <span className="flex items-center gap-1" suppressHydrationWarning>
                                                 <Calendar className="w-3 h-3" />
                                                 {date}
                                             </span>
@@ -526,6 +505,7 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                                 handleNewsClick(item.id);
                                             }}
                                             className="hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center gap-2 group-hover:underline decoration-blue-500/30 underline-offset-4 cursor-pointer"
+                                            suppressHydrationWarning
                                         >
                                             {displayTitle}
                                             <ExternalLink className="w-4 h-4 text-gray-400 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -542,6 +522,7 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                                 const shortId = item.id.substring(0, 8);
                                                 window.location.href = `/news/${shortId}`;
                                             }}
+                                            suppressHydrationWarning
                                         >
                                             <div className={`text-gray-600 dark:text-gray-300 leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-table:border-collapse prose-th:bg-blue-50 dark:prose-th:bg-blue-900/30 prose-th:p-2 prose-td:p-2 prose-th:text-left prose-table:w-full prose-table:text-sm ${isRead ? 'text-gray-500 dark:text-gray-500' : ''} group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors`}>
                                                 <ReactMarkdown
