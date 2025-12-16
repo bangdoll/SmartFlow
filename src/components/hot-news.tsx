@@ -106,24 +106,24 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
                     return (
                         <article
                             key={item.id || index}
-                            className="group relative flex flex-col h-full bg-gradient-to-br from-white/80 to-white/40 dark:from-gray-900/80 dark:to-gray-900/40 backdrop-blur-md rounded-2xl border border-orange-100/50 dark:border-orange-900/30 p-5 shadow-lg shadow-orange-500/5 hover:shadow-orange-500/10 hover:scale-[1.02] transition-all duration-300"
+                            onClick={(e) => {
+                                // 1. If text is selected, do NOT navigate
+                                const selection = window.getSelection();
+                                if (selection && selection.toString().length > 0) return;
+
+                                // 2. Navigate
+                                handleNewsClick(item.id);
+                                router.push(`/news/${item.slug || item.id}`);
+                            }}
+                            className="group relative flex flex-col h-full bg-gradient-to-br from-white/80 to-white/40 dark:from-gray-900/80 dark:to-gray-900/40 backdrop-blur-md rounded-2xl border border-orange-100/50 dark:border-orange-900/30 p-5 shadow-lg shadow-orange-500/5 hover:shadow-orange-500/10 hover:scale-[1.02] transition-all duration-300 cursor-pointer"
                         >
                             {/* Rank Badge */}
                             <div className="absolute -top-3 -left-3 w-8 h-8 flex items-center justify-center bg-gradient-to-br from-orange-500 to-red-500 text-white font-bold rounded-lg shadow-md transform rotate-3 group-hover:rotate-6 transition-transform z-10">
                                 {index + 1}
                             </div>
 
-                            {/* --- ABSOLUTE OVERLAY LINK --- */}
-                            <Link
-                                href={`/news/${item.slug || item.id}`}
-                                className="absolute inset-0 z-0"
-                                aria-label="Read full analysis"
-                                onClick={() => handleNewsClick(item.id)}
-                            />
-
-                            <div className="relative z-10 flex flex-col h-full pointer-events-none">
-                                {/* Interactive Header Elements within pointer-events-none container need pointer-events-auto */}
-                                <div className="flex items-center gap-2 text-xs font-medium text-orange-600 dark:text-orange-400 mb-3 ml-2 pointer-events-auto">
+                            <div className="relative z-10 flex flex-col h-full">
+                                <div className="flex items-center gap-2 text-xs font-medium text-orange-600 dark:text-orange-400 mb-3 ml-2">
                                     <span>{item.source}</span>
                                     <span>•</span>
                                     <span className="flex items-center gap-1">
@@ -131,9 +131,9 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
                                     </span>
                                 </div>
 
-                                {/* Title - EXTERNAL LINK (z-20, pointer-events-auto) */}
-                                <h3 className="pointer-events-auto relative z-20 text-lg font-bold text-gray-900 dark:text-white mb-3 line-clamp-3 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                                    <Link
+                                {/* Title - EXTERNAL LINK (Stop Propagation) */}
+                                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 line-clamp-3 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                                    <a
                                         href={item.original_url}
                                         target="_blank"
                                         rel="noopener noreferrer"
@@ -141,31 +141,31 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
                                             e.stopPropagation();
                                             handleNewsClick(item.id);
                                         }}
-                                        className="hover:underline"
+                                        className="hover:underline cursor-pointer"
                                     >
                                         {displayTitle}
                                         <ExternalLink className="w-3 h-3 inline ml-1 opacity-50" />
-                                    </Link>
+                                    </a>
                                 </h3>
 
-                                {/* Summary Snippet - Fallthrough to Overlay Link (z-0) */}
+                                {/* Summary Snippet - Regular Div (Bubbles to Card) */}
                                 <div className="block mt-auto group/summary">
                                     <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 group-hover/summary:text-orange-600 dark:group-hover/summary:text-orange-400 transition-colors">
                                         {preprocessMarkdown(displaySummary || null)}
                                     </p>
                                 </div>
 
-                                <div className="mt-4 flex justify-end pointer-events-auto relative z-20">
-                                    <Link
-                                        href={`/news/${item.slug || item.id}`}
+                                <div className="mt-4 flex justify-end">
+                                    <button
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             handleNewsClick(item.id);
+                                            router.push(`/news/${item.slug || item.id}`);
                                         }}
-                                        className="p-2 rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 group-hover:bg-orange-100 dark:group-hover:bg-orange-900/40 transition-colors hover:scale-110 active:scale-95"
+                                        className="p-2 rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 group-hover:bg-orange-100 dark:group-hover:bg-orange-900/40 transition-colors hover:scale-110 active:scale-95 cursor-pointer"
                                     >
                                         <ArrowUpRight className="w-4 h-4" />
-                                    </Link>
+                                    </button>
                                 </div>
                             </div>
                         </article>

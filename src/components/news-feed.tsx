@@ -471,22 +471,25 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                             return (
                                 <article
                                     key={item.id || item.original_url}
-                                    className={`relative backdrop-blur-sm border rounded-xl p-6 transition-all duration-300 shadow-sm group ${isRead
+                                    onClick={(e) => {
+                                        // 1. If text is selected, do NOT navigate (allow copying)
+                                        const selection = window.getSelection();
+                                        if (selection && selection.toString().length > 0) return;
+
+                                        // 2. Navigate to internal page
+                                        handleNewsClick(item.id);
+                                        router.push(`/news/${item.slug || item.id}`);
+                                    }}
+                                    className={`relative backdrop-blur-sm border rounded-xl p-6 transition-all duration-300 shadow-sm group cursor-pointer ${isRead
                                         ? 'bg-gray-50/40 dark:bg-gray-900/40 border-gray-200/50 dark:border-gray-800/30 opacity-80 hover:opacity-100'
                                         : 'bg-white/60 dark:bg-gray-900/60 border-white/50 dark:border-gray-800/50 hover:shadow-lg hover:scale-[1.01]'
                                         }`}
                                 >
-                                    {/* --- ABSOLUTE OVERLAY LINK (The Solution) --- */}
-                                    {/* This transparent link covers the entire card background but sits below interactive elements (z-0) */}
-                                    <Link
-                                        href={`/news/${item.slug || item.id}`}
-                                        className="absolute inset-0 z-0"
-                                        aria-label="Read full analysis"
-                                        onClick={() => handleNewsClick(item.id)}
-                                    />
+                                    {/* --- ROBUST JS NAVIGATION --- */}
+                                    {/* The entire card is clickable via onClick, avoiding HTML nesting issues */}
 
-                                    {/* Header Row - Interactive (z-20) */}
-                                    <div className="relative z-20 flex items-center justify-between mb-2">
+                                    {/* Header Row */}
+                                    <div className="flex items-center justify-between mb-2">
                                         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                                             <span className="font-semibold text-blue-600 dark:text-blue-400">{item.source}</span>
                                             <span>•</span>
@@ -504,26 +507,26 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                         </div>
                                     </div>
 
-                                    {/* Title - EXTERNAL LINK (z-20) */}
-                                    <h2 className={`relative z-20 text-xl font-bold mb-3 leading-tight transition-colors ${isRead ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-white'}`}>
-                                        <Link
+                                    {/* Title - EXTERNAL LINK (Stops Propagation) */}
+                                    <h2 className={`text-xl font-bold mb-3 leading-tight transition-colors ${isRead ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-white'}`}>
+                                        <a
                                             href={item.original_url}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             onClick={(e) => {
-                                                e.stopPropagation(); // Stop bubble so it doesn't trigger card click if any
+                                                e.stopPropagation(); // CRITICAL: Stop bubble so card click doesn't trigger
                                                 handleNewsClick(item.id);
                                             }}
-                                            className="hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center gap-2 group-hover:underline decoration-blue-500/30 underline-offset-4"
+                                            className="hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center gap-2 group-hover:underline decoration-blue-500/30 underline-offset-4 cursor-pointer"
                                         >
                                             {displayTitle}
                                             <ExternalLink className="w-4 h-4 text-gray-400 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                        </Link>
+                                        </a>
                                     </h2>
 
-                                    {/* Summary - POINTER EVENTS NONE (Pass through to Overlay Link) */}
+                                    {/* Summary - Regular Div (Clicks bubble to Card) */}
                                     {displaySummary && (
-                                        <div className="relative z-10 pointer-events-none mb-4">
+                                        <div className="mb-4">
                                             <div className={`text-gray-600 dark:text-gray-300 leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-table:border-collapse prose-th:bg-blue-50 dark:prose-th:bg-blue-900/30 prose-th:p-2 prose-td:p-2 prose-th:text-left prose-table:w-full prose-table:text-sm ${isRead ? 'text-gray-500 dark:text-gray-500' : ''} group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors`}>
                                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                                     {preprocessMarkdown(displaySummary)}
@@ -532,8 +535,8 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                         </div>
                                     )}
 
-                                    {/* Footer Actions - Interactive (z-20) */}
-                                    <div className="relative z-20 flex items-center justify-between mt-auto">
+                                    {/* Footer Actions */}
+                                    <div className="flex items-center justify-between mt-auto">
                                         <div className="flex flex-wrap gap-2">
                                             {item.tags?.map((tag) => (
                                                 <button
@@ -545,7 +548,7 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                                         setSelectedTag(tag);
                                                     }}
                                                     className={`
-                                                        inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer
+                                                        inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer relative z-10
                                                         ${selectedTag === tag
                                                             ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
                                                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
@@ -558,31 +561,32 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                             ))}
                                         </div>
 
-                                        {/* Explicit Read More Button */}
-                                        <Link
-                                            href={`/news/${item.slug || item.id}`}
+                                        {/* Explicit Read More Button (Internal) */}
+                                        {/* We can let this bubble or handle it explicitly. Explicit is safer for clarity. */}
+                                        <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 handleNewsClick(item.id);
+                                                router.push(`/news/${item.slug || item.id}`);
                                             }}
-                                            className="flex items-center gap-1 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                                            className="flex items-center gap-1 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors z-10 relative cursor-pointer"
                                         >
                                             {t('news.readMore') || 'Read Analysis'} <ArrowUpRight className="w-4 h-4" />
-                                        </Link>
+                                        </button>
 
                                         {/* Share Buttons & Actions */}
                                         <div className="flex items-center gap-3">
-                                            <Link
-                                                href={`/news/${item.slug || item.id}`}
-                                                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-xs font-medium hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                                            <button
+                                                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-xs font-medium hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors z-10 relative cursor-pointer"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     handleNewsClick(item.id);
+                                                    router.push(`/news/${item.slug || item.id}`);
                                                 }}
                                             >
                                                 <span className="text-lg">🤖</span>
                                                 {t('feed.aiGuide')}
-                                            </Link>
+                                            </button>
 
                                             <div className="flex items-center gap-1">
                                                 <button
@@ -590,7 +594,7 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                                         e.stopPropagation();
                                                         handleShare(item, 'copy');
                                                     }}
-                                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors z-10 relative cursor-pointer"
                                                     title="複製連結"
                                                 >
                                                     <Share2 className="w-4 h-4" />
@@ -600,7 +604,7 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                                         e.stopPropagation();
                                                         handleShare(item, 'twitter');
                                                     }}
-                                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400 hover:text-black dark:hover:text-white transition-colors"
+                                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400 hover:text-black dark:hover:text-white transition-colors z-10 relative cursor-pointer"
                                                     title="分享到 X"
                                                 >
                                                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
