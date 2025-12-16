@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { Waves, TrendingUp, Clock } from 'lucide-react';
+import { NavButton } from '@/components/nav-button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { SearchInput } from '@/components/search-input';
 import { LanguageToggle } from '@/components/language-toggle';
@@ -26,38 +27,39 @@ export function Header() {
                 </Link>
 
                 {/* Navigation */}
-                <nav className="flex items-center gap-1 sm:gap-3 relative z-40">
-                    {/* Trends - Icon on mobile, Text on desktop */}
-                    {/* Trends - Icon on mobile, Text on desktop */}
-                    <Link
+                <nav className="flex items-center gap-1 sm:gap-2 relative z-40">
+                    {/* Mobile: Trends Icon */}
+                    <NavButton
                         href="/trends"
-                        className="p-3 sm:p-0 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors active:scale-95"
+                        mobileOnly
+                        icon={<TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />}
                         title={t('nav.trends')}
-                    >
-                        <div className="p-2 md:hidden">
-                            <TrendingUp className="w-6 h-6" />
-                        </div>
-                        <span className="hidden md:flex text-sm font-medium px-3 py-2 min-w-[4rem] justify-center items-center">{t('nav.trends')}</span>
-                    </Link>
+                    />
 
-                    {/* Archive - Icon on mobile, Text on desktop */}
-                    <Link
+                    {/* Mobile: Archive Icon */}
+                    <NavButton
                         href="/archive"
-                        className="p-3 sm:p-0 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors active:scale-95 md:hidden"
+                        mobileOnly
+                        icon={<Clock className="w-5 h-5 sm:w-6 sm:h-6" />}
                         title={t('nav.archive')}
-                    >
-                        <div className="p-2">
-                            <Clock className="w-6 h-6" />
-                        </div>
-                    </Link>
+                    />
 
-                    {/* Desktop-only Archive Text */}
-                    <Link href="/archive" className="hidden md:flex text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors px-3 py-2 min-w-[4rem] justify-center items-center">
-                        {t('nav.archive')}
-                    </Link>
+                    {/* Desktop: Trends Text */}
+                    <NavButton
+                        href="/trends"
+                        desktopOnly
+                        label={t('nav.trends')}
+                    />
 
-                    {/* Icon buttons - always visible but compact on mobile */}
-                    <div className="flex items-center gap-0.5 sm:gap-1">
+                    {/* Desktop: Archive Text */}
+                    <NavButton
+                        href="/archive"
+                        desktopOnly
+                        label={t('nav.archive')}
+                    />
+
+                    {/* Icon buttons */}
+                    <div className="flex items-center gap-0.5 sm:gap-1 ml-1">
                         <Suspense fallback={<div className="w-8 h-8" />}>
                             <SearchInput />
                         </Suspense>
