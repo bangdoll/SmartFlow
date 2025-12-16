@@ -11,7 +11,7 @@ interface HotNewsProps {
     items: NewsItem[];
 }
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export function HotNewsSection({ items: initialItems }: HotNewsProps) {
     const { t, language } = useLanguage();
@@ -83,6 +83,13 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
     // Inject useRouter - actually not needed if we use Links
     const router = useRouter();
 
+    // Drag detection for Hot News
+    const dragStart = useRef<{ x: number, y: number } | null>(null);
+
+    const handleCardMouseDown = (e: React.MouseEvent) => {
+        dragStart.current = { x: e.clientX, y: e.clientY };
+    };
+
     return (
         <section className="mb-12 animate-in slide-in-from-bottom-4 duration-700">
             <div className="flex items-center gap-2 mb-6">
@@ -104,12 +111,21 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
                     if (showEn && !hasEn) { /* Skeleton */ return <div key={index} className="skeleton" />; }
 
                     return (
+
+
+                        // ... inside map ...
                         <article
                             key={item.id || index}
+                            onMouseDown={handleCardMouseDown}
                             onClick={(e) => {
-                                // 1. If text is selected, do NOT navigate
-                                const selection = window.getSelection();
-                                if (selection && selection.toString().length > 0) return;
+                                // 1. Check Drag
+                                if (dragStart.current) {
+                                    const dx = e.clientX - dragStart.current.x;
+                                    const dy = e.clientY - dragStart.current.y;
+                                    const dist = Math.sqrt(dx * dx + dy * dy);
+                                    dragStart.current = null;
+                                    if (dist > 5) return;
+                                }
 
                                 // 2. Navigate
                                 handleNewsClick(item.id);
