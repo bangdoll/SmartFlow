@@ -361,8 +361,12 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
         }
 
         // 2. Navigate
+        // Prevent default just in case certain browsers treat div clicks oddly
+        e.preventDefault();
         handleNewsClick(item.id);
-        router.push(`/news/${item.slug || item.id}`);
+        // Use encodeURIComponent for robust handling of Chinese slugs
+        const slug = item.slug ? encodeURIComponent(item.slug) : item.id;
+        router.push(`/news/${slug}`);
     };
 
     return (
@@ -547,7 +551,12 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                     {displaySummary && (
                                         <div className="mb-4">
                                             <div className={`text-gray-600 dark:text-gray-300 leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-table:border-collapse prose-th:bg-blue-50 dark:prose-th:bg-blue-900/30 prose-th:p-2 prose-td:p-2 prose-th:text-left prose-table:w-full prose-table:text-sm ${isRead ? 'text-gray-500 dark:text-gray-500' : ''} group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors`}>
-                                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                                <ReactMarkdown
+                                                    remarkPlugins={[remarkGfm]}
+                                                    // CRITICAL: Restrict elements to prevent nested interactive elements (links/buttons) inside summary
+                                                    allowedElements={['p', 'span', 'strong', 'em', 'br', 'code', 'ul', 'ol', 'li']}
+                                                    unwrapDisallowed={true}
+                                                >
                                                     {preprocessMarkdown(displaySummary)}
                                                 </ReactMarkdown>
                                             </div>
@@ -586,7 +595,8 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 handleNewsClick(item.id);
-                                                router.push(`/news/${item.slug || item.id}`);
+                                                const slug = item.slug ? encodeURIComponent(item.slug) : item.id;
+                                                router.push(`/news/${slug}`);
                                             }}
                                             className="flex items-center gap-1 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors z-10 relative cursor-pointer"
                                         >
@@ -600,7 +610,8 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     handleNewsClick(item.id);
-                                                    router.push(`/news/${item.slug || item.id}`);
+                                                    const slug = item.slug ? encodeURIComponent(item.slug) : item.id;
+                                                    router.push(`/news/${slug}`);
                                                 }}
                                             >
                                                 <span className="text-lg">🤖</span>

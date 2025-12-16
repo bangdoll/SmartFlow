@@ -128,8 +128,10 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
                                 }
 
                                 // 2. Navigate
+                                e.preventDefault();
                                 handleNewsClick(item.id);
-                                router.push(`/news/${item.slug || item.id}`);
+                                const slug = item.slug ? encodeURIComponent(item.slug) : item.id;
+                                router.push(`/news/${slug}`);
                             }}
                             className="group relative flex flex-col h-full bg-gradient-to-br from-white/80 to-white/40 dark:from-gray-900/80 dark:to-gray-900/40 backdrop-blur-md rounded-2xl border border-orange-100/50 dark:border-orange-900/30 p-5 shadow-lg shadow-orange-500/5 hover:shadow-orange-500/10 hover:scale-[1.02] transition-all duration-300 cursor-pointer"
                         >
@@ -176,7 +178,8 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             handleNewsClick(item.id);
-                                            router.push(`/news/${item.slug || item.id}`);
+                                            const slug = item.slug ? encodeURIComponent(item.slug) : item.id;
+                                            router.push(`/news/${slug}`);
                                         }}
                                         className="p-2 rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 group-hover:bg-orange-100 dark:group-hover:bg-orange-900/40 transition-colors hover:scale-110 active:scale-95 cursor-pointer"
                                     >
