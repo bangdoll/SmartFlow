@@ -10,6 +10,9 @@
     - **英文模式**: 顯示「**Smart Flow**」。
     - 採用 `suppressHydrationWarning` 防止因語言切換導致的畫面閃爍。
   - **結構統一 (Unified Structure)**: 保留 Header 確保在所有裝置上的高度與層級 (`z-[102]`) 一致。
+- **Logo 與訂閱導航修復 (Logo & Subscribe Navigation)**:
+  - **Logo 點擊**: 將 Logo 連結亦替換為原生 `<a>` 標籤，確保點擊 Logo 強制重載回首頁。
+  - **訂閱按鈕**: 修復了首頁漏放 `SubscribeForm` 導致錨點失效的問題，並將 Header 與文章末端的訂閱按鈕皆改為原生連結，確保能正確跳轉至首頁底部的訂閱區塊。
 
 ### 優化 (Optimized)
 - **按鈕簡化 (UI Simplification)**:
