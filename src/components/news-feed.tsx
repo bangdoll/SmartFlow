@@ -41,6 +41,11 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
     }, [initialItems]);
 
     // Touch Event Handlers for Pull to Refresh
+    const [hasMounted, setHasMounted] = useState(false);
+    useEffect(() => {
+        setHasMounted(true);
+    }, []);
+
     useEffect(() => {
         const handleTouchStart = (e: TouchEvent) => {
             if (window.scrollY === 0) {
@@ -424,7 +429,10 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                 <>
                     <div className="space-y-6">
                         {displayItems.map((item) => {
-                            const date = new Date(item.published_at).toLocaleDateString(language === 'en' ? 'en-US' : 'zh-TW', {
+                            // Hydration Safe Language: Use 'en' (server default) until mounted
+                            const safeLanguage = hasMounted ? language : 'en';
+
+                            const date = new Date(item.published_at).toLocaleDateString(safeLanguage === 'en' ? 'en-US' : 'zh-TW', {
                                 year: 'numeric',
                                 month: 'long',
                                 day: 'numeric',
@@ -435,7 +443,7 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                             const isRead = item.id ? readItems.has(item.id) : false;
 
                             // Bilingual logic with Strict Mode
-                            const showEn = language === 'en';
+                            const showEn = safeLanguage === 'en';
                             const hasEn = !!item.title_en;
                             const isTranslatingItem = translatingIds.has(item.id);
 
