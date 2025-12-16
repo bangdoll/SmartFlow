@@ -1,13 +1,12 @@
 "use client"
-// Trigger redeploy for Vercel
 
 import * as React from "react"
-import { Moon, Sun, Monitor } from "lucide-react"
+import { Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useLanguage } from '@/components/language-context';
 
 export function ThemeToggle() {
-    const { setTheme, theme } = useTheme()
+    const { setTheme, theme, resolvedTheme } = useTheme()
     const { t } = useLanguage();
     const [mounted, setMounted] = React.useState(false)
 
@@ -17,44 +16,32 @@ export function ThemeToggle() {
 
     if (!mounted) {
         return (
-            <div className="flex items-center p-0.5 sm:p-1 rounded-full border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
-                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-100 dark:bg-gray-800" />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 transition-colors">
+                <div className="w-4 h-4 rounded-full bg-gray-300 dark:bg-gray-600" />
             </div>
         )
     }
 
+    const isDark = resolvedTheme === "dark"
+
+    const toggleTheme = () => {
+        setTheme(isDark ? "light" : "dark")
+    }
+
     return (
-        <div className="flex items-center p-0.5 sm:p-1 rounded-full border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
-            <button
-                onClick={() => setTheme("light")}
-                className={`p-1 sm:p-1.5 rounded-full transition-all ${theme === "light"
-                    ? "bg-gray-100 text-yellow-500 shadow-sm"
-                    : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                    }`}
-                title={t('theme.light')}
-            >
-                <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </button>
-            <button
-                onClick={() => setTheme("system")}
-                className={`p-1 sm:p-1.5 rounded-full transition-all ${theme === "system"
-                    ? "bg-gray-100 dark:bg-gray-800 text-blue-500 shadow-sm"
-                    : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                    }`}
-                title={t('theme.system')}
-            >
-                <Monitor className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </button>
-            <button
-                onClick={() => setTheme("dark")}
-                className={`p-1 sm:p-1.5 rounded-full transition-all ${theme === "dark"
-                    ? "bg-gray-800 text-blue-400 shadow-sm"
-                    : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                    }`}
-                title={t('theme.dark')}
-            >
-                <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </button>
-        </div>
+        <button
+            onClick={toggleTheme}
+            className={`w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
+                ? "bg-gray-800 text-yellow-400 hover:bg-gray-700"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+            title={isDark ? t('theme.light') : t('theme.dark')}
+        >
+            {isDark ? (
+                <Sun className="w-4 h-4 sm:w-5 sm:h-5" />
+            ) : (
+                <Moon className="w-4 h-4 sm:w-5 sm:h-5" />
+            )}
+        </button>
     )
 }
