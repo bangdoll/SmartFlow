@@ -63,6 +63,7 @@ const translations: Record<Language, Record<string, string>> = {
         'news.relatedTags': 'Related Tags',
         'news.previous': 'Previous',
         'news.next': 'Next',
+        'news.readMore': 'Read Analysis',
 
         // Chat
         'chat.title': 'Smart Flow AI',
@@ -186,6 +187,7 @@ const translations: Record<Language, Record<string, string>> = {
         'news.relatedTags': '相關標籤',
         'news.previous': '上一則',
         'news.next': '下一則',
+        'news.readMore': '閱讀完整分析',
 
         // Chat
         'chat.title': 'Smart Flow AI',
