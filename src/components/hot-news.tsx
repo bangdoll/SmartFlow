@@ -83,12 +83,7 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
     // Inject useRouter - actually not needed if we use Links
     const router = useRouter();
 
-    // Drag detection for Hot News
-    const dragStart = useRef<{ x: number, y: number } | null>(null);
 
-    const handleCardMouseDown = (e: React.MouseEvent) => {
-        dragStart.current = { x: e.clientX, y: e.clientY };
-    };
 
     return (
         <section className="mb-12 animate-in slide-in-from-bottom-4 duration-700">
@@ -116,21 +111,8 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
                         // ... inside map ...
                         <article
                             key={item.id || index}
-                            onMouseDown={handleCardMouseDown}
-                            onClick={(e) => {
-                                // 1. Check Drag
-                                if (dragStart.current) {
-                                    const dx = e.clientX - dragStart.current.x;
-                                    const dy = e.clientY - dragStart.current.y;
-                                    const dist = Math.sqrt(dx * dx + dy * dy);
-                                    dragStart.current = null;
-                                    if (dist > 5) return;
-                                }
-
-                                // 2. Navigate
-                                e.preventDefault();
+                            onClick={() => {
                                 handleNewsClick(item.id);
-                                // FORCE ID NAVIGATION
                                 router.push(`/news/${item.id}`);
                             }}
                             className="group relative flex flex-col h-full bg-gradient-to-br from-white/80 to-white/40 dark:from-gray-900/80 dark:to-gray-900/40 backdrop-blur-md rounded-2xl border border-orange-100/50 dark:border-orange-900/30 p-5 shadow-lg shadow-orange-500/5 hover:shadow-orange-500/10 hover:scale-[1.02] transition-all duration-300 cursor-pointer"

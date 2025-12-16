@@ -339,32 +339,9 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
         }
     };
 
-    // Track drag to distinguish clicks from text selection
-    // We use a ref to store the start position
-    const dragStart = useRef<{ x: number, y: number } | null>(null);
-
-    const handleCardMouseDown = (e: React.MouseEvent) => {
-        dragStart.current = { x: e.clientX, y: e.clientY };
-    };
-
-    const handleCardClick = (e: React.MouseEvent, item: NewsItem) => {
-        // 1. Check if it was a drag (text selection)
-        if (dragStart.current) {
-            const dx = e.clientX - dragStart.current.x;
-            const dy = e.clientY - dragStart.current.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            // Reset
-            dragStart.current = null;
-
-            // If moved more than 5 pixels, consider it a drag/select and do not navigate
-            if (dist > 5) return;
-        }
-
-        // 2. Navigate
-        // Prevent default just in case certain browsers treat div clicks oddly
-        e.preventDefault();
+    // Simplified click handler for maximum reliability
+    const handleCardClick = (item: NewsItem) => {
         handleNewsClick(item.id);
-        // FORCE ID NAVIGATION: Bypass slug encoding issues entirely to ensure consistent behavior across languages
         router.push(`/news/${item.id}`);
     };
 
@@ -500,8 +477,7 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                             return (
                                 <article
                                     key={item.id || item.original_url}
-                                    onMouseDown={handleCardMouseDown}
-                                    onClick={(e) => handleCardClick(e, item)}
+                                    onClick={() => handleCardClick(item)}
                                     className={`relative backdrop-blur-sm border rounded-xl p-6 transition-all duration-300 shadow-sm group cursor-pointer ${isRead
                                         ? 'bg-gray-50/40 dark:bg-gray-900/40 border-gray-200/50 dark:border-gray-800/30 opacity-80 hover:opacity-100'
                                         : 'bg-white/60 dark:bg-gray-900/60 border-white/50 dark:border-gray-800/50 hover:shadow-lg hover:scale-[1.01]'
