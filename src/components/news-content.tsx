@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Share2, ArrowLeft, Calendar, ExternalLink, Clock, Tag, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Share2, ArrowLeft, Calendar, ExternalLink, Clock, Tag, ChevronLeft, ChevronRight, ArrowRight, Mail } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { useState, useEffect } from 'react';
 import remarkGfm from 'remark-gfm';
@@ -160,32 +160,50 @@ export function NewsContent({ item, prev, next }: NewsContentProps) {
                     </div>
                 )}
 
-                {/* --- POST-READ ACTION BLOCK --- */}
+                {/* --- POST-READ ACTION BLOCK (Wireframe 3) --- */}
                 <div className="bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-xl p-6 mb-8 text-center">
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">
-                        {t('article.action.title')}
-                    </h3>
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-4">
-                        {/* Option A: Subscribe */}
-                        <button
-                            onClick={() => {
-                                document.getElementById('subscribe')?.scrollIntoView({ behavior: 'smooth' });
-                            }}
-                            className="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-md shadow-blue-500/20 transition-all active:scale-95"
-                        >
-                            {t('article.action.subscribe')}
-                        </button>
-
-                        {/* Option B: Next Article (if exists) */}
-                        {next && (
+                    {next ? (
+                        // CASE 1: NOT LAST -> ONLY NEXT ACTION
+                        <>
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">
+                                👇 {language === 'en' ? 'Next step - No thinking needed' : '下一步不用想'}
+                            </h3>
                             <Link
                                 href={`/news/${next.slug || next.id}`}
-                                className="w-full sm:w-auto px-6 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-lg shadow-lg shadow-blue-500/20 transition-all active:scale-95"
                             >
-                                {t('article.action.next')}
+                                {t('article.action.next')} <ArrowRight className="w-5 h-5 ml-2" />
                             </Link>
-                        )}
-                    </div>
+                        </>
+                    ) : (
+                        // CASE 2: LAST ARTICLE -> COMPLETION + SUBSCRIBE
+                        <>
+                            <div className="mb-6">
+                                <span className="text-4xl mb-2 block">👍</span>
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                                    {t('article.action.endTitle')}
+                                </h3>
+                            </div>
+
+                            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-blue-100 dark:border-blue-800 shadow-sm max-w-md mx-auto">
+                                <p className="text-gray-600 dark:text-gray-300 mb-4 font-medium">
+                                    {t('article.action.endSubscribe')}
+                                </p>
+                                <button
+                                    onClick={() => {
+                                        // Scroll to or Open Subscribe
+                                        // If subscribe form is not on this page (it's not), we might need to navigate home#subscribe or show modal
+                                        // Since we are on detail page, let's navigate to home#subscribe
+                                        window.location.href = '/#subscribe';
+                                    }}
+                                    className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-bold shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
+                                >
+                                    <Mail className="w-5 h-5" />
+                                    {t('article.action.endButton')}
+                                </button>
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 {/* Navigation Actions */}

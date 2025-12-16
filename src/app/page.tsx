@@ -32,41 +32,24 @@ async function getLatestNews(): Promise<NewsItem[]> {
 }
 
 export default async function Home() {
-  const [hotItems, items] = await Promise.all([
-    getHotNews(),
+  const [items] = await Promise.all([
     getLatestNews()
   ]);
+
+  // Wireframe 2 Logic: Only show Top 5. No more.
+  const focusItems = items.slice(0, 5);
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 transition-colors duration-500">
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
 
-      <div className="relative max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8 pt-8">
-        {/* Welcome Section for Newbies/Elderly */}
+      <div className="relative max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8 pt-12">
+        {/* Wireframe 1: Entrance Ramp */}
         <WelcomeSection />
 
-        {/* Pinned User Guide Card - 置頂教學 */}
-        <PinnedGuideCard />
-
-        {/* Daily Insight Section - 今日一句 (Uses the #1 Hot News or #1 Latest) */}
-        <DailyInsight insightItem={hotItems[0] || items[0] || null} />
-
-        {/* Hot News Section (Skip first if used in Daily Insight? Optional. Let's keep it for now but maybe later filter out) */}
-        {/* Actually user request says "daily one sentence conclusion, below is news". 
-            So "Daily Insight" IS the top thing. 
-            Maybe we should remove the top item from Hot News to avoid duplication? 
-            Let's keep duplication for now to avoid complexity in logic "don't show if already top". 
-            Or just keep it, it's fine. */}
-        <div className="mb-8">
-          <HotNewsSection items={hotItems} />
-        </div>
-
-
-
-        <NewsFeed initialItems={items} />
-
-        <div className="mt-20">
-          <SubscribeForm />
+        {/* Wireframe 2: Today's Focus List */}
+        <div id="news-feed" className="mt-8 transition-opacity duration-1000">
+          <NewsFeed initialItems={focusItems} mode="focus" />
         </div>
       </div>
     </main>

@@ -13,9 +13,10 @@ import { FeedSubscribeCard } from './feed-subscribe-card';
 
 interface NewsFeedProps {
     initialItems?: NewsItem[];
+    mode?: 'default' | 'focus';
 }
 
-export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
+export function NewsFeed({ initialItems = [], mode = 'default' }: NewsFeedProps) {
     const { t, language } = useLanguage();
     const router = useRouter(); // Inject router
     const [selectedTag, setSelectedTag] = useState<string | null>(null);
@@ -41,8 +42,10 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
         setFeedItems(initialItems);
     }, [initialItems]);
 
-    // Touch Event Handlers for Pull to Refresh
+    // Touch Event Handlers for Pull to Refresh (Disable in Focus Mode? Maybe redundant if list is short)
     useEffect(() => {
+        if (mode === 'focus') return; // Disable P2R in focus mode
+
         const handleTouchStart = (e: TouchEvent) => {
             if (window.scrollY === 0) {
                 setStartY(e.touches[0].clientY);
@@ -82,7 +85,7 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
             document.removeEventListener('touchmove', handleTouchMove);
             document.removeEventListener('touchend', handleTouchEnd);
         };
-    }, [isPulling, startY, currentY, isRefreshing]);
+    }, [isPulling, startY, currentY, isRefreshing, mode]);
 
     // Toast State
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' } | null>(null);
@@ -176,13 +179,14 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
 
     // Reset loaded items when tag or sort changes
     useEffect(() => {
+        if (mode === 'focus') return; // No sorting in focus mode
         setLoadedItems([]);
         setHasMore(true);
         // 如果切換到 popular，或者切換了 tag，我們需要重新載入
         if (sortBy === 'popular' || (selectedTag && loadedItems.length === 0)) {
             loadMore(true); // reset=true
         }
-    }, [selectedTag, sortBy]); // Removed initialItems from dep to avoid loop
+    }, [selectedTag, sortBy, mode]); // Removed initialItems from dep to avoid loop
 
     // Batch Translation Logic (Moved here to access displayItems)
     useEffect(() => {
@@ -283,6 +287,11 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
     };
 
     const handleTagClick = (tag: string) => {
+        if (mode === 'focus') return; // Read-only tags in focus mode? Or just navigation? Nav is fine, but list shouldn't filter.
+        // Actually, user says "No filters". So let's disable tag clicking or make it navigate to a search page?
+        // For 'focus' mode, let's just ignore tag clicks or keep them simple.
+        // User says "Wireframe 2: No search, No tags cloud". Cards have tags.
+        // Let's allow tag click to reset logic or just do nothing for now to keep it strict. 
         if (selectedTag !== tag) {
             setSelectedTag(tag);
         }
@@ -350,20 +359,22 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
 
     return (
         <div className="space-y-6 relative">
-            {/* Pull to Refresh Indicator */}
-            <div
-                className="fixed top-20 left-1/2 -translate-x-1/2 z-40 transition-all duration-300 pointer-events-none"
-                style={{
-                    opacity: (currentY > 0 || isRefreshing) ? 1 : 0,
-                    transform: `translateX(-50%) translateY(${isRefreshing ? 20 : Math.min(currentY * 0.5, 50)}px)`
-                }}
-            >
-                <div className="bg-white dark:bg-gray-800 text-blue-600 rounded-full p-2 shadow-lg border border-gray-100 dark:border-gray-700">
-                    <div className={`w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full ${isRefreshing ? 'animate-spin' : ''}`}
-                        style={{ transform: !isRefreshing ? `rotate(${currentY * 3}deg)` : undefined }}
-                    />
+            {/* Pull to Refresh Indicator - Hidden in Focus Mode */}
+            {mode === 'default' && (
+                <div
+                    className="fixed top-20 left-1/2 -translate-x-1/2 z-40 transition-all duration-300 pointer-events-none"
+                    style={{
+                        opacity: (currentY > 0 || isRefreshing) ? 1 : 0,
+                        transform: `translateX(-50%) translateY(${isRefreshing ? 20 : Math.min(currentY * 0.5, 50)}px)`
+                    }}
+                >
+                    <div className="bg-white dark:bg-gray-800 text-blue-600 rounded-full p-2 shadow-lg border border-gray-100 dark:border-gray-700">
+                        <div className={`w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full ${isRefreshing ? 'animate-spin' : ''}`}
+                            style={{ transform: !isRefreshing ? `rotate(${currentY * 3}deg)` : undefined }}
+                        />
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Toast Notification */}
             <div
@@ -374,52 +385,61 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                 </div>
             </div>
 
-            {/* 控制列：篩選與排序 */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                {selectedTag ? (
-                    <div className="p-2 px-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-full border border-blue-100 dark:border-blue-900/30 backdrop-blur-sm flex items-center gap-3">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">篩選:</span>
-                        <span className="font-bold text-blue-600 dark:text-blue-400">#{selectedTag}</span>
+            {/* 控制列：篩選與排序 - HIDDEN IN FOCUS MODE */}
+            {mode === 'default' && (
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    {selectedTag ? (
+                        <div className="p-2 px-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-full border border-blue-100 dark:border-blue-900/30 backdrop-blur-sm flex items-center gap-3">
+                            <span className="text-sm text-gray-600 dark:text-gray-400">篩選:</span>
+                            <span className="font-bold text-blue-600 dark:text-blue-400">#{selectedTag}</span>
+                            <button
+                                onClick={clearFilter}
+                                className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 text-gray-400 hover:text-red-500 rounded-full transition-colors"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                            {t('home.showLatest')}
+                        </div>
+                    )}
+
+                    {/* 排序切換 */}
+                    <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
                         <button
-                            onClick={clearFilter}
-                            className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 text-gray-400 hover:text-red-500 rounded-full transition-colors"
+                            onClick={() => setSortBy('latest')}
+                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${sortBy === 'latest'
+                                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                                }`}
                         >
-                            <X className="w-4 h-4" />
+                            {t('home.sortLatest')}
+                        </button>
+                        <button
+                            onClick={() => setSortBy('popular')}
+                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${sortBy === 'popular'
+                                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                                }`}
+                        >
+                            🔥 {t('home.sortPopular')}
                         </button>
                     </div>
-                ) : (
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                        {t('home.showLatest')}
-                    </div>
-                )}
-
-                {/* 排序切換 */}
-                <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
-                    <button
-                        onClick={() => setSortBy('latest')}
-                        className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${sortBy === 'latest'
-                            ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                            }`}
-                    >
-                        {t('home.sortLatest')}
-                    </button>
-                    <button
-                        onClick={() => setSortBy('popular')}
-                        className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${sortBy === 'popular'
-                            ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                            }`}
-                    >
-                        🔥 {t('home.sortPopular')}
-                    </button>
                 </div>
-            </div>
+            )}
 
-            {/* 新聞列表標題 */}
+            {/* 新聞列表標題 - MODIFIED FOR FOCUS MODE */}
             <div className="mb-4 flex items-center gap-2">
                 <div className="h-1 w-1 rounded-full bg-blue-500" />
-                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200">{t('home.latest')}</h2>
+                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200">
+                    {mode === 'focus' ? t('feed.focusTitle') || '今日最重要的 5 則 AI 新聞' : t('home.latest')}
+                </h2>
+                {mode === 'focus' && (
+                    <span className="text-sm text-gray-500 ml-2">
+                        {t('feed.focusSubtitle') || '已依重要性排序，看完就好。'}
+                    </span>
+                )}
             </div>
 
             {/* 新聞列表 */}
@@ -521,6 +541,8 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                                 onClick={(e) => {
                                                     // Hard Navigation to bypass any Router/State issues
                                                     const shortId = item.id.substring(0, 8);
+                                                    // If in focus mode, we might want to pass 'is last' context in query?
+                                                    // For now, standard nav.
                                                     window.location.href = `/news/${shortId}`;
                                                 }}
                                                 suppressHydrationWarning
@@ -548,7 +570,8 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             e.preventDefault();
-                                                            setSelectedTag(tag);
+                                                            // In Focus Mode, maybe disable tag filter?
+                                                            if (mode !== 'focus') setSelectedTag(tag);
                                                         }}
                                                         className={`
                                                             inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer relative z-10
@@ -632,33 +655,35 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
                         })}
                     </div>
 
-                    {/* Infinite Scroll Sentinel */}
-                    <div
-                        ref={(node) => {
-                            if (!node || isLoading || !hasMore) return;
-                            const observer = new IntersectionObserver((entries) => {
-                                if (entries[0].isIntersecting) {
-                                    loadMore(false);
-                                }
-                            }, { threshold: 0.1, rootMargin: '100px' });
-                            observer.observe(node);
-                            return () => observer.disconnect();
-                        }}
-                        className="mt-8 text-center py-8"
-                    >
-                        {isLoading ? (
-                            <div className="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400">
-                                <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                                <span>{t('home.loading')}...</span>
-                            </div>
-                        ) : hasMore ? (
-                            <span className="text-gray-400 text-sm">滑動載入更多...</span>
-                        ) : (
-                            <p className="text-gray-500 dark:text-gray-400 text-sm">
-                                {t('home.noMore')}
-                            </p>
-                        )}
-                    </div>
+                    {/* Infinite Scroll Sentinel - HIDDEN IN FOCUS MODE */}
+                    {mode === 'default' && (
+                        <div
+                            ref={(node) => {
+                                if (!node || isLoading || !hasMore) return;
+                                const observer = new IntersectionObserver((entries) => {
+                                    if (entries[0].isIntersecting) {
+                                        loadMore(false);
+                                    }
+                                }, { threshold: 0.1, rootMargin: '100px' });
+                                observer.observe(node);
+                                return () => observer.disconnect();
+                            }}
+                            className="mt-8 text-center py-8"
+                        >
+                            {isLoading ? (
+                                <div className="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400">
+                                    <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                    <span>{t('home.loading')}...</span>
+                                </div>
+                            ) : hasMore ? (
+                                <span className="text-gray-400 text-sm">滑動載入更多...</span>
+                            ) : (
+                                <p className="text-gray-500 dark:text-gray-400 text-sm">
+                                    {t('home.noMore')}
+                                </p>
+                            )}
+                        </div>
+                    )}
                 </>
             ) : (
                 <div className="text-center py-12 text-gray-500 bg-white/30 dark:bg-gray-900/30 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
@@ -671,4 +696,3 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
         </div>
     );
 }
-

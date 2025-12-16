@@ -240,10 +240,18 @@ const translations: Record<Language, Record<string, string>> = {
         'feed.subscribe.subtitle': '📩 不想每天自己來找',
         'feed.subscribe.action': '明天早上直接寄給你',
 
-        // Article Next Action
+
+        // Feed Focus Mode
+        'feed.focusTitle': '今天最重要的 5 則 AI 新聞',
+        'feed.focusSubtitle': '已依重要性排序，看完就好。',
+
+        // Article Next Action (Wireframe 3 Refinement)
         'article.action.title': '喜歡這篇分析嗎？',
         'article.action.subscribe': '明天還有更多 → 訂閱',
-        'article.action.next': '繼續看下一則', // For consistency if needed
+        'article.action.next': '繼續看今天的下一則重點', // "Next Key Point"
+        'article.action.endTitle': '今天的重要消息，你已經看完了。',
+        'article.action.endSubscribe': '📩 不想每天自己來找？明天早上，我們直接幫你整理好。',
+        'article.action.endButton': '👉 把重點寄到我的信箱',
 
         // Welcome Section keys (Keeping legacy for Pinned Guide if needed, or remove if fully deprecated. Keeping for safety for now)
         'welcome.title': '我們幫你判斷：這則 AI 新聞，要不要理。',
