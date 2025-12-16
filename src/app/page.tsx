@@ -51,6 +51,9 @@ export default async function Home() {
         <div id="news-feed" className="mt-8 transition-opacity duration-1000">
           <NewsFeed initialItems={focusItems} mode="focus" />
         </div>
+
+        {/* Subscribe Form (Target for #subscribe anchor) */}
+        <SubscribeForm />
       </div>
     </main>
   );
