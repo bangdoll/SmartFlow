@@ -20,7 +20,10 @@ export function Header() {
                         <Waves className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
                     <h1 className="text-base sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 whitespace-nowrap">
-                        {language === 'zh-TW' && "智流 "} <span className="text-blue-600 dark:text-blue-400">Smart Flow</span>
+                        {language === 'zh-TW' ? <span className="sm:hidden">智流</span> : <span className="sm:hidden">Smart Flow</span>}
+                        <span className="hidden sm:inline">
+                            {language === 'zh-TW' ? "智流 Smart Flow" : "Smart Flow"}
+                        </span>
                     </h1>
                 </Link>
 
@@ -34,7 +37,7 @@ export function Header() {
                         title={t('nav.trends')}
                     >
                         <TrendingUp className="w-6 h-6 md:hidden" />
-                        <span className="hidden md:block text-sm font-medium">{t('nav.trends')}</span>
+                        <span className="hidden md:block text-sm font-medium px-2 py-1">{t('nav.trends')}</span>
                     </Link>
 
                     {/* Archive - Icon on mobile, Text on desktop */}
@@ -47,7 +50,7 @@ export function Header() {
                     </Link>
 
                     {/* Desktop-only Archive Text */}
-                    <Link href="/archive" className="hidden md:block text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
+                    <Link href="/archive" className="hidden md:block text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors px-2 py-1">
                         {t('nav.archive')}
                     </Link>
 
