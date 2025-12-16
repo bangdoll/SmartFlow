@@ -91,7 +91,22 @@ const translations: Record<Language, Record<string, string>> = {
         'search.header': 'Search Results: ',
         'search.count': 'articles found',
 
-        // Welcome Section
+        // Welcome Section (Hero)
+        'hero.title': 'Missed today\'s AI updates?',
+        'hero.subtitle': 'We\'ve summarized the key points for you.',
+        'hero.action': '👉 Read Today\'s Top 5',
+
+        // Feed Subscribe Card
+        'feed.subscribe.title': 'Finished reading?',
+        'feed.subscribe.subtitle': '📩 Don\'t search manually',
+        'feed.subscribe.action': 'Get tomorrow\'s digest delivered',
+
+        // Article Next Action
+        'article.action.title': 'Like this analysis?',
+        'article.action.subscribe': 'Get more tomorrow → Subscribe',
+        'article.action.next': 'Read Next Article',
+
+        // Welcome Section keys
         'welcome.title': 'We Decide if this AI News is Worth Your Time.',
         'welcome.subtitle1': 'Not just breaking news, but a guide to avoid AI anxiety.',
         'welcome.subtitle2': '5 minutes a day, 3 key insights you cannot miss.',
@@ -215,7 +230,22 @@ const translations: Record<Language, Record<string, string>> = {
         'search.header': '搜尋結果: ',
         'search.count': '找到', // Handled specially in component with dynamic string but keys help
 
-        // Welcome Section
+        // Welcome Section (Hero)
+        'hero.title': '今天不知道 AI 發生什麼事？',
+        'hero.subtitle': '我們已經幫你整理好了',
+        'hero.action': '👉 直接看今天最重要的 5 則',
+
+        // Feed Subscribe Card
+        'feed.subscribe.title': '看完今天的重點了？',
+        'feed.subscribe.subtitle': '📩 不想每天自己來找',
+        'feed.subscribe.action': '明天早上直接寄給你',
+
+        // Article Next Action
+        'article.action.title': '喜歡這篇分析嗎？',
+        'article.action.subscribe': '明天還有更多 → 訂閱',
+        'article.action.next': '繼續看下一則', // For consistency if needed
+
+        // Welcome Section keys (Keeping legacy for Pinned Guide if needed, or remove if fully deprecated. Keeping for safety for now)
         'welcome.title': '我們幫你判斷：這則 AI 新聞，要不要理。',
         'welcome.subtitle1': '不是快訊，是幫你避開 AI 風險的導覽。',
         'welcome.subtitle2': '每天 5 分鐘，挑 3 則「不看會吃虧」的重點，省下你的焦慮。',

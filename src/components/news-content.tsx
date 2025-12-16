@@ -160,6 +160,34 @@ export function NewsContent({ item, prev, next }: NewsContentProps) {
                     </div>
                 )}
 
+                {/* --- POST-READ ACTION BLOCK --- */}
+                <div className="bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-xl p-6 mb-8 text-center">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">
+                        {t('article.action.title')}
+                    </h3>
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-4">
+                        {/* Option A: Subscribe */}
+                        <button
+                            onClick={() => {
+                                document.getElementById('subscribe')?.scrollIntoView({ behavior: 'smooth' });
+                            }}
+                            className="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-md shadow-blue-500/20 transition-all active:scale-95"
+                        >
+                            {t('article.action.subscribe')}
+                        </button>
+
+                        {/* Option B: Next Article (if exists) */}
+                        {next && (
+                            <Link
+                                href={`/news/${next.slug || next.id}`}
+                                className="w-full sm:w-auto px-6 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                            >
+                                {t('article.action.next')}
+                            </Link>
+                        )}
+                    </div>
+                </div>
+
                 {/* Navigation Actions */}
                 <div className="flex flex-col gap-6 pt-8 border-t border-gray-100 dark:border-gray-800">
 

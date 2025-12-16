@@ -9,6 +9,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useLanguage } from './language-context';
 import { preprocessMarkdown } from '@/lib/markdown';
+import { FeedSubscribeCard } from './feed-subscribe-card';
 
 interface NewsFeedProps {
     initialItems?: NewsItem[];
@@ -425,7 +426,7 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
             {displayItems.length > 0 ? (
                 <>
                     <div className="space-y-6">
-                        {displayItems.map((item) => {
+                        {displayItems.map((item, index) => {
                             // Direct Language (No 'en' fallback, avoids flash but requires suppression)
                             const showEn = language === 'en';
                             const hasEn = !!item.title_en;
@@ -464,165 +465,169 @@ export function NewsFeed({ initialItems = [] }: NewsFeedProps) {
 
                             // Render strictly same structure to allow suppressHydrationWarning to work
                             return (
-                                <article
-                                    key={item.id || item.original_url}
-                                    onClick={() => handleCardClick(item)}
-                                    className={`relative backdrop-blur-sm border rounded-xl p-6 transition-all duration-300 shadow-sm group cursor-pointer ${isTranslating ? 'animate-pulse' : ''} ${isRead
-                                        ? 'bg-gray-50/40 dark:bg-gray-900/40 border-gray-200/50 dark:border-gray-800/30 opacity-80 hover:opacity-100'
-                                        : 'bg-white/60 dark:bg-gray-900/60 border-white/50 dark:border-gray-800/50 hover:shadow-lg hover:scale-[1.01]'
-                                        }`}
-                                >
-                                    {/* --- ROBUST JS NAVIGATION --- */}
-                                    {/* The entire card is clickable via onClick, avoiding HTML nesting issues */}
+                                <div key={item.id || item.original_url}>
+                                    <article
+                                        onClick={() => handleCardClick(item)}
+                                        className={`relative backdrop-blur-sm border rounded-xl p-6 transition-all duration-300 shadow-sm group cursor-pointer ${isTranslating ? 'animate-pulse' : ''} ${isRead
+                                            ? 'bg-gray-50/40 dark:bg-gray-900/40 border-gray-200/50 dark:border-gray-800/30 opacity-80 hover:opacity-100'
+                                            : 'bg-white/60 dark:bg-gray-900/60 border-white/50 dark:border-gray-800/50 hover:shadow-lg hover:scale-[1.01]'
+                                            }`}
+                                    >
+                                        {/* --- ROBUST JS NAVIGATION --- */}
+                                        {/* The entire card is clickable via onClick, avoiding HTML nesting issues */}
 
-                                    {/* Header Row */}
-                                    <div className="flex items-center justify-between mb-2">
-                                        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                                            <span className="font-semibold text-blue-600 dark:text-blue-400">{item.source}</span>
-                                            <span>•</span>
-                                            <span className="flex items-center gap-1" suppressHydrationWarning>
-                                                <Calendar className="w-3 h-3" />
-                                                {date}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            {item.click_count && item.click_count > 0 && (
-                                                <div className="flex items-center gap-1 text-xs font-medium text-orange-500 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded-full">
-                                                    🔥 {item.click_count}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Title - EXTERNAL LINK (Stops Propagation) */}
-                                    <h2 className={`text-xl font-bold mb-3 leading-tight transition-colors ${isRead ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-white'}`}>
-                                        <a
-                                            href={item.original_url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            onClick={(e) => {
-                                                e.stopPropagation(); // CRITICAL: Stop bubble so card click doesn't trigger
-                                                handleNewsClick(item.id);
-                                            }}
-                                            className="hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center gap-2 group-hover:underline decoration-blue-500/30 underline-offset-4 cursor-pointer"
-                                            suppressHydrationWarning
-                                        >
-                                            {displayTitle}
-                                            <ExternalLink className="w-4 h-4 text-gray-400 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                        </a>
-                                    </h2>
-
-                                    {/* Summary - Regular Div (Clicks bubble to Card) */}
-                                    {/* Summary - Regular Div with Hard Navigation */}
-                                    {displaySummary && (
-                                        <div
-                                            className="mb-4 cursor-pointer"
-                                            onClick={(e) => {
-                                                // Hard Navigation to bypass any Router/State issues
-                                                const shortId = item.id.substring(0, 8);
-                                                window.location.href = `/news/${shortId}`;
-                                            }}
-                                            suppressHydrationWarning
-                                        >
-                                            <div className={`text-gray-600 dark:text-gray-300 leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-table:border-collapse prose-th:bg-blue-50 dark:prose-th:bg-blue-900/30 prose-th:p-2 prose-td:p-2 prose-th:text-left prose-table:w-full prose-table:text-sm ${isRead ? 'text-gray-500 dark:text-gray-500' : ''} group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors`}>
-                                                <ReactMarkdown
-                                                    remarkPlugins={[remarkGfm]}
-                                                    allowedElements={['p', 'span', 'strong', 'em', 'br', 'code', 'ul', 'ol', 'li', 'blockquote', 'table', 'thead', 'tbody', 'tr', 'th', 'td']}
-                                                    unwrapDisallowed={true}
-                                                >
-                                                    {preprocessMarkdown(displaySummary)}
-                                                </ReactMarkdown>
+                                        {/* Header Row */}
+                                        <div className="flex items-center justify-between mb-2">
+                                            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                                                <span className="font-semibold text-blue-600 dark:text-blue-400">{item.source}</span>
+                                                <span>•</span>
+                                                <span className="flex items-center gap-1" suppressHydrationWarning>
+                                                    <Calendar className="w-3 h-3" />
+                                                    {date}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                {item.click_count && item.click_count > 0 && (
+                                                    <div className="flex items-center gap-1 text-xs font-medium text-orange-500 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded-full">
+                                                        🔥 {item.click_count}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
-                                    )}
 
-                                    {/* Footer Actions - Responsive Layout */}
-                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-auto">
-                                        {/* Tags Section */}
-                                        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-                                            {item.tags?.map((tag) => (
-                                                <button
-                                                    key={tag}
-                                                    type="button"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        e.preventDefault();
-                                                        setSelectedTag(tag);
-                                                    }}
-                                                    className={`
-                                                        inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer relative z-10
-                                                        ${selectedTag === tag
-                                                            ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-                                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
-                                                        }
-                                                    `}
-                                                >
-                                                    <Tag className="w-3 h-3" />
-                                                    {tag}
-                                                </button>
-                                            ))}
-                                        </div>
-
-                                        {/* Actions Group (Read More + Share) */}
-                                        <div className="flex items-center justify-end gap-3 w-full sm:w-auto">
-                                            {/* Explicit Read More Button (Internal) */}
-                                            <button
+                                        {/* Title - EXTERNAL LINK (Stops Propagation) */}
+                                        <h2 className={`text-xl font-bold mb-3 leading-tight transition-colors ${isRead ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-white'}`}>
+                                            <a
+                                                href={item.original_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
                                                 onClick={(e) => {
-                                                    e.stopPropagation();
+                                                    e.stopPropagation(); // CRITICAL: Stop bubble so card click doesn't trigger
                                                     handleNewsClick(item.id);
-                                                    // Short ID Hard Nav
-                                                    window.location.href = `/news/${item.id.substring(0, 8)}`;
                                                 }}
-                                                className="flex items-center gap-1 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors z-10 relative cursor-pointer whitespace-nowrap"
+                                                className="hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center gap-2 group-hover:underline decoration-blue-500/30 underline-offset-4 cursor-pointer"
                                                 suppressHydrationWarning
                                             >
-                                                {t('news.readMore') || 'Read Analysis'} <ArrowUpRight className="w-4 h-4" />
-                                            </button>
+                                                {displayTitle}
+                                                <ExternalLink className="w-4 h-4 text-gray-400 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            </a>
+                                        </h2>
 
-                                            {/* Share Buttons & Actions */}
-                                            <div className="flex items-center gap-3">
+                                        {/* Summary - Regular Div (Clicks bubble to Card) */}
+                                        {/* Summary - Regular Div with Hard Navigation */}
+                                        {displaySummary && (
+                                            <div
+                                                className="mb-4 cursor-pointer"
+                                                onClick={(e) => {
+                                                    // Hard Navigation to bypass any Router/State issues
+                                                    const shortId = item.id.substring(0, 8);
+                                                    window.location.href = `/news/${shortId}`;
+                                                }}
+                                                suppressHydrationWarning
+                                            >
+                                                <div className={`text-gray-600 dark:text-gray-300 leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-table:border-collapse prose-th:bg-blue-50 dark:prose-th:bg-blue-900/30 prose-th:p-2 prose-td:p-2 prose-th:text-left prose-table:w-full prose-table:text-sm ${isRead ? 'text-gray-500 dark:text-gray-500' : ''} group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors`}>
+                                                    <ReactMarkdown
+                                                        remarkPlugins={[remarkGfm]}
+                                                        allowedElements={['p', 'span', 'strong', 'em', 'br', 'code', 'ul', 'ol', 'li', 'blockquote', 'table', 'thead', 'tbody', 'tr', 'th', 'td']}
+                                                        unwrapDisallowed={true}
+                                                    >
+                                                        {preprocessMarkdown(displaySummary)}
+                                                    </ReactMarkdown>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Footer Actions - Responsive Layout */}
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-auto">
+                                            {/* Tags Section */}
+                                            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                                                {item.tags?.map((tag) => (
+                                                    <button
+                                                        key={tag}
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            e.preventDefault();
+                                                            setSelectedTag(tag);
+                                                        }}
+                                                        className={`
+                                                            inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer relative z-10
+                                                            ${selectedTag === tag
+                                                                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
+                                                            }
+                                                        `}
+                                                    >
+                                                        <Tag className="w-3 h-3" />
+                                                        {tag}
+                                                    </button>
+                                                ))}
+                                            </div>
+
+                                            {/* Actions Group (Read More + Share) */}
+                                            <div className="flex items-center justify-end gap-3 w-full sm:w-auto">
+                                                {/* Explicit Read More Button (Internal) */}
                                                 <button
-                                                    className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-xs font-medium hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors z-10 relative cursor-pointer whitespace-nowrap"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         handleNewsClick(item.id);
                                                         // Short ID Hard Nav
                                                         window.location.href = `/news/${item.id.substring(0, 8)}`;
                                                     }}
+                                                    className="flex items-center gap-1 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors z-10 relative cursor-pointer whitespace-nowrap"
                                                     suppressHydrationWarning
                                                 >
-                                                    <span className="text-lg">🤖</span>
-                                                    {t('feed.aiGuide')}
+                                                    {t('news.readMore') || 'Read Analysis'} <ArrowUpRight className="w-4 h-4" />
                                                 </button>
 
-                                                <div className="flex items-center gap-1">
+                                                {/* Share Buttons & Actions */}
+                                                <div className="flex items-center gap-3">
                                                     <button
+                                                        className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-xs font-medium hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors z-10 relative cursor-pointer whitespace-nowrap"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            handleShare(item, 'copy');
+                                                            handleNewsClick(item.id);
+                                                            // Short ID Hard Nav
+                                                            window.location.href = `/news/${item.id.substring(0, 8)}`;
                                                         }}
-                                                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors z-10 relative cursor-pointer"
-                                                        title="複製連結"
+                                                        suppressHydrationWarning
                                                     >
-                                                        <Share2 className="w-4 h-4" />
+                                                        <span className="text-lg">🤖</span>
+                                                        {t('feed.aiGuide')}
                                                     </button>
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleShare(item, 'twitter');
-                                                        }}
-                                                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400 hover:text-black dark:hover:text-white transition-colors z-10 relative cursor-pointer"
-                                                        title="分享到 X"
-                                                    >
-                                                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
-                                                        </svg>
-                                                    </button>
+
+                                                    <div className="flex items-center gap-1">
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleShare(item, 'copy');
+                                                            }}
+                                                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors z-10 relative cursor-pointer"
+                                                            title="複製連結"
+                                                        >
+                                                            <Share2 className="w-4 h-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleShare(item, 'twitter');
+                                                            }}
+                                                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400 hover:text-black dark:hover:text-white transition-colors z-10 relative cursor-pointer"
+                                                            title="分享到 X"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
+                                                            </svg>
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </article>
+                                    </article>
+
+                                    {/* --- INJECT SUBSCRIBE CARD AFTER 2ND ITEM (Index 1) --- */}
+                                    {index === 1 && !selectedTag && <FeedSubscribeCard />}
+                                </div>
                             );
                         })}
                     </div>
