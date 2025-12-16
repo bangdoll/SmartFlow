@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Suspense } from 'react';
-import { Waves, TrendingUp } from 'lucide-react';
+import { Waves, TrendingUp, Clock } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { SearchInput } from '@/components/search-input';
 import { LanguageToggle } from '@/components/language-toggle';
@@ -37,7 +37,16 @@ export function Header() {
                         <span className="hidden md:block text-sm font-medium">{t('nav.trends')}</span>
                     </Link>
 
-                    {/* Desktop-only nav links */}
+                    {/* Archive - Icon on mobile, Text on desktop */}
+                    <Link
+                        href="/archive"
+                        className="p-3 sm:p-0 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors active:scale-95 md:hidden"
+                        title={t('nav.archive')}
+                    >
+                        <Clock className="w-6 h-6" />
+                    </Link>
+
+                    {/* Desktop-only Archive Text */}
                     <Link href="/archive" className="hidden md:block text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
                         {t('nav.archive')}
                     </Link>
