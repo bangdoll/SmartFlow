@@ -77,7 +77,7 @@
 3. 在 Vercel Project Settings > Environment Variables 中設定所有環境變數。
 4. 部署後，Cron Jobs 會自動設定 (需確保 Vercel 專案有啟用 Cron 功能)。
 
-## API Endpoints (Cron Jobs)
+## API 端點 (Cron Jobs)
 
 - `GET /api/cron/scrape`: 執行爬蟲與摘要 (需 `Authorization: Bearer <CRON_SECRET>`)
 - `GET /api/cron/newsletter`: 發送電子報 (需 `Authorization: Bearer <CRON_SECRET>`)
