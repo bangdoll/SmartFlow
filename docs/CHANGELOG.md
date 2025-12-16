@@ -3,11 +3,13 @@
 ## [2025-12-16] 行動版體驗重塑與雙語一致性 (Mobile UX & Bilingual Parity)
 
 ### 修復 (Fixed)
-- **中文版連結點擊修復 (ZH Link Unclickable)**:
-  - **結構統一 (Unified Structure)**: 將中英文版的 Logo 結構完全統一為 "Smart Flow"，徹底排除因中文 "智流" 寬度不同導致的手機版面擠壓。
-  - **強制點擊範圍 (Enforced Hit Targets)**: 為電腦版導覽列按鈕設定 `min-w-[4rem]` 與置中對齊，解決中文「趨勢」兩字太短導致難以點擊的問題。
-  - **防禦性層級 (Defensive Z-Index)**: 將 Header 層級提升至 `z-[100]`、導覽列提升至 `z-[101]`，並強制連結屬性為 `cursor-pointer`，確保無任何隱形圖層遮擋。
-- **雙重 Header 問題**: 修復了 `/trends` 與 `/news/[id]` 頁面重複載入 Header 導致的版面重疊與連結失效問題。
+- **中文版連結點擊終極修復 (Hard Navigation Fix)**:
+  - **強制瀏覽器導航 (Hard Reload)**: 針對中文版「趨勢」與「歷史」連結左鍵失效的問題，確認為 Next.js 路由策略衝突。最終解決方案為將這些連結替換為原生 `<a>` 標籤，強制觸發瀏覽器級別的頁面跳轉，徹底解決點擊無反應的問題。
+  - **雙語品牌識別 (Bilingual Logo)**: 依照需求調整 Logo 顯示邏輯：
+    - **中文模式**: 顯示「**智流 Smart Flow**」。
+    - **英文模式**: 顯示「**Smart Flow**」。
+    - 採用 `suppressHydrationWarning` 防止因語言切換導致的畫面閃爍。
+  - **結構統一 (Unified Structure)**: 保留 Header 確保在所有裝置上的高度與層級 (`z-[102]`) 一致。
 
 ### 優化 (Optimized)
 - **按鈕簡化 (UI Simplification)**:

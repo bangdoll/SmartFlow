@@ -20,8 +20,12 @@ export function Header() {
                         <Waves className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
                     <h1 className="text-base sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 whitespace-nowrap">
-                        <span className="sm:hidden">Smart Flow</span>
-                        <span className="hidden sm:inline">Smart Flow</span>
+                        <span className="sm:hidden" suppressHydrationWarning>
+                            {language === 'zh-TW' ? '智流 Smart Flow' : 'Smart Flow'}
+                        </span>
+                        <span className="hidden sm:inline" suppressHydrationWarning>
+                            {language === 'zh-TW' ? '智流 Smart Flow' : 'Smart Flow'}
+                        </span>
                     </h1>
                 </Link>
 

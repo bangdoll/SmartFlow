@@ -34,8 +34,8 @@
 ## 近期重大更新 (Recent Updates)
 
 - **行動版體驗重塑 (Mobile UX)**: 修復了按鈕點擊範圍、優化導覽列佈局，並新增「一鍵切換」的深色模式與語言按鈕，釋放 60% 螢幕空間。
-- **導航一致性 (Navigation Parity)**: 強制統一中英文版的 Logo 結構與按鈕尺寸，確保在任何裝置上，中文版的操作體驗與英文版完全一致。
-- **全站雙語 (Full Localization)**: 趨勢 (Trends) 與 歷史 (Archive) 頁面現在完全支援中英文切換，內容與標題將即時同步。
+- **導航一致性 (Navigation Parity)**: 解決中文版導航連結失效問題，改採強制瀏覽器導航 (Hard Navigation) 策略，確保 100% 可點擊。
+- **全站雙語 (Full Localization)**: 實作動態品牌識別（中文顯示「智流 Smart Flow」，英文顯示 "Smart Flow"），並確保所有頁面內容即時雙語同步。
 
 ## 技術堆疊
 
