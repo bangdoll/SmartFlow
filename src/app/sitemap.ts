@@ -8,7 +8,7 @@ const supabase = createClient(
 );
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-    const baseUrl = process.env.PRODUCTION_URL || 'https://ai-smart-flow.vercel.app';
+    const baseUrl = process.env.PRODUCTION_URL || 'https://smart-flow.rd.coach';
 
     // Fetch latest news for sitemap
     const { data: news } = await supabase

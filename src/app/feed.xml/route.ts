@@ -8,8 +8,8 @@ export async function GET() {
     const feed = new RSS({
         title: 'AI Trends Daily',
         description: '每日精選全球人工智慧新聞摘要',
-        site_url: process.env.NEXT_PUBLIC_APP_URL || 'https://ai-smart-flow.vercel.app',
-        feed_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://ai-smart-flow.vercel.app'}/feed.xml`,
+        site_url: process.env.NEXT_PUBLIC_APP_URL || 'https://smart-flow.rd.coach',
+        feed_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://smart-flow.rd.coach'}/feed.xml`,
         language: 'zh-TW',
         pubDate: new Date(),
         copyright: `All rights reserved ${new Date().getFullYear()}, AI Trends Daily`,

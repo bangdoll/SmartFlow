@@ -83,7 +83,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         };
     }
 
-    const ogUrl = new URL(`${process.env.NEXT_PUBLIC_APP_URL || 'https://ai-smart-flow.vercel.app'}/api/og`);
+    const ogUrl = new URL(`${process.env.NEXT_PUBLIC_APP_URL || 'https://smart-flow.rd.coach'}/api/og`);
     ogUrl.searchParams.set('title', item.title);
     if (item.source) ogUrl.searchParams.set('source', item.source);
 
@@ -179,7 +179,7 @@ export default async function NewsDetailPage({ params }: Props) {
         '@type': 'NewsArticle',
         headline: item.title,
         image: [
-            `${process.env.NEXT_PUBLIC_APP_URL || 'https://ai-smart-flow.vercel.app'}/api/og?title=${encodeURIComponent(item.title)}&source=${encodeURIComponent(item.source)}`
+            `${process.env.NEXT_PUBLIC_APP_URL || 'https://smart-flow.rd.coach'}/api/og?title=${encodeURIComponent(item.title)}&source=${encodeURIComponent(item.source)}`
         ],
         datePublished: item.published_at,
         dateModified: item.published_at,

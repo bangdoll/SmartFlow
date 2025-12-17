@@ -69,7 +69,7 @@ export async function GET(request: Request) {
                         fontSize: '20px',
                     }}>
                         <div>AI Trends Daily</div>
-                        <div>ai-smart-flow.vercel.app</div>
+                        <div>smart-flow.rd.coach</div>
                     </div>
                 </div>
             ),

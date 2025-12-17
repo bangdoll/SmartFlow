@@ -10,7 +10,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { LanguageProvider } from "@/components/language-context";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.PRODUCTION_URL || "https://ai-smart-flow.vercel.app"),
+  metadataBase: new URL(process.env.PRODUCTION_URL || "https://smart-flow.rd.coach"),
   title: {
     default: "智流 Smart Flow - 全球科技快報",
     template: "%s | 智流 Smart Flow"
@@ -70,7 +70,7 @@ export default function RootLayout({
               '@type': 'WebSite',
               name: '智流 Smart Flow',
               alternateName: 'Smart Flow',
-              url: process.env.PRODUCTION_URL || 'https://ai-smart-flow.vercel.app',
+              url: process.env.PRODUCTION_URL || 'https://smart-flow.rd.coach',
             }),
           }}
         />

@@ -86,12 +86,12 @@ export async function runScrapeSortAndSummary() {
                         // 根據 User request: "文案範例... (連結)"
                         // 為了導流，最好是指向我們網站。但我們網站目前沒有 news/:id 頁面。
                         // 暫時先用原始連結，這是最安全的做法。
-                        // 或者： https://ai-smart-flow.vercel.app/?tag=AI (如果 tag 存在)
+                        // 或者： https://smart-flow.rd.coach/?tag=AI (如果 tag 存在)
 
                         // User request said: "這是擴大流量最快的方法" -> implies linking to OUR site.
                         // But we don't have detail page.
                         // Let's stick to original_url for now as it provides immediate value, 
-                        // OR if we want traffic, maybe "Read more: https://ai-smart-flow.vercel.app"
+                        // OR if we want traffic, maybe "Read more: https://smart-flow.rd.coach"
                         // I will use original_url for credibility first.
                         tags: summary.tags
                     }).catch(e => console.error('Social post failed:', e));
