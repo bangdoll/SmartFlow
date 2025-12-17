@@ -13,15 +13,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Fetch latest news for sitemap
     const { data: news } = await supabase
         .from('news_items')
-        .select('id, created_at')
-        .order('created_at', { ascending: false })
+        .select('id, updated_at, tags')
+        .order('published_at', { ascending: false })
         .limit(100);
 
     const newsUrls = (news || []).map((item) => ({
         url: `${baseUrl}/news/${item.id}`,
-        lastModified: new Date(item.created_at),
+        lastModified: new Date(item.updated_at),
         changeFrequency: 'weekly' as const,
         priority: 0.8,
+    }));
+
+    // Extract unique tags
+    const tags = new Set<string>();
+    (news || []).forEach(item => {
+        if (item.tags && Array.isArray(item.tags)) {
+            item.tags.forEach(tag => tags.add(tag));
+        }
+    });
+
+    const tagUrls = Array.from(tags).map(tag => ({
+        url: `${baseUrl}/tags/${encodeURIComponent(tag)}`,
+        lastModified: new Date(),
+        changeFrequency: 'daily' as const,
+        priority: 0.7,
     }));
 
     return [

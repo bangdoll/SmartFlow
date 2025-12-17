@@ -3,7 +3,6 @@
 import { NewsItem } from '@/types';
 import { ExternalLink, Calendar, Tag } from 'lucide-react';
 import Link from 'next/link';
-import { useTagFilter } from './tag-filter-context';
 import { useLanguage } from './language-context';
 import { preprocessMarkdown } from '@/lib/markdown';
 
@@ -12,7 +11,6 @@ interface NewsCardProps {
 }
 
 export function NewsCard({ news }: NewsCardProps) {
-    const { setSelectedTag } = useTagFilter();
     const { language } = useLanguage();
 
     const date = new Date(news.published_at).toLocaleDateString(language === 'en' ? 'en-US' : 'zh-TW', {
@@ -53,14 +51,14 @@ export function NewsCard({ news }: NewsCardProps) {
             {news.tags && news.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-4">
                     {news.tags.map((tag) => (
-                        <button
+                        <Link
                             key={tag}
-                            onClick={() => setSelectedTag(tag)}
+                            href={`/tags/${encodeURIComponent(tag)}`}
                             className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
                         >
                             <Tag className="w-3 h-3" />
                             {tag}
-                        </button>
+                        </Link>
                     ))}
                 </div>
             )}

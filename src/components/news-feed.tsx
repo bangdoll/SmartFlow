@@ -14,12 +14,18 @@ import { FeedSubscribeCard } from './feed-subscribe-card';
 interface NewsFeedProps {
     initialItems?: NewsItem[];
     mode?: 'default' | 'focus';
+    initialTag?: string;
 }
 
-export function NewsFeed({ initialItems = [], mode = 'default' }: NewsFeedProps) {
+export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: NewsFeedProps) {
     const { t, language } = useLanguage();
     const router = useRouter(); // Inject router
-    const [selectedTag, setSelectedTag] = useState<string | null>(null);
+    const [selectedTag, setSelectedTag] = useState<string | null>(initialTag || null);
+
+    // Sync state if prop changes
+    useEffect(() => {
+        if (initialTag) setSelectedTag(initialTag);
+    }, [initialTag]);
 
     // Store all items in state to allow prepending new ones on refresh
     const [feedItems, setFeedItems] = useState<NewsItem[]>(initialItems);
@@ -286,19 +292,15 @@ export function NewsFeed({ initialItems = [], mode = 'default' }: NewsFeedProps)
         }
     };
 
-    const handleTagClick = (tag: string) => {
-        if (mode === 'focus') return; // Read-only tags in focus mode? Or just navigation? Nav is fine, but list shouldn't filter.
-        // Actually, user says "No filters". So let's disable tag clicking or make it navigate to a search page?
-        // For 'focus' mode, let's just ignore tag clicks or keep them simple.
-        // User says "Wireframe 2: No search, No tags cloud". Cards have tags.
-        // Let's allow tag click to reset logic or just do nothing for now to keep it strict. 
-        if (selectedTag !== tag) {
-            setSelectedTag(tag);
-        }
-    };
+    // Simplified tag handling - now handled by Link navigation
+    // const handleTagClick... removed
 
     const clearFilter = () => {
-        setSelectedTag(null);
+        if (initialTag) {
+            router.push('/');
+        } else {
+            setSelectedTag(null);
+        }
     };
 
     // State for read status
@@ -564,14 +566,12 @@ export function NewsFeed({ initialItems = [], mode = 'default' }: NewsFeedProps)
                                             {/* Tags Section */}
                                             <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                                                 {item.tags?.map((tag) => (
-                                                    <button
+                                                    <Link
                                                         key={tag}
-                                                        type="button"
+                                                        href={`/tags/${encodeURIComponent(tag)}`}
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            e.preventDefault();
-                                                            // In Focus Mode, maybe disable tag filter?
-                                                            if (mode !== 'focus') setSelectedTag(tag);
+                                                            // if (mode === 'focus') e.preventDefault();
                                                         }}
                                                         className={`
                                                             inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer relative z-10
@@ -583,7 +583,7 @@ export function NewsFeed({ initialItems = [], mode = 'default' }: NewsFeedProps)
                                                     >
                                                         <Tag className="w-3 h-3" />
                                                         {tag}
-                                                    </button>
+                                                    </Link>
                                                 ))}
                                             </div>
 
