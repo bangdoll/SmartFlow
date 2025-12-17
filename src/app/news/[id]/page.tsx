@@ -173,9 +173,31 @@ export default async function NewsDetailPage({ params }: Props) {
     // Fetch adjacent news
     const { prev, next } = await getAdjacentNews(item.published_at);
 
+    // JSON-LD for NewsArticle
+    const jsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'NewsArticle',
+        headline: item.title,
+        image: [
+            `${process.env.NEXT_PUBLIC_APP_URL || 'https://ai-smart-flow.vercel.app'}/api/og?title=${encodeURIComponent(item.title)}&source=${encodeURIComponent(item.source)}`
+        ],
+        datePublished: item.published_at,
+        dateModified: item.published_at,
+        author: [{
+            '@type': 'Organization',
+            name: item.source || 'Smart Flow AI',
+            url: item.original_url
+        }],
+        description: item.summary_zh || item.summary_en,
+    };
+
     return (
         <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 transition-colors duration-500">
             <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
             {/* Header handled by layout */}
             <NewsContent item={item} prev={prev} next={next} />
         </main>

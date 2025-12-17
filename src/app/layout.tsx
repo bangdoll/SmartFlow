@@ -62,6 +62,18 @@ export default function RootLayout({
         {process.env.NEXT_PUBLIC_GA_ID && (
           <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
         )}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'WebSite',
+              name: '智流 Smart Flow',
+              alternateName: 'Smart Flow',
+              url: process.env.PRODUCTION_URL || 'https://ai-smart-flow.vercel.app',
+            }),
+          }}
+        />
       </body>
     </html>
   );
