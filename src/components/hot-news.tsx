@@ -128,7 +128,7 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
                                     <span>{item.source}</span>
                                     <span>•</span>
                                     <span className="flex items-center gap-1">
-                                        🔥 {item.click_count || 0} 點擊
+                                        🔥 {t('home.hot')}
                                     </span>
                                 </div>
 

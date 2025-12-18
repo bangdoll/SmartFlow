@@ -74,8 +74,13 @@ const FALLBACK_NEWS: NewsItem[] = [
 ];
 
 async function getHotNews() {
-  // Hot news is disabled via simplified logic anyway, just return empty
-  return [];
+  const { data: items } = await supabase
+    .from('news_items')
+    .select('id, title, original_url, summary_zh, summary_en, title_en, slug, published_at, source, tags, created_at')
+    .order('published_at', { ascending: false })
+    .limit(3);
+
+  return items || [];
 }
 
 async function getLatestNews(): Promise<NewsItem[]> {
