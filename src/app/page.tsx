@@ -112,6 +112,7 @@ export default async function Home() {
 
       <div className="relative max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8 pt-24 sm:pt-12">
         {/* Wireframe 1: Entrance Ramp */}
+        <PinnedGuideCard />
         <WelcomeSection />
 
         {/* Wireframe 2: Today's Focus List */}

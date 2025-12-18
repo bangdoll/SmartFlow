@@ -286,7 +286,7 @@ const translations: Record<Language, Record<string, string>> = {
 
         // Pinned Guide
         'guide.label': '置頂教學',
-        'guide.title': '新手請進：如何使用《智流》掌握每日科技趨勢？',
+        'guide.title': '✨ 新手指南：如何使用《智流》掌握每日科技趨勢',
         'guide.desc': '三步驟輕鬆上手，教您如何聆聽 AI 導讀與訂閱每日摘要。',
 
         // Guide Page
