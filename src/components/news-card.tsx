@@ -38,7 +38,11 @@ export function NewsCard({ news }: NewsCardProps) {
 
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3 leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                 <Link href={`/news/${news.slug || news.id}`} className="flex items-center gap-2">
-                    {displayTitle}
+                    {language === 'en' && !news.title_en ? (
+                        <span className="animate-pulse bg-gray-200 dark:bg-gray-700 h-6 w-3/4 rounded block"></span>
+                    ) : (
+                        displayTitle
+                    )}
                 </Link>
             </h2>
 
@@ -51,14 +55,14 @@ export function NewsCard({ news }: NewsCardProps) {
             {news.tags && news.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-4">
                     {news.tags.map((tag) => (
-                        <Link
+                        <a
                             key={tag}
                             href={`/tags/${encodeURIComponent(tag)}`}
                             className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
                         >
                             <Tag className="w-3 h-3" />
                             {tag}
-                        </Link>
+                        </a>
                     ))}
                 </div>
             )}

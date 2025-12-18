@@ -7,13 +7,13 @@ import { HotNewsSection } from '@/components/hot-news';
 import { PinnedGuideCard } from '@/components/pinned-guide-card';
 import { DailyInsight } from '@/components/daily-insight';
 
-// 強制動態渲染，不使用快取
-export const dynamic = 'force-dynamic';
+// 使用 ISR (增量靜態再生)，每 5 分鐘更新一次
+export const revalidate = 300;
 
 async function getHotNews() {
   const { data: items } = await supabase
     .from('news_items')
-    .select('*')
+    .select('id, title, original_url, summary, title_en, summary_en, slug, published_at, source, tags, click_count, created_at')
     .order('click_count', { ascending: false })
     .order('published_at', { ascending: false })
     .limit(3);
@@ -24,7 +24,7 @@ async function getHotNews() {
 async function getLatestNews(): Promise<NewsItem[]> {
   const { data: items } = await supabase
     .from('news_items')
-    .select('*')
+    .select('id, title, original_url, summary, title_en, summary_en, slug, published_at, source, tags, click_count, created_at')
     .order('published_at', { ascending: false })
     .limit(50);
 

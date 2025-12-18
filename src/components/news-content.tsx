@@ -29,6 +29,7 @@ interface NavItem {
     id: string;
     title: string;
     slug?: string;
+    title_en?: string | null;
 }
 
 interface NewsContentProps {
@@ -234,7 +235,7 @@ export function NewsContent({ item, prev, next }: NewsContentProps) {
                                     {language === 'en' ? 'Previous' : '上一則'}
                                 </span>
                                 <span className="text-sm font-bold text-gray-700 dark:text-gray-200 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                    {prev.title}
+                                    {(language === 'en' && prev.title_en) ? prev.title_en : prev.title}
                                 </span>
                             </Link>
                         ) : (
@@ -251,7 +252,7 @@ export function NewsContent({ item, prev, next }: NewsContentProps) {
                                     <ChevronRight className="w-3 h-3" />
                                 </span>
                                 <span className="text-sm font-bold text-gray-700 dark:text-gray-200 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                    {next.title}
+                                    {(language === 'en' && next.title_en) ? next.title_en : next.title}
                                 </span>
                             </Link>
                         ) : (

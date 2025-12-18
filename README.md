@@ -33,9 +33,10 @@
 
 ## 近期重大更新 (Recent Updates)
 
+- **自動化測試 (Quality Assurance)**: 導入 Playwright E2E 測試框架，覆蓋核心導航與多語言切換場景，確保系統穩定性。
+- **嚴格全英文模式 (Strict English Mode)**: 實作自動批次翻譯與載入等待機制，確保英文介面下絕無中文殘留，提供專業級的雙語體驗。
 - **行動版體驗重塑 (Mobile UX)**: 修復了按鈕點擊範圍、優化導覽列佈局，並新增「一鍵切換」的深色模式與語言按鈕，釋放 60% 螢幕空間。
 - **導航一致性 (Navigation Parity)**: 解決中文版導航連結失效問題，改採強制瀏覽器導航 (Hard Navigation) 策略，確保 100% 可點擊。
-- **全站雙語 (Full Localization)**: 實作動態品牌識別（中文顯示「智流 Smart Flow」，英文顯示 "Smart Flow"），並確保所有頁面內容即時雙語同步。
 
 ## 技術堆疊
 

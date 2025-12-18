@@ -149,8 +149,22 @@ const translations: Record<Language, Record<string, string>> = {
         'insight.action': 'Read Key Point',
         'insight.readMore': 'Read More',
 
+        // Feed Focus Mode
+        'feed.focusTitle': 'Top 5 AI News Today',
+        'feed.focusSubtitle': 'Prioritized for you. Just read these.',
+
         // News Feed
         'feed.aiGuide': 'AI Audio Guide',
+        'feed.toast.checking': 'Checking for latest news...',
+        'feed.toast.analyzing': 'Analysis complete, fetching news...',
+        'feed.toast.updated': 'Updated {count} new articles!',
+        'feed.toast.noNew': 'No new news at the moment',
+        'feed.toast.latest': 'You are up to date',
+        'feed.toast.error': 'Update failed, please try again',
+        'feed.toast.linkCopied': 'Link copied!',
+        'feed.pullToLoad': 'Pull to load more...',
+        'feed.noResults': 'No news found for "{tag}".',
+        'feed.empty': 'No news digest available.',
     },
     'zh-TW': {
         // Header
@@ -298,6 +312,16 @@ const translations: Record<Language, Record<string, string>> = {
 
         // News Feed
         'feed.aiGuide': 'AI 導讀',
+        'feed.toast.checking': '正在檢查最新新聞...',
+        'feed.toast.analyzing': '分析完成，正在獲取新聞...',
+        'feed.toast.updated': '已更新 {count} 則新聞！',
+        'feed.toast.noNew': '目前沒有新新聞',
+        'feed.toast.latest': '目前已是最新狀態',
+        'feed.toast.error': '更新失敗，請稍後再試',
+        'feed.toast.linkCopied': '連結已複製！',
+        'feed.pullToLoad': '滑動載入更多...',
+        'feed.noResults': '沒有找到關於「{tag}」的新聞。',
+        'feed.empty': '目前沒有新聞摘要。',
     }
 };
 

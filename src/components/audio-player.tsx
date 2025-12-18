@@ -52,7 +52,7 @@ export function AudioPlayer({ newsId, initialAudioUrl, title, language = 'zh-TW'
 
             } catch (error) {
                 console.error('TTS Error:', error);
-                alert('無法生成語音，請稍後再試。');
+                alert('Failed to generate audio, please try again later.');
             } finally {
                 setIsLoading(false);
             }
@@ -131,7 +131,7 @@ export function AudioPlayer({ newsId, initialAudioUrl, title, language = 'zh-TW'
                 <div className="flex items-center gap-2 mb-1">
                     <Volume2 className="w-4 h-4 text-blue-600" />
                     <span className="text-sm font-medium text-gray-700 truncate">
-                        {isLoading ? '正在生成 AI 語音導讀...' : isPlaying ? '正在播放 AI 導讀' : '聆聽 AI 導讀'}
+                        {isLoading ? 'Generating AI Audio Summary...' : isPlaying ? 'Playing AI Summary' : 'Listen to AI Summary'}
                     </span>
                 </div>
                 {/* Progress Bar */}
@@ -147,7 +147,7 @@ export function AudioPlayer({ newsId, initialAudioUrl, title, language = 'zh-TW'
             <button
                 onClick={toggleSpeed}
                 className="flex-shrink-0 min-w-[3rem] h-9 px-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 rounded-lg transition-all shadow-sm flex items-center justify-center tracking-wide"
-                title="調整播放速度"
+                title="Playback Speed"
             >
                 {speed}x
             </button>
