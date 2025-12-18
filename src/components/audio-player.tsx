@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Loader2, Volume2 } from 'lucide-react';
+import { useLanguage } from './language-context';
 
 interface AudioPlayerProps {
     newsId: string;
@@ -11,6 +12,7 @@ interface AudioPlayerProps {
 }
 
 export function AudioPlayer({ newsId, initialAudioUrl, title, language = 'zh-TW' }: AudioPlayerProps) {
+    const { t } = useLanguage();
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [audioUrl, setAudioUrl] = useState<string | null>(initialAudioUrl || null);
@@ -52,7 +54,7 @@ export function AudioPlayer({ newsId, initialAudioUrl, title, language = 'zh-TW'
 
             } catch (error) {
                 console.error('TTS Error:', error);
-                alert('Failed to generate audio, please try again later.');
+                alert(t('player.error'));
             } finally {
                 setIsLoading(false);
             }
@@ -131,7 +133,11 @@ export function AudioPlayer({ newsId, initialAudioUrl, title, language = 'zh-TW'
                 <div className="flex items-center gap-2 mb-1">
                     <Volume2 className="w-4 h-4 text-blue-600" />
                     <span className="text-sm font-medium text-gray-700 truncate">
-                        {isLoading ? 'Generating AI Audio Summary...' : isPlaying ? 'Playing AI Summary' : 'Listen to AI Summary'}
+                        {isLoading
+                            ? t('player.generating')
+                            : isPlaying
+                                ? t('player.playing')
+                                : t('player.listen')}
                     </span>
                 </div>
                 {/* Progress Bar */}
@@ -147,7 +153,7 @@ export function AudioPlayer({ newsId, initialAudioUrl, title, language = 'zh-TW'
             <button
                 onClick={toggleSpeed}
                 className="flex-shrink-0 min-w-[3rem] h-9 px-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 rounded-lg transition-all shadow-sm flex items-center justify-center tracking-wide"
-                title="Playback Speed"
+                title={t('player.speed')}
             >
                 {speed}x
             </button>

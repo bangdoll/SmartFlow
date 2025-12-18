@@ -165,6 +165,13 @@ const translations: Record<Language, Record<string, string>> = {
         'feed.pullToLoad': 'Pull to load more...',
         'feed.noResults': 'No news found for "{tag}".',
         'feed.empty': 'No news digest available.',
+
+        // Audio Player
+        'player.generating': 'Generating AI Audio Summary...',
+        'player.playing': 'Playing AI Summary',
+        'player.listen': 'Listen to AI Summary',
+        'player.error': 'Failed to generate audio, please try again later.',
+        'player.speed': 'Playback Speed',
     },
     'zh-TW': {
         // Header
@@ -322,6 +329,13 @@ const translations: Record<Language, Record<string, string>> = {
         'feed.pullToLoad': '滑動載入更多...',
         'feed.noResults': '沒有找到關於「{tag}」的新聞。',
         'feed.empty': '目前沒有新聞摘要。',
+
+        // Audio Player
+        'player.generating': 'AI 語音導讀生成中...',
+        'player.playing': '正在播放 AI 導讀',
+        'player.listen': '聆聽 AI 導讀',
+        'player.error': '生成語音失敗，請稍後再試。',
+        'player.speed': '播放速度',
     }
 };
 
