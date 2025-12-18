@@ -9,7 +9,7 @@ export function PinnedGuideCard() {
 
     return (
         <div className="mb-8">
-            <Link href="/guide" className="block group">
+            <Link href="/guide" className="block group relative z-10">
                 <div className="relative bg-white dark:bg-gray-900 border-l-4 border-blue-500 rounded-r-xl shadow-sm hover:shadow-md transition-shadow p-5 flex items-start sm:items-center justify-between gap-4">
                     <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
