@@ -6,15 +6,7 @@
         },
         {
             "path": "/api/cron/summarize",
-            "schedule": "5 0 * * *"
-        },
-        {
-            "path": "/api/cron/summarize",
             "schedule": "10 0 * * *"
-        },
-        {
-            "path": "/api/cron/summarize",
-            "schedule": "15 0 * * *"
         }
     ]
 }
