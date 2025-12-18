@@ -1,10 +1,27 @@
-# Changelog
+# 變更日誌 (Changelog)
 
-All notable changes to this project will be documented in this file.
+本檔案記錄此專案的所有重要變更。
 
-## [Unreleased] - 2025-12-17
+## [2025-12-18]
 
-### Added (新增)
+### 新增 (Added)
+- **效能優化 (Performance Optimization)**:
+  - 首頁改用 ISR (增量靜態再生)，每 5 分鐘重新驗證一次，大幅降低資料庫負載並加速頁面載入。
+  - 優化資料庫查詢，改為僅選取必要欄位取代 `SELECT *`。
+- **流量增長引擎 (Programmatic SEO)**:
+  - 強化 `/tags/[tag]` 標籤頁面的 SEO：新增 Canonical URL 與 Breadcrumb 結構化資料 (JSON-LD)。
+  - Sitemap 自動涵蓋所有標籤頁面。
+
+### 修復 (Fixed)
+- **新手指南連結失效**: 修正首頁置頂「新手指南」卡片無法點擊的問題。
+  - 原因：背景網格覆蓋層缺少 `pointer-events-none`。
+  - 解法：將 `PinnedGuideCard` 的 `next/link` 改為標準 `<a>` 標籤 (Hard Navigation)。
+
+---
+
+## [2025-12-17]
+
+### 新增 (Added)
 - **E2E 自動化測試 (End-to-End Testing)**:
   - 導入 Playwright 測試框架。
   - 新增 `e2e/navigation.spec.ts`：覆蓋首頁、新聞詳細頁、標籤頁與靜態頁面的關鍵路徑導航測試。
@@ -15,13 +32,13 @@ All notable changes to this project will be documented in this file.
 - **焦點模式頭條 (Focus Mode Header)**:
   - 首頁在焦點模式下現在會根據語言正確顯示「Top 5 AI News Today」或「今天最重要的 5 則」。
 
-### Changed (優化/變更)
+### 優化/變更 (Changed)
 - **導航優化 (Navigation)**:
   - 將所有標籤 (Tag) 連結從 `next/link` 改為標準 `<a>` 標籤 (Hard Navigation)，解決了切換標籤時狀態殘留的問題，並提升 SEO 與測試穩定性。
 - **UI/UX**:
   - 優化新聞卡片中的「閱讀完整分析」按鈕：統一了中英文按鈕樣式與行為。
   - 修正了 E2E 測試中的 Accessibility Locator 問題，提升測試腳本的穩定性。
 
-### Fixed (修復)
+### 修復 (Fixed)
 - **翻譯缺失**: 補齊了焦點模式 (Focus Mode) 下缺少的英文翻譯字串。
 - **Hydration Mismatch**: 修正了部分日期與動態內容在伺服器/客戶端渲染不一致的問題。
