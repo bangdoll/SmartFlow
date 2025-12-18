@@ -35,7 +35,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ success: true });
 
-        return NextResponse.json({ success: true, count: newCount });
+
     } catch (error) {
         console.error('Error tracking click:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
