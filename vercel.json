@@ -1,8 +1,20 @@
 {
     "crons": [
         {
-            "path": "/api/cron/daily",
-            "schedule": "0 0 * * *"
+            "path": "/api/cron/scrape",
+            "schedule": "0 */4 * * *"
+        },
+        {
+            "path": "/api/cron/summarize",
+            "schedule": "5 */4 * * *"
+        },
+        {
+            "path": "/api/cron/summarize",
+            "schedule": "10 */4 * * *"
+        },
+        {
+            "path": "/api/cron/summarize",
+            "schedule": "15 */4 * * *"
         }
     ]
 }
