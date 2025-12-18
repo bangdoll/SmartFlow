@@ -2,19 +2,19 @@
     "crons": [
         {
             "path": "/api/cron/scrape",
-            "schedule": "0 */4 * * *"
+            "schedule": "0 0 * * *"
         },
         {
             "path": "/api/cron/summarize",
-            "schedule": "5 */4 * * *"
+            "schedule": "5 0 * * *"
         },
         {
             "path": "/api/cron/summarize",
-            "schedule": "10 */4 * * *"
+            "schedule": "10 0 * * *"
         },
         {
             "path": "/api/cron/summarize",
-            "schedule": "15 */4 * * *"
+            "schedule": "15 0 * * *"
         }
     ]
 }
