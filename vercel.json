@@ -1,12 +1,1 @@
-{
-    "crons": [
-        {
-            "path": "/api/cron/scrape",
-            "schedule": "0 0 * * *"
-        },
-        {
-            "path": "/api/cron/summarize",
-            "schedule": "10 0 * * *"
-        }
-    ]
-}
+{}
