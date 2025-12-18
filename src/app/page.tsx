@@ -108,7 +108,7 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 transition-colors duration-500">
-      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
+      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] pointer-events-none" />
 
       <div className="relative max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8 pt-24 sm:pt-12">
         {/* Wireframe 1: Entrance Ramp */}
