@@ -216,9 +216,9 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
             if (selectedTag) {
                 params.append('tag', selectedTag);
             }
-            if (sortBy === 'popular') {
-                params.append('sort', 'popular');
-            }
+            // if (sortBy === 'popular') {
+            //     params.append('sort', 'popular');
+            // }
 
             const res = await fetch(`/api/news?${params.toString()}`);
             if (!res.ok) throw new Error('Failed to load news');
@@ -384,6 +384,7 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
                             >
                                 {t('home.sortLatest')}
                             </button>
+                            {/* Sort by Popular temporarily disabled
                             <button
                                 onClick={() => setSortBy('popular')}
                                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${sortBy === 'popular'
@@ -393,6 +394,7 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
                             >
                                 🔥 {t('home.sortPopular')}
                             </button>
+                            */}
                         </div>
                     </div>
                 )

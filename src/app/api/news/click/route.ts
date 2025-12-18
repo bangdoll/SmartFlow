@@ -32,7 +32,22 @@ export async function POST(request: Request) {
             .single();
 
         if (fetchError || !item) {
-            return NextResponse.json({ error: 'Item not found' }, { status: 404 });
+            // Click tracking temporarily disabled as column is missing
+            // const { data: item } = await supabase
+            //     .from('news_items')
+            //     .select('click_count')
+            //     .eq('id', id)
+            //     .single();
+
+            // if (item) {
+            //     const newCount = (item.click_count || 0) + 1;
+            //     await supabase
+            //         .from('news_items')
+            //         .update({ click_count: newCount })
+            //         .eq('id', id);
+            // }
+
+            return NextResponse.json({ success: true });
         }
 
         const newCount = (item.click_count || 0) + 1;

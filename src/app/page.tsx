@@ -10,21 +10,13 @@ import { DailyInsight } from '@/components/daily-insight';
 // 使用 ISR (增量靜態再生)，每 5 分鐘更新一次
 export const revalidate = 300;
 
-async function getHotNews() {
-  const { data: items } = await supabase
-    .from('news_items')
-    .select('id, title, original_url, summary_zh, summary_en, title_en, slug, published_at, source, tags, click_count, created_at')
-    .order('click_count', { ascending: false })
-    .order('published_at', { ascending: false })
-    .limit(3);
-
-  return items || [];
+return items || [];
 }
 
 async function getLatestNews(): Promise<NewsItem[]> {
   const { data: items } = await supabase
     .from('news_items')
-    .select('id, title, original_url, summary_zh, summary_en, title_en, slug, published_at, source, tags, click_count, created_at')
+    .select('id, title, original_url, summary_zh, summary_en, title_en, slug, published_at, source, tags, created_at')
     .order('published_at', { ascending: false })
     .limit(50);
 
