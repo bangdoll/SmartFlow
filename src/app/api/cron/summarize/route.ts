@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
         // 1. 讀取待處理項目 (summary_zh IS NULL)
         const { data: pendingItems, error: fetchError } = await supabase
             .from('news_items')
-            .select('id, title, original_url, content')
+            .select('id, title, original_url')
             .is('summary_zh', null)
             .order('created_at', { ascending: false })
             .limit(MAX_PROCESS_PER_RUN);
@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
             try {
                 console.log(`Processing: ${item.title.substring(0, 50)}...`);
 
-                const summary = await generateSummary(item.title, item.content || item.title);
+                const summary = await generateSummary(item.title, item.title);
 
                 if (summary) {
                     const { error: updateError } = await supabase
