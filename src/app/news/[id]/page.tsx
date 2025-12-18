@@ -51,7 +51,7 @@ async function getAdjacentNews(currentDate: string) {
         // Previous news (older)
         supabase
             .from('news_items')
-            .select('id, slug, title')
+            .select('id, slug, title, title_en')
             .lt('published_at', currentDate)
             .order('published_at', { ascending: false })
             .limit(1)
@@ -60,7 +60,7 @@ async function getAdjacentNews(currentDate: string) {
         // Next news (newer)
         supabase
             .from('news_items')
-            .select('id, slug, title')
+            .select('id, slug, title, title_en')
             .gt('published_at', currentDate)
             .order('published_at', { ascending: true })
             .limit(1)
