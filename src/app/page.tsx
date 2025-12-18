@@ -13,7 +13,7 @@ export const revalidate = 300;
 async function getHotNews() {
   const { data: items } = await supabase
     .from('news_items')
-    .select('id, title, original_url, summary, title_en, summary_en, slug, published_at, source, tags, click_count, created_at')
+    .select('id, title, original_url, summary, slug, published_at, source, tags, click_count, created_at')
     .order('click_count', { ascending: false })
     .order('published_at', { ascending: false })
     .limit(3);
@@ -24,7 +24,7 @@ async function getHotNews() {
 async function getLatestNews(): Promise<NewsItem[]> {
   const { data: items } = await supabase
     .from('news_items')
-    .select('id, title, original_url, summary, title_en, summary_en, slug, published_at, source, tags, click_count, created_at')
+    .select('id, title, original_url, summary, slug, published_at, source, tags, click_count, created_at')
     .order('published_at', { ascending: false })
     .limit(50);
 
