@@ -12,6 +12,7 @@ interface HotNewsProps {
 }
 
 import { useState, useEffect, useRef } from 'react';
+import { Skeleton } from './ui/skeleton';
 
 export function HotNewsSection({ items: initialItems }: HotNewsProps) {
     const { t, language } = useLanguage();
@@ -100,23 +101,21 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
                 {hotItems.map((item, index) => {
                     const showEn = language === 'en';
                     const hasEn = !!item.title_en;
-                    const displayTitle = showEn ? (item.title_en || 'Translating...') : item.title;
-                    const displaySummary = showEn ? (item.summary_en || 'Translating...') : item.summary_zh;
-
-                    if (showEn && !hasEn) { /* Skeleton */ return <div key={index} className="skeleton" />; }
+                    const isTranslating = showEn && !hasEn;
+                    const displayTitle = showEn ? item.title_en : item.title;
+                    const displaySummary = showEn ? item.summary_en : item.summary_zh;
 
                     return (
-
-
                         // ... inside map ...
                         <article
                             key={item.id || index}
                             onClick={() => {
+                                if (isTranslating) return;
                                 handleNewsClick(item.id);
                                 // FORCE HARD NAVIGATION with Short ID
                                 window.location.href = `/news/${item.id.substring(0, 8)}`;
                             }}
-                            className="group relative flex flex-col h-full bg-gradient-to-br from-white/80 to-white/40 dark:from-gray-900/80 dark:to-gray-900/40 backdrop-blur-md rounded-2xl border border-orange-100/50 dark:border-orange-900/30 p-5 shadow-lg shadow-orange-500/5 hover:shadow-orange-500/10 hover:scale-[1.02] transition-all duration-300 cursor-pointer"
+                            className={`group relative flex flex-col h-full bg-gradient-to-br from-white/80 to-white/40 dark:from-gray-900/80 dark:to-gray-900/40 backdrop-blur-md rounded-2xl border border-orange-100/50 dark:border-orange-900/30 p-5 shadow-lg shadow-orange-500/5 hover:shadow-orange-500/10 hover:scale-[1.02] transition-all duration-300 cursor-pointer ${isTranslating ? 'animate-pulse' : ''}`}
                         >
                             {/* Rank Badge */}
                             <div className="absolute -top-3 -left-3 w-8 h-8 flex items-center justify-center bg-gradient-to-br from-orange-500 to-red-500 text-white font-bold rounded-lg shadow-md transform rotate-3 group-hover:rotate-6 transition-transform z-10">
@@ -134,31 +133,43 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
 
                                 {/* Title - EXTERNAL LINK (Stop Propagation) */}
                                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 line-clamp-3 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                                    <a
-                                        href={item.original_url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleNewsClick(item.id);
-                                        }}
-                                        className="hover:underline cursor-pointer"
-                                    >
-                                        {displayTitle}
-                                        <ExternalLink className="w-3 h-3 inline ml-1 opacity-50" />
-                                    </a>
+                                    {isTranslating ? (
+                                        <Skeleton className="h-6 w-full my-1 bg-orange-100/50 dark:bg-orange-900/20" />
+                                    ) : (
+                                        <a
+                                            href={item.original_url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleNewsClick(item.id);
+                                            }}
+                                            className="hover:underline cursor-pointer"
+                                        >
+                                            {displayTitle}
+                                            <ExternalLink className="w-3 h-3 inline ml-1 opacity-50" />
+                                        </a>
+                                    )}
                                 </h3>
 
                                 {/* Summary Snippet - Regular Div with Hard Navigation */}
                                 <div
                                     className="block mt-auto group/summary cursor-pointer"
                                     onClick={(e) => {
+                                        if (isTranslating) return;
                                         window.location.href = `/news/${item.id.substring(0, 8)}`;
                                     }}
                                 >
-                                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 group-hover/summary:text-orange-600 dark:group-hover/summary:text-orange-400 transition-colors">
-                                        {preprocessMarkdown(displaySummary || null)}
-                                    </p>
+                                    {isTranslating ? (
+                                        <div className="space-y-2">
+                                            <Skeleton className="h-3 w-full bg-orange-100/30 dark:bg-orange-900/10" />
+                                            <Skeleton className="h-3 w-4/5 bg-orange-100/30 dark:bg-orange-900/10" />
+                                        </div>
+                                    ) : (
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 group-hover/summary:text-orange-600 dark:group-hover/summary:text-orange-400 transition-colors">
+                                            {preprocessMarkdown(displaySummary || '')}
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div className="mt-4 flex justify-end">

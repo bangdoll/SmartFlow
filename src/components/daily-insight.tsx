@@ -10,6 +10,7 @@ interface DailyInsightProps {
 }
 
 import { useBatchTranslation } from '@/hooks/use-batch-translation';
+import { Skeleton } from './ui/skeleton';
 
 export function DailyInsight({ insightItem }: DailyInsightProps) {
     const { t, language } = useLanguage();
@@ -72,7 +73,11 @@ export function DailyInsight({ insightItem }: DailyInsightProps) {
                             }}
                             suppressHydrationWarning
                         >
-                            {displayTitle}
+                            {isTranslating ? (
+                                <Skeleton className="h-8 w-3/4 bg-amber-200/50 dark:bg-amber-700/30" />
+                            ) : (
+                                displayTitle
+                            )}
                         </h3>
 
                         <div className="flex items-center gap-4 mt-4">

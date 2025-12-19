@@ -9,6 +9,7 @@ import { AudioPlayer } from '@/components/audio-player';
 import { ChatBox } from '@/components/chat-box';
 import { useLanguage } from '@/components/language-context';
 import { preprocessMarkdown } from '@/lib/markdown';
+import { Skeleton } from './ui/skeleton';
 
 interface NewsItem {
     id: string;
@@ -88,21 +89,17 @@ export function NewsContent({ item, prev, next }: NewsContentProps) {
     });
 
     // Determine content based on language
-    const currentTitleEn = localTitleEn || item.title_en;
-    const currentSummaryEn = localSummaryEn || item.summary_en;
+    const currentTitleEn = localTitleEn || item.title_en || undefined;
+    const currentSummaryEn = localSummaryEn || item.summary_en || undefined;
 
     // Language-based summary selection with fallback
-    // Chinese: prefer summary_zh, fallback to summary_en
-    // English: prefer summary_en, show placeholder if translating
     const displaySummary = language === 'en'
-        ? (currentSummaryEn || 'Translating content... please wait...')
-        : (item.summary_zh && item.summary_zh.trim() !== '' ? item.summary_zh : (currentSummaryEn || ''));
+        ? currentSummaryEn
+        : (item.summary_zh && item.summary_zh.trim() !== '' ? item.summary_zh : currentSummaryEn);
 
     const displayTitle = language === 'en'
-        ? (currentTitleEn || 'Translating title...')
+        ? (currentTitleEn || undefined)
         : item.title;
-
-    const processedSummary = preprocessMarkdown(displaySummary);
 
     return (
         <div className="relative max-w-3xl mx-auto px-4 py-8 sm:px-6 lg:px-8 pt-24">
@@ -111,7 +108,7 @@ export function NewsContent({ item, prev, next }: NewsContentProps) {
                 {t('news.backHome')}
             </Link>
 
-            <article className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-white/50 dark:border-gray-800/50 rounded-2xl p-8 shadow-xl">
+            <article className={`bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-white/50 dark:border-gray-800/50 rounded-2xl p-8 shadow-xl ${isTranslating ? 'animate-pulse' : ''}`}>
                 <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400 mb-4">
                     <span className="font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full">
                         {item.source}
@@ -123,13 +120,13 @@ export function NewsContent({ item, prev, next }: NewsContentProps) {
                 </div>
 
                 <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight">
-                    {displayTitle}
+                    {displayTitle || <Skeleton className="h-10 w-full" />}
                 </h1>
 
                 <AudioPlayer
                     newsId={item.id}
-                    initialAudioUrl={language === 'en' ? item.audio_url_en : item.audio_url}
-                    title={displayTitle}
+                    initialAudioUrl={(language === 'en' ? item.audio_url_en : item.audio_url) || undefined}
+                    title={displayTitle || ''}
                     language={language}
                 />
 
@@ -143,7 +140,20 @@ export function NewsContent({ item, prev, next }: NewsContentProps) {
                     prose-td:p-4 prose-td:border-t prose-td:border-gray-100 dark:prose-td:border-gray-800
                     prose-li:marker:text-blue-500
                     ">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{processedSummary}</ReactMarkdown>
+                    {displaySummary ? (
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {preprocessMarkdown(displaySummary)}
+                        </ReactMarkdown>
+                    ) : (
+                        <div className="space-y-4">
+                            <Skeleton className="h-6 w-full" />
+                            <Skeleton className="h-6 w-full" />
+                            <Skeleton className="h-6 w-5/6" />
+                            <div className="h-4" />
+                            <Skeleton className="h-6 w-full" />
+                            <Skeleton className="h-6 w-4/6" />
+                        </div>
+                    )}
                 </div>
 
                 {item.tags && item.tags.length > 0 && (
@@ -311,8 +321,8 @@ export function NewsContent({ item, prev, next }: NewsContentProps) {
 
             <ChatBox
                 initialContext={{
-                    title: displayTitle,
-                    summary: displaySummary
+                    title: displayTitle || '',
+                    summary: displaySummary || ''
                 }}
             />
         </div>

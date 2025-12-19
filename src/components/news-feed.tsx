@@ -11,6 +11,7 @@ import { useLanguage } from './language-context';
 import { preprocessMarkdown } from '@/lib/markdown';
 import { FeedSubscribeCard } from './feed-subscribe-card';
 import { useBatchTranslation } from '@/hooks/use-batch-translation';
+import { Skeleton } from './ui/skeleton';
 
 interface NewsFeedProps {
     initialItems?: NewsItem[];
@@ -449,8 +450,6 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
                                         displayTitle = item.title_en!;
                                         displaySummary = item.summary_en;
                                     } else {
-                                        displayTitle = 'Translating title...';
-                                        displaySummary = 'Translating summary...';
                                         isTranslating = true;
                                     }
                                 }
@@ -489,25 +488,35 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
 
                                             {/* Title - EXTERNAL LINK (Stops Propagation) */}
                                             <h2 className={`text-xl font-bold mb-3 leading-tight transition-colors ${isRead ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-white'}`}>
-                                                <a
-                                                    href={item.original_url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation(); // CRITICAL: Stop bubble so card click doesn't trigger
-                                                        handleNewsClick(item.id);
-                                                    }}
-                                                    className="hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center gap-2 group-hover:underline decoration-blue-500/30 underline-offset-4 cursor-pointer"
-                                                    suppressHydrationWarning
-                                                >
-                                                    {displayTitle}
-                                                    <ExternalLink className="w-4 h-4 text-gray-400 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                </a>
+                                                {isTranslating ? (
+                                                    <Skeleton className="h-7 w-3/4 my-1" />
+                                                ) : (
+                                                    <a
+                                                        href={item.original_url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation(); // CRITICAL: Stop bubble so card click doesn't trigger
+                                                            handleNewsClick(item.id);
+                                                        }}
+                                                        className="hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center gap-2 group-hover:underline decoration-blue-500/30 underline-offset-4 cursor-pointer"
+                                                        suppressHydrationWarning
+                                                    >
+                                                        {displayTitle}
+                                                        <ExternalLink className="w-4 h-4 text-gray-400 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                    </a>
+                                                )}
                                             </h2>
 
                                             {/* Summary - Regular Div (Clicks bubble to Card) */}
                                             {/* Summary - Regular Div with Hard Navigation */}
-                                            {displaySummary && (
+                                            {isTranslating ? (
+                                                <div className="space-y-2 mb-4">
+                                                    <Skeleton className="h-4 w-full" />
+                                                    <Skeleton className="h-4 w-5/6" />
+                                                    <Skeleton className="h-4 w-4/6" />
+                                                </div>
+                                            ) : displaySummary ? (
                                                 <div
                                                     className="mb-4 cursor-pointer"
                                                     onClick={(e) => {
@@ -529,7 +538,7 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
                                                         </ReactMarkdown>
                                                     </div>
                                                 </div>
-                                            )}
+                                            ) : null}
 
                                             {/* Footer Actions - Responsive Layout */}
                                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-auto">
@@ -640,9 +649,24 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
                                 className="mt-8 text-center py-8"
                             >
                                 {isLoading ? (
-                                    <div className="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400">
-                                        <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                                        <span>{t('home.loading')}...</span>
+                                    <div className="space-y-6">
+                                        {[1, 2].map((i) => (
+                                            <div key={i} className="bg-white/40 dark:bg-gray-900/40 border border-gray-100 dark:border-gray-800 rounded-xl p-6 animate-pulse">
+                                                <div className="flex gap-2 mb-4">
+                                                    <Skeleton className="h-4 w-16" />
+                                                    <Skeleton className="h-4 w-24" />
+                                                </div>
+                                                <Skeleton className="h-7 w-3/4 mb-3" />
+                                                <div className="space-y-2">
+                                                    <Skeleton className="h-4 w-full" />
+                                                    <Skeleton className="h-4 w-5/6" />
+                                                </div>
+                                            </div>
+                                        ))}
+                                        <div className="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400 pt-4">
+                                            <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                            <span className="text-sm font-medium">{t('home.loading')}...</span>
+                                        </div>
                                     </div>
                                 ) : hasMore ? (
                                     <span className="text-gray-400 text-sm">{t('feed.pullToLoad')}</span>
