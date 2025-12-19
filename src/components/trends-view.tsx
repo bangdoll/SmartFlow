@@ -171,7 +171,7 @@ export function TrendsView({ initialData }: { initialData: any | null }) {
                     <h2 className="text-2xl md:text-3xl font-bold leading-snug mb-4" dangerouslySetInnerHTML={{ __html: data.coreMessage }} />
 
                     <p className="text-blue-50 text-lg leading-relaxed opacity-90">
-                        * {language === 'zh-TW' ? '這一頁每週日更新，幫你校準方向。' : 'Updated every Sunday to calibrate your direction.'}
+                        * {language === 'zh-TW' ? '這一頁每週一更新，幫你校準方向。' : 'Updated every Monday to calibrate your direction.'}
                     </p>
                 </div>
             </div>
