@@ -32,8 +32,7 @@ export const metadata: Metadata = {
 };
 
 import { GoogleAnalytics } from '@next/third-parties/google';
-
-// ... (existing imports)
+import { Analytics } from '@vercel/analytics/react';
 
 export default function RootLayout({
   children,
@@ -62,6 +61,7 @@ export default function RootLayout({
         {process.env.NEXT_PUBLIC_GA_ID && (
           <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
         )}
+        <Analytics />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
