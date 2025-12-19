@@ -3,9 +3,56 @@ import { scrapeAllSources } from '@/lib/scraper';
 import { generateSummary } from '@/lib/llm';
 import { supabase } from '@/lib/supabase';
 import { nanoid } from 'nanoid';
+import * as cheerio from 'cheerio';
 
 // 手動觸發：執行 Phase 1 (scrape) + Phase 2 (summarize 1-2 則)
 export const maxDuration = 60;
+
+// 抓取網頁文章內容（簡化版）
+async function fetchArticleContent(url: string): Promise<string> {
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (compatible; SmartFlowBot/1.0)',
+            },
+            signal: AbortSignal.timeout(10000),
+        });
+
+        if (!response.ok) return '';
+
+        const html = await response.text();
+        const $ = cheerio.load(html);
+
+        $('script, style, nav, header, footer, aside, iframe, noscript').remove();
+        $('[class*="comment"], [class*="sidebar"], [class*="ad-"], [id*="comment"], [id*="sidebar"]').remove();
+
+        let content = '';
+        const selectors = ['article', '[role="main"]', '.post-content', '.article-body', '.entry-content', 'main', '.content'];
+
+        for (const selector of selectors) {
+            const el = $(selector);
+            if (el.length > 0) {
+                content = el.text();
+                break;
+            }
+        }
+
+        if (!content) {
+            content = $('body').text();
+        }
+
+        content = content
+            .replace(/\s+/g, ' ')
+            .replace(/\n+/g, '\n')
+            .trim()
+            .substring(0, 4000);
+
+        return content || '';
+    } catch (error) {
+        console.log(`Failed to fetch content from ${url}:`, error);
+        return '';
+    }
+}
 
 export async function POST(req: NextRequest) {
     try {
@@ -71,7 +118,12 @@ export async function POST(req: NextRequest) {
         if (pendingItems && pendingItems.length > 0) {
             for (const item of pendingItems) {
                 try {
-                    const summary = await generateSummary(item.title, item.title);
+                    // 抓取網頁內容
+                    const articleContent = await fetchArticleContent(item.original_url);
+                    const contentForLLM = articleContent || item.title;
+                    console.log(`Fetched content length: ${contentForLLM.length} chars`);
+
+                    const summary = await generateSummary(item.title, contentForLLM);
                     if (summary) {
                         await supabase
                             .from('news_items')
