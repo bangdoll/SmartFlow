@@ -91,10 +91,12 @@ export function NewsContent({ item, prev, next }: NewsContentProps) {
     const currentTitleEn = localTitleEn || item.title_en;
     const currentSummaryEn = localSummaryEn || item.summary_en;
 
-    // Strict Mode: Do not fallback to Chinese if EN is selected
+    // Language-based summary selection with fallback
+    // Chinese: prefer summary_zh, fallback to summary_en
+    // English: prefer summary_en, show placeholder if translating
     const displaySummary = language === 'en'
         ? (currentSummaryEn || 'Translating content... please wait...')
-        : (item.summary_zh || currentSummaryEn || '');
+        : (item.summary_zh && item.summary_zh.trim() !== '' ? item.summary_zh : (currentSummaryEn || ''));
 
     const displayTitle = language === 'en'
         ? (currentTitleEn || 'Translating title...')
