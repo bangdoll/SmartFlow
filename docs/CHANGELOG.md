@@ -29,6 +29,7 @@
 ### 修復 (Fixed)
 - **中文版摘要顯示**: 修正 `summary_zh` 缺失時無法正確 fallback 到英文摘要的問題
 - **摘要缺失修復**: 修復特定新聞因 LLM 偶發性錯誤導致的摘要缺失問題，並建立自動化批量修復機制。
+- **INP 效能優化**: 解決語言切換按鈕 (Language Toggle) 的 Interaction to Next Paint (INP) 高延遲問題，使用 React Transition API 確保 UI 響應流暢。
 - **歷史新聞翻譯**: 重新生成所有 300+ 則歷史新聞的繁體中文標題與摘要
 
 ---
