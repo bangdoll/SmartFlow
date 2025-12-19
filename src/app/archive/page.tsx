@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { NewsItem } from '@/types';
 import { PageHeader } from '@/components/page-header';
 
-export const revalidate = 3600;
+export const revalidate = 300; // 5 分鐘重新驗證
 
 async function getAllNews(): Promise<NewsItem[]> {
     // 只顯示 24 小時之前的新聞（歷史）
