@@ -58,34 +58,48 @@ export async function POST(req: NextRequest) {
     try {
         console.log('--- Regenerate Summaries for Existing News ---');
 
-        // 找出需要重新生成的新聞（有舊格式英文摘要的）
-        // 條件：summary_en 存在但不包含 "Plain English"（新格式會有這個）
-        const { data: items, error: fetchError } = await supabase
+        // 優先處理缺少 summary_zh 的新聞
+        const { data: missingSummaryZh, error: fetchError1 } = await supabase
             .from('news_items')
-            .select('id, title, original_url, summary_en')
-            .not('summary_en', 'is', null)
+            .select('id, title, original_url, summary_en, summary_zh')
+            .is('summary_zh', null)
             .order('created_at', { ascending: false })
-            .limit(20);
+            .limit(MAX_PROCESS_PER_RUN);
 
-        if (fetchError) {
-            throw new Error(`Failed to fetch items: ${fetchError.message}`);
+        if (fetchError1) {
+            throw new Error(`Failed to fetch items: ${fetchError1.message}`);
         }
 
-        // 過濾出舊格式的新聞
-        const oldFormatItems = items?.filter(item =>
-            item.summary_en && !item.summary_en.includes('Plain English')
-        ).slice(0, MAX_PROCESS_PER_RUN) || [];
+        let itemsToProcess = missingSummaryZh || [];
 
-        if (oldFormatItems.length === 0) {
-            console.log('No old-format items to regenerate.');
-            return NextResponse.json({ success: true, processed: 0, message: 'All items already have new format.' });
+        // 如果沒有缺少中文摘要的，再找舊格式英文摘要的
+        if (itemsToProcess.length === 0) {
+            const { data: items, error: fetchError2 } = await supabase
+                .from('news_items')
+                .select('id, title, original_url, summary_en, summary_zh')
+                .not('summary_en', 'is', null)
+                .order('created_at', { ascending: false })
+                .limit(20);
+
+            if (fetchError2) {
+                throw new Error(`Failed to fetch items: ${fetchError2.message}`);
+            }
+
+            itemsToProcess = items?.filter(item =>
+                item.summary_en && !item.summary_en.includes('Plain English')
+            ).slice(0, MAX_PROCESS_PER_RUN) || [];
         }
 
-        console.log(`Found ${oldFormatItems.length} old-format items to regenerate.`);
+        if (itemsToProcess.length === 0) {
+            console.log('No items to regenerate.');
+            return NextResponse.json({ success: true, processed: 0, message: 'All items already have proper format.' });
+        }
+
+        console.log(`Found ${itemsToProcess.length} items to regenerate.`);
 
         let processedCount = 0;
 
-        for (const item of oldFormatItems) {
+        for (const item of itemsToProcess) {
             try {
                 console.log(`Regenerating: ${item.title.substring(0, 50)}...`);
 
@@ -123,7 +137,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({
             success: true,
             processed: processedCount,
-            found: oldFormatItems.length
+            found: itemsToProcess.length
         });
 
     } catch (error: any) {
