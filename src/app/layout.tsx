@@ -10,9 +10,36 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { LanguageProvider } from "@/components/language-context";
 
 import { BookmarksProvider } from "@/hooks/use-bookmarks";
+import { UserProvider } from '@/components/user-provider';
 
 export const metadata: Metadata = {
-  // ... existing metadata ...
+  title: "智流 Smart Flow - 掌握每日科技趨勢",
+  description: "每日 AI 科技新聞摘要，幫助您快速掌握最新趨勢。我們利用 AI 技術為您篩選並整理最重要的科技新聞。",
+  keywords: ["AI", "人工智慧", "科技新聞", "趨勢", "Smart Flow", "智流"],
+  authors: [{ name: "Smart Flow Team" }],
+  openGraph: {
+    title: "智流 Smart Flow - 掌握每日科技趨勢",
+    description: "每日 AI 科技新聞摘要，利用 AI 技術為您篩選並整理最重要的科技新聞。",
+    url: "https://smart-flow.rd.coach",
+    siteName: "智流 Smart Flow",
+    images: [
+      {
+        url: "/og-image.png", // Assuming this exists or will fallback
+        width: 1200,
+        height: 630,
+      },
+    ],
+    locale: "zh_TW",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "智流 Smart Flow - 掌握每日科技趨勢",
+    description: "每日 AI 科技新聞摘要，幫助您快速掌握最新趨勢。",
+  },
+  icons: {
+    icon: "/favicon.ico",
+  }
 };
 
 import { GoogleAnalytics } from '@next/third-parties/google';
@@ -33,15 +60,17 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <LanguageProvider>
-            <BookmarksProvider>
-              <div className="min-h-screen flex flex-col bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors">
-                <Header />
-                <main className="flex-grow container mx-auto px-4 py-8">
-                  {children}
-                </main>
-                <Footer />
-              </div>
-            </BookmarksProvider>
+            <UserProvider>
+              <BookmarksProvider>
+                <div className="min-h-screen flex flex-col bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors">
+                  <Header />
+                  <main className="flex-grow container mx-auto px-4 py-8">
+                    {children}
+                  </main>
+                  <Footer />
+                </div>
+              </BookmarksProvider>
+            </UserProvider>
           </LanguageProvider>
         </ThemeProvider>
 
