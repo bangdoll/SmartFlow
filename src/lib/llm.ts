@@ -22,8 +22,37 @@ export async function generateSummary(title: string, content: string) {
       
       Requirements:
       1. Translate the title into Traditional Chinese (繁體中文).
-      2. Provide a concise summary in English (max 500 words).
-      3. **Content Style Strategy**: Write for a general audience who doesn not understand AI jargon. Use simple analogies.
+      2. **Content Style Strategy**: Write for a general audience who doesn't understand AI jargon. Use simple analogies.
+      
+      3. **English Summary Structure (summary_en)**:
+         Must use the following specific Markdown format:
+
+          (Start directly with 1-2 paragraphs explaining what happened and why it matters.)
+
+          🧠 **Plain English**
+          [One sentence simple explanation using an analogy if possible. Max 80 characters.]
+
+          ⚠️ **Why You Should Care**
+          [One sentence on why a normal person should care about this]
+
+          ✅ **No Action Needed**
+          [One sentence to reassure them, e.g., "Just stay informed, no action required yet."]
+
+          💡 **Key Takeaway**
+          [One insightful sentence about the industry implication]
+
+          | Opportunities | Challenges |
+          |---------------|------------|
+          | [Point 1] | [Risk 1] |
+          | [Point 2] | [Risk 2] |
+
+          ---
+         
+          🗣️ **Water Cooler Talk**
+          [One catchy sentence that makes the reader look smart when sharing]
+
+          👔 **For Decision Makers**
+          [One sentence on whether to invest, ignore, or monitor]
       
       4. **Chinese Summary Structure (summary_zh)**:
          Must use the following specific Markdown format:
@@ -52,7 +81,7 @@ export async function generateSummary(title: string, content: string) {
           🗣️ **你可以這樣跟同事說**
           [One catchy sentence that makes the reader look smart when sharing, e.g., "Did you know X is replacing Y?"]
 
-          👔 **給老闆的建議**
+          👔 **給老闘的建議**
           [One sentence on whether to invest, ignore, or monitor, specifically for decision makers]
           
        5. Extract 3-5 relevant tags.
