@@ -1,11 +1,62 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateSummary } from '@/lib/llm';
 import { supabase } from '@/lib/supabase';
+import * as cheerio from 'cheerio';
 
 // Phase 2: 為待處理項目生成摘要
 export const maxDuration = 60;
 
 const MAX_PROCESS_PER_RUN = 3; // 每次處理 3 則，確保在 60 秒內完成
+
+// 抓取網頁文章內容（簡化版）
+async function fetchArticleContent(url: string): Promise<string> {
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (compatible; SmartFlowBot/1.0)',
+            },
+            signal: AbortSignal.timeout(10000), // 10 秒超時
+        });
+
+        if (!response.ok) return '';
+
+        const html = await response.text();
+        const $ = cheerio.load(html);
+
+        // 移除不需要的元素
+        $('script, style, nav, header, footer, aside, iframe, noscript').remove();
+        $('[class*="comment"], [class*="sidebar"], [class*="ad-"], [id*="comment"], [id*="sidebar"]').remove();
+
+        // 嘗試找文章主體
+        let content = '';
+        const selectors = ['article', '[role="main"]', '.post-content', '.article-body', '.entry-content', 'main', '.content'];
+
+        for (const selector of selectors) {
+            const el = $(selector);
+            if (el.length > 0) {
+                content = el.text();
+                break;
+            }
+        }
+
+        // Fallback: 取 body 文字
+        if (!content) {
+            content = $('body').text();
+        }
+
+        // 清理和截斷
+        content = content
+            .replace(/\s+/g, ' ')
+            .replace(/\n+/g, '\n')
+            .trim()
+            .substring(0, 4000); // 限制長度避免 token 過多
+
+        return content || '';
+    } catch (error) {
+        console.log(`Failed to fetch content from ${url}:`, error);
+        return '';
+    }
+}
 
 export async function GET(req: NextRequest) {
     // 驗證 Cron Secret
@@ -45,7 +96,12 @@ export async function GET(req: NextRequest) {
             try {
                 console.log(`Processing: ${item.title.substring(0, 50)}...`);
 
-                const summary = await generateSummary(item.title, item.title);
+                // 抓取網頁內容
+                const articleContent = await fetchArticleContent(item.original_url);
+                const contentForLLM = articleContent || item.title; // Fallback to title if content fetch fails
+                console.log(`Fetched content length: ${contentForLLM.length} chars`);
+
+                const summary = await generateSummary(item.title, contentForLLM);
 
                 if (summary) {
                     const { error: updateError } = await supabase
