@@ -1,7 +1,7 @@
 'use client';
 
 import { useBookmarks } from '@/hooks/use-bookmarks';
-import { NewsCard } from '@/components/news-card';
+import { BookmarkCard } from '@/components/bookmark-card';
 import { Bookmark, LayoutGrid } from 'lucide-react';
 import Link from 'next/link';
 
@@ -45,18 +45,7 @@ export default function BookmarksPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {bookmarks.map((item) => (
-                    <NewsCard
-                        key={item.id}
-                        news={{
-                            ...item,
-                            summary_zh: item.summary, // Map back to NewsItem expected structure
-                            // Should ideally fix type mismatch properly, but for now this works as View Model
-                            // NewsItem expects summary_zh, summary_en
-                            // BookmarkItem has summary (which is primarily ZH but we added summary_en)
-                            // We mapped it back.
-                            // If item.summary is ZH, assigning it to summary_zh is correct.
-                        }}
-                    />
+                    <BookmarkCard key={item.id} item={item} />
                 ))}
             </div>
         </div>
