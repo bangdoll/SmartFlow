@@ -5,6 +5,7 @@ import { ExternalLink, Calendar, Tag } from 'lucide-react';
 import Link from 'next/link';
 import { useLanguage } from './language-context';
 import { preprocessMarkdown } from '@/lib/markdown';
+import { BookmarkButton } from './bookmark-button';
 import { Skeleton } from './ui/skeleton';
 
 interface NewsCardProps {
@@ -28,7 +29,24 @@ export function NewsCard({ news }: NewsCardProps) {
     const displaySummary = (language === 'en' && news.summary_en) ? news.summary_en : news.summary_zh;
 
     return (
-        <article className={`bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm border border-white/50 dark:border-gray-800/50 rounded-xl p-6 hover:shadow-lg hover:scale-[1.01] transition-all duration-300 group shadow-sm ${isTranslating ? 'animate-pulse' : ''}`}>
+        <article className={`relative bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm border border-white/50 dark:border-gray-800/50 rounded-xl p-6 hover:shadow-lg hover:scale-[1.01] transition-all duration-300 group shadow-sm ${isTranslating ? 'animate-pulse' : ''}`}>
+            <div className="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                <BookmarkButton
+                    item={{
+                        id: news.id,
+                        title: news.title,
+                        title_en: news.title_en,
+                        summary: news.summary_zh || '',
+                        summary_en: news.summary_en,
+                        slug: news.slug || news.id,
+                        published_at: news.published_at,
+                        source: news.source,
+                        original_url: news.original_url,
+                        tags: news.tags || []
+                    }}
+                    size="sm"
+                />
+            </div>
             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-2">
                 <span className="font-semibold text-blue-600 dark:text-blue-400">{news.source}</span>
                 <span>•</span>

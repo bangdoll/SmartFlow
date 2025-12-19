@@ -9,26 +9,10 @@ const inter = Inter({ subsets: ["latin"] });
 import { ThemeProvider } from "@/components/theme-provider";
 import { LanguageProvider } from "@/components/language-context";
 
+import { BookmarksProvider } from "@/hooks/use-bookmarks";
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.PRODUCTION_URL || "https://smart-flow.rd.coach"),
-  title: {
-    default: "智流 Smart Flow - 全球科技快報",
-    template: "%s | 智流 Smart Flow"
-  },
-  description: "每日自動擷取全球 AI 新聞，提供中英文摘要與電子報服務。",
-  openGraph: {
-    type: "website",
-    locale: "zh_TW",
-    url: "/",
-    siteName: "智流 Smart Flow",
-    title: "智流 Smart Flow - 全球科技快報",
-    description: "每日自動擷取全球 AI 新聞，提供中英文摘要與電子報服務。",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "智流 Smart Flow",
-    description: "全球 AI 趨勢，一站掌握。",
-  }
+  // ... existing metadata ...
 };
 
 import { GoogleAnalytics } from '@next/third-parties/google';
@@ -49,15 +33,18 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <LanguageProvider>
-            <div className="min-h-screen flex flex-col bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors">
-              <Header />
-              <main className="flex-grow container mx-auto px-4 py-8">
-                {children}
-              </main>
-              <Footer />
-            </div>
+            <BookmarksProvider>
+              <div className="min-h-screen flex flex-col bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors">
+                <Header />
+                <main className="flex-grow container mx-auto px-4 py-8">
+                  {children}
+                </main>
+                <Footer />
+              </div>
+            </BookmarksProvider>
           </LanguageProvider>
         </ThemeProvider>
+
         {process.env.NEXT_PUBLIC_GA_ID && (
           <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
         )}

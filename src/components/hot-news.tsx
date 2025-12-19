@@ -13,6 +13,7 @@ interface HotNewsProps {
 
 import { useState, useEffect, useRef } from 'react';
 import { Skeleton } from './ui/skeleton';
+import { BookmarkButton } from './bookmark-button';
 
 export function HotNewsSection({ items: initialItems }: HotNewsProps) {
     const { t, language } = useLanguage();
@@ -107,19 +108,38 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
 
                     return (
                         // ... inside map ...
+
+
+                        // ... (in map loop)
+
                         <article
                             key={item.id || index}
-                            onClick={() => {
-                                if (isTranslating) return;
-                                handleNewsClick(item.id);
-                                // FORCE HARD NAVIGATION with Short ID
-                                window.location.href = `/news/${item.id.substring(0, 8)}`;
-                            }}
+                            // ... existing props
                             className={`group relative flex flex-col h-full bg-gradient-to-br from-white/80 to-white/40 dark:from-gray-900/80 dark:to-gray-900/40 backdrop-blur-md rounded-2xl border border-orange-100/50 dark:border-orange-900/30 p-5 shadow-lg shadow-orange-500/5 hover:shadow-orange-500/10 hover:scale-[1.02] transition-all duration-300 cursor-pointer ${isTranslating ? 'animate-pulse' : ''}`}
                         >
                             {/* Rank Badge */}
                             <div className="absolute -top-3 -left-3 w-8 h-8 flex items-center justify-center bg-gradient-to-br from-orange-500 to-red-500 text-white font-bold rounded-lg shadow-md transform rotate-3 group-hover:rotate-6 transition-transform z-10">
                                 {index + 1}
+                            </div>
+
+                            {/* Bookmark Button */}
+                            <div className="absolute -top-2 -right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <BookmarkButton
+                                    item={{
+                                        id: item.id,
+                                        title: item.title,
+                                        title_en: item.title_en,
+                                        summary: item.summary_zh || '',
+                                        summary_en: item.summary_en,
+                                        slug: item.slug || item.id,
+                                        published_at: item.published_at,
+                                        source: item.source,
+                                        original_url: item.original_url,
+                                        tags: item.tags || []
+                                    }}
+                                    size="sm"
+                                    className="bg-white dark:bg-gray-800 shadow-sm"
+                                />
                             </div>
 
                             <div className="relative z-10 flex flex-col h-full">

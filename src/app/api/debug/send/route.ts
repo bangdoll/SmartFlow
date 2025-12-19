@@ -2,9 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function GET(req: NextRequest) {
+  const resendApiKey = process.env.RESEND_API_KEY;
+  if (!resendApiKey) {
+    console.warn('RESEND_API_KEY is missing');
+    // During build or if missing, we can't send email.
+    // But for build safety, we just don't instantiate globally.
+  }
+  const resend = new Resend(resendApiKey || 're_123456789'); // Dummy key to prevent crash if missing during safe check, or handle properly below.
+
   const searchParams = req.nextUrl.searchParams;
   const email = searchParams.get('email');
 

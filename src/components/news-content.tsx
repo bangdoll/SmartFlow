@@ -10,6 +10,7 @@ import { ChatBox } from '@/components/chat-box';
 import { useLanguage } from '@/components/language-context';
 import { preprocessMarkdown } from '@/lib/markdown';
 import { Skeleton } from './ui/skeleton';
+import { BookmarkButton } from './bookmark-button';
 
 interface NewsItem {
     id: string;
@@ -119,8 +120,31 @@ export function NewsContent({ item, prev, next }: NewsContentProps) {
                     </span>
                 </div>
 
-                <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight">
-                    {displayTitle || <Skeleton className="h-10 w-full" />}
+
+
+                // ... (previous imports)
+
+                // ...
+
+                <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight flex items-start justify-between gap-4">
+                    <span className="flex-1">
+                        {displayTitle || <Skeleton className="h-10 w-full" />}
+                    </span>
+                    <BookmarkButton
+                        item={{
+                            id: item.id,
+                            title: item.title,
+                            title_en: item.title_en,
+                            summary: item.summary_zh || '',
+                            summary_en: item.summary_en,
+                            slug: item.slug || item.id,
+                            published_at: item.published_at,
+                            source: item.source,
+                            original_url: item.original_url,
+                            tags: item.tags || []
+                        }}
+                        size="lg"
+                    />
                 </h1>
 
                 <AudioPlayer

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Suspense } from 'react';
-import { Waves, TrendingUp, Clock } from 'lucide-react';
+import { Waves, TrendingUp, Clock, Bookmark } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { SearchInput } from '@/components/search-input';
 import { LanguageToggle } from '@/components/language-toggle';
@@ -49,6 +49,15 @@ export function Header() {
                         <Clock className="w-5 h-5 sm:w-6 sm:h-6" />
                     </a>
 
+                    {/* Mobile: Bookmarks Icon */}
+                    <Link
+                        href="/bookmarks"
+                        className="w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all md:hidden active:scale-95 relative z-[102]"
+                        title={t('nav.bookmarks')}
+                    >
+                        <Bookmark className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </Link>
+
                     {/* Desktop: Trends Text */}
                     <a
                         href="/trends"
@@ -66,6 +75,15 @@ export function Header() {
                     >
                         <span suppressHydrationWarning>{t('nav.archive')}</span>
                     </a>
+
+                    {/* Desktop: Bookmarks Text */}
+                    <Link
+                        href="/bookmarks"
+                        className="hidden md:flex h-9 px-4 items-center justify-center rounded-lg text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all min-w-[4rem] relative z-[102]"
+                        title={t('nav.bookmarks')}
+                    >
+                        <span suppressHydrationWarning>{t('nav.bookmarks')}</span>
+                    </Link>
 
                     {/* Icon buttons */}
                     <div className="flex items-center gap-0.5 sm:gap-1 ml-1 relative z-[102]">

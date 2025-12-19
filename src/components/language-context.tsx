@@ -16,6 +16,7 @@ const translations: Record<Language, Record<string, string>> = {
         'nav.trends': 'Trends',
         'nav.archive': 'Archive',
         'nav.subscribe': 'Subscribe',
+        'nav.bookmarks': 'Bookmarks',
 
         // Homepage
         'home.title': 'Global AI Tech News',
@@ -178,6 +179,7 @@ const translations: Record<Language, Record<string, string>> = {
         'nav.trends': '趨勢',
         'nav.archive': '歷史',
         'nav.subscribe': '訂閱',
+        'nav.bookmarks': '我的收藏',
         'search.label': '開啟搜尋',
         'theme.light': '淺色模式',
         'theme.dark': '深色模式',

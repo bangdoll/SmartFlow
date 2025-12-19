@@ -2,9 +2,15 @@ import { supabase } from '@/lib/supabase';
 import { Resend } from 'resend';
 import { marked } from 'marked';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendDailyNewsletter() {
+  const resendApiKey = process.env.RESEND_API_KEY;
+  if (!resendApiKey) {
+    console.warn('RESEND_API_KEY is missing');
+    return { success: false, message: 'RESEND_API_KEY is missing' };
+  }
+  const resend = new Resend(resendApiKey);
+
   console.log('Starting daily newsletter job...');
 
   // 1. 取得過去 24 小時的新聞 (或當天新聞)
