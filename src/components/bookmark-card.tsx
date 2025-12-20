@@ -26,16 +26,6 @@ export function BookmarkCard({ item }: BookmarkCardProps) {
 
     return (
         <article className="relative bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col h-full">
-            {/* 
-              PRIMARY INTERACTION: Stretched Link 
-              This makes the entire card clickable by covering it with an absolute link.
-            */}
-            <Link
-                href={`/news/${item.slug || item.id}`}
-                className="absolute inset-0 z-10 rounded-2xl"
-                aria-label={`Read ${displayTitle}`}
-            />
-
             {/* Remove Button - Top Right (Must be z-20 to sit ABOVE the stretched link) */}
             <button
                 onClick={(e) => {
@@ -63,9 +53,11 @@ export function BookmarkCard({ item }: BookmarkCardProps) {
                 </span>
             </div>
 
-            {/* Title (Visual only) */}
+            {/* Title */}
             <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3 leading-snug group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
-                {displayTitle}
+                <Link href={`/news/${item.slug || item.id}`} className="hover:underline">
+                    {displayTitle}
+                </Link>
             </h2>
 
             {/* Summary - Clamped */}
@@ -85,10 +77,13 @@ export function BookmarkCard({ item }: BookmarkCardProps) {
                     ))}
                 </div>
 
-                <div className="flex-shrink-0 text-xs font-bold text-blue-600 dark:text-blue-400 group-hover:underline flex items-center gap-1">
+                <Link
+                    href={`/news/${item.slug || item.id}`}
+                    className="flex-shrink-0 text-xs font-bold text-blue-600 dark:text-blue-400 group-hover:underline flex items-center gap-1"
+                >
                     {language === 'en' ? 'Read More' : '閱讀全文'}
                     <ExternalLink className="w-3 h-3" />
-                </div>
+                </Link>
             </div>
         </article>
     );
