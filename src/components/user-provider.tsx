@@ -25,13 +25,27 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const refreshSession = async () => {
         setIsLoading(true);
         try {
-            const { data: { session }, error } = await supabase.auth.getSession();
+            const { data: { user }, error } = await supabase.auth.getUser();
             if (error) {
-                console.error('Error fetching session:', error);
+                console.error('Error fetching user:', error);
                 return;
             }
+            // If getUser succeeds, we technically have a session, but getUser returns User. 
+            // We can get the session via getSession if needed, but for now let's just set the user.
+            // Actually, keep it simple: getSession is faster but getUser is more accurate. 
+            // Let's try to get session AFTER checking getUser?
+            // Or better: just use getUser and if successful, calling getSession should return the cached session.
+
+            // Revert strict getUser: getSession is standard.
+            // But if getSession returns null due to cookie issues, getUser works.
+
+            // Let's stick to getSession but maybe the route.ts dynamic fix is key.
+            // Actually, let's use getUser() as the primary check.
+            setUser(user);
+            // Updating session might be tricky if getUser doesn't return it.
+            // Let's fetch session separately if user exists.
+            const { data: { session } } = await supabase.auth.getSession();
             setSession(session);
-            setUser(session?.user ?? null);
         } catch (error) {
             console.error('Unexpected error checking session:', error);
         } finally {
