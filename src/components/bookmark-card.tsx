@@ -52,7 +52,7 @@ export function BookmarkCard({ item }: BookmarkCardProps) {
             </button>
 
             {/* Meta Row */}
-            <div className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-400 mb-3 pr-8 relative z-0">
+            <div className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-400 mb-3 pr-8">
                 <span className="text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-full">
                     {item.source}
                 </span>
@@ -63,20 +63,20 @@ export function BookmarkCard({ item }: BookmarkCardProps) {
                 </span>
             </div>
 
-            {/* Title (Visual only, click handled by stretched link) */}
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3 leading-snug group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 relative z-0">
+            {/* Title (Visual only) */}
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3 leading-snug group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
                 {displayTitle}
             </h2>
 
             {/* Summary - Clamped */}
-            <div className="flex-grow mb-4 relative z-0">
+            <div className="flex-grow mb-4">
                 <div className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-4">
                     {preprocessMarkdown(displaySummary || '')}
                 </div>
             </div>
 
             {/* Footer: Tags & Read More */}
-            <div className="flex items-end justify-between mt-auto pt-4 border-t border-gray-100 dark:border-gray-800 relative z-0">
+            <div className="flex items-end justify-between mt-auto pt-4 border-t border-gray-100 dark:border-gray-800">
                 <div className="flex flex-wrap gap-1.5 flex-1 mr-4 h-6 overflow-hidden">
                     {item.tags && item.tags.slice(0, 3).map((tag) => (
                         <span key={tag} className="inline-flex items-center text-[10px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
