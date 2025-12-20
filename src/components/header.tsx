@@ -91,10 +91,15 @@ export function Header() {
                             <span suppressHydrationWarning>{t('nav.bookmarks')}</span>
                         </Link>
 
-                        {/* Icon buttons */}
-                        <div className="flex items-center gap-0.5 sm:gap-1 ml-1 relative z-[102]">
+                        {/* Icon buttons - Prioritize visibility */}
+                        <div className="flex items-center gap-1 ml-1 sm:ml-2 flex-shrink-0 relative z-[102]">
                             <Suspense fallback={<div className="w-8 h-8" />}>
-                                <SearchInput />
+                                <div className="hidden sm:block">
+                                    <SearchInput />
+                                </div>
+                                <div className="sm:hidden">
+                                    {/* Mobile search could go here, or just hide for space now */}
+                                </div>
                             </Suspense>
                             <ThemeToggle />
                             <LanguageToggle />

@@ -25,7 +25,7 @@ export function BookmarkCard({ item }: BookmarkCardProps) {
     const displaySummary = (language === 'en' && item.summary_en) ? item.summary_en : item.summary;
 
     return (
-        <article className="relative bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col h-full">
+        <article className="relative bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col h-full overflow-hidden">
             {/* Remove Button - Top Right (Must be z-20 to sit ABOVE the stretched link) */}
             <button
                 onClick={(e) => {
