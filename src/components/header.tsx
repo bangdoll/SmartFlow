@@ -136,13 +136,24 @@ export function Header() {
                             </div>
                         ) : (
                             <div className="flex items-center gap-2 relative z-[102]">
+                                {/* Desktop Button */}
                                 <button
                                     onClick={() => setIsAuthModalOpen(true)}
                                     className="hidden lg:inline-flex bg-gray-900 dark:bg-white text-white dark:text-black px-4 py-1.5 rounded-full text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors whitespace-nowrap"
                                 >
                                     {language === 'zh-TW' ? '免費註冊' : 'Sign Up'}
                                 </button>
-                                {/* Mobile Login text/icon can go here if distinct from menu, but keeping clean for now */}
+
+                                {/* Mobile User Icon */}
+                                <button
+                                    onClick={() => setIsAuthModalOpen(true)}
+                                    className="lg:hidden w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all active:scale-95"
+                                    title={language === 'zh-TW' ? '登入/註冊' : 'Sign Up / Log In'}
+                                >
+                                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-current flex items-center justify-center">
+                                        <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-current opacity-50" />
+                                    </div>
+                                </button>
                             </div>
                         )}
                     </nav>
