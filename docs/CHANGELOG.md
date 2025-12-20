@@ -4,6 +4,17 @@
 
 ---
 
+## [2025-12-21]
+
+### 優化/變更 (Changed)
+- **書籤卡片體驗**: 重構 `BookmarkCard` 點擊機制，改用程式化導航取代 Stretched Link，解決部分區域無法點擊的死角，並防止誤觸標籤或移除按鈕。
+- **行動端 Header**: 優化 Header 響應式佈局，解決 iPhone SE 等小尺寸裝置上語言切換與搜尋按鈕溢出畫面的問題。
+- **會話保持 (Session Persistence)**: 強化 Supabase Auth 設定，啟用 `persistSession` 並優化 Middleware 排除規則，確保 iOS PWA 模式下登入狀態不遺失。
+
+### 修復 (Fixed)
+- **收藏頁面在地化**: 修復 `/bookmarks` 頁面標題 (My Bookmarks / 我的收藏) 與空狀態提示未隨語言切換更新的問題。
+- **翻譯遺失**: 補齊部分歷史新聞 (如 "Former Splunk Exec") 缺失的繁體中文標題與摘要。
+
 ## [2025-12-20]
 
 ### 新增 (Added)
