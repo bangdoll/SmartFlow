@@ -140,7 +140,7 @@ export function Header() {
                                     onClick={() => setIsAuthModalOpen(true)}
                                     className="hidden lg:inline-flex bg-gray-900 dark:bg-white text-white dark:text-black px-4 py-1.5 rounded-full text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors whitespace-nowrap"
                                 >
-                                    Log In
+                                    {language === 'zh-TW' ? '免費註冊' : 'Sign Up'}
                                 </button>
                                 {/* Mobile Login text/icon can go here if distinct from menu, but keeping clean for now */}
                             </div>
