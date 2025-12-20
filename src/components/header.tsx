@@ -1,15 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { Suspense } from 'react';
-import { Waves, TrendingUp, Clock, Bookmark } from 'lucide-react';
+import { Suspense, useState } from 'react';
+import { Waves, TrendingUp, Clock, Bookmark, User } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { SearchInput } from '@/components/search-input';
 import { LanguageToggle } from '@/components/language-toggle';
 import { useLanguage } from '@/components/language-context';
 import { useUser } from '@/components/user-provider';
 import { AuthModal } from '@/components/auth-modal';
-import { useState } from 'react';
 
 export function Header() {
     const { t, language } = useLanguage();
@@ -150,9 +149,7 @@ export function Header() {
                                     className="lg:hidden w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all active:scale-95"
                                     title={language === 'zh-TW' ? '登入/註冊' : 'Sign Up / Log In'}
                                 >
-                                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-current flex items-center justify-center">
-                                        <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-current opacity-50" />
-                                    </div>
+                                    <User className="w-5 h-5 sm:w-6 sm:h-6" />
                                 </button>
                             </div>
                         )}
