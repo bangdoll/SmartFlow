@@ -4,6 +4,23 @@
 
 ---
 
+## [2025-12-20]
+
+### 新增 (Added)
+- **會員系統 (User Authentication)**: 整合 Supabase Auth，支援 Google 與 Facebook 一鍵登入/註冊。
+- **跨裝置收藏同步 (Cloud Bookmarks)**: 用戶登入後，收藏的新聞會自動同步至雲端資料庫，實現跨裝置無縫閱讀。
+- **行動版註冊入口**: 針對手機介面優化，新增專屬的圓形人像圖示按鈕，方便行動用戶快速登入。
+
+### 優化/變更 (Changed)
+- **註冊引導優化**: 將 Header 按鈕文字由「Log In」改為更具邀請性的「Sign Up (免費註冊)」。
+- **資料庫關聯**: 完善 `user_bookmarks` 資料表結構，建立與 `news_items` 的完整關聯 (Foreign Key) 與 RLS 安全策略。
+
+### 修復 (Fixed)
+- **SEO 標題修復**: 解決網站標題顯示為 "Untitled" 的問題，補齊 OpenGraph 與 Metadata 設定。
+- **資料庫型別錯誤**: 修正收藏功能因 UUID 型別不匹配導致的寫入錯誤。
+
+---
+
 ## [2025-12-19]
 
 ### 新增 (Added)
