@@ -3,7 +3,7 @@
 import { BookmarkItem, useBookmarks } from '@/hooks/use-bookmarks';
 import { ExternalLink, Calendar, Tag, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-import Link from 'next/link';
+
 import { useLanguage } from './language-context';
 import { preprocessMarkdown } from '@/lib/markdown';
 
