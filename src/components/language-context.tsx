@@ -18,6 +18,12 @@ const translations: Record<Language, Record<string, string>> = {
         'nav.subscribe': 'Subscribe',
         'nav.bookmarks': 'Bookmarks',
 
+        // Bookmarks Page
+        'bookmarks.title': 'My Bookmarks',
+        'bookmarks.noBookmarks': 'No bookmarks yet',
+        'bookmarks.emptyDesc': 'Bookmark news to read later by clicking the bookmark icon.',
+        'bookmarks.browse': 'Browse News',
+
         // Homepage
         'home.title': 'Global AI Tech News',
         'home.subtitle': 'Insights into the Future of AI',
@@ -180,6 +186,12 @@ const translations: Record<Language, Record<string, string>> = {
         'nav.archive': '歷史',
         'nav.subscribe': '訂閱',
         'nav.bookmarks': '我的收藏',
+
+        // Bookmarks Page
+        'bookmarks.title': '我的收藏',
+        'bookmarks.noBookmarks': '還沒有收藏任何文章',
+        'bookmarks.emptyDesc': '看到感興趣的新聞時，點擊右上角的書籤圖示，就可以在這裡隨時回顧。',
+        'bookmarks.browse': '瀏覽最新新聞',
         'search.label': '開啟搜尋',
         'theme.light': '淺色模式',
         'theme.dark': '深色模式',

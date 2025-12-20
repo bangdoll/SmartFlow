@@ -3,6 +3,7 @@
 import { BookmarkItem, useBookmarks } from '@/hooks/use-bookmarks';
 import { ExternalLink, Calendar, Tag, Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 import { useLanguage } from './language-context';
 import { preprocessMarkdown } from '@/lib/markdown';
@@ -14,6 +15,24 @@ interface BookmarkCardProps {
 export function BookmarkCard({ item }: BookmarkCardProps) {
     const { language } = useLanguage();
     const { removeBookmark } = useBookmarks();
+    const router = useRouter();
+
+    const handleCardClick = (e: React.MouseEvent) => {
+        // Prevent navigation if clicking on a button or link
+        if (
+            (e.target as HTMLElement).closest('button') ||
+            (e.target as HTMLElement).closest('a')
+        ) {
+            return;
+        }
+
+        // Prevent if user is selecting text
+        if (window.getSelection()?.toString()) {
+            return;
+        }
+
+        router.push(`/news/${item.slug || item.id}`);
+    };
 
     const date = new Date(item.published_at).toLocaleDateString(language === 'en' ? 'en-US' : 'zh-TW', {
         year: 'numeric',
@@ -25,7 +44,10 @@ export function BookmarkCard({ item }: BookmarkCardProps) {
     const displaySummary = (language === 'en' && item.summary_en) ? item.summary_en : item.summary;
 
     return (
-        <article className="relative bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col h-full overflow-hidden">
+        <article
+            onClick={handleCardClick}
+            className="relative bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col h-full overflow-hidden cursor-pointer"
+        >
             {/* Remove Button - Top Right (Must be z-20 to sit ABOVE the stretched link) */}
             <button
                 onClick={(e) => {
