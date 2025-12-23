@@ -38,7 +38,11 @@ export const metadata: Metadata = {
     description: "每日 AI 科技新聞摘要，幫助您快速掌握最新趨勢。",
   },
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: '/apple-icon.png',
   }
 };
 
