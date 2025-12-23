@@ -121,11 +121,6 @@ export function NewsContent({ item, prev, next }: NewsContentProps) {
                 </div>
 
 
-
-                // ... (previous imports)
-
-                // ...
-
                 <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-6 leading-tight flex items-start justify-between gap-4">
                     <span className="flex-1">
                         {displayTitle || <Skeleton className="h-10 w-full" />}
