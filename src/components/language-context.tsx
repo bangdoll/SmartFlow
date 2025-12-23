@@ -63,6 +63,14 @@ const translations: Record<Language, Record<string, string>> = {
         'archive.title': 'News Archive',
         'archive.subtitle': 'Browse all past news',
 
+        // Weekly
+        'weekly.title': 'Weekly AI Risk Report',
+        'weekly.subtitle': 'Key AI developments from the past 7 days',
+        'weekly.topNews': 'Top News This Week',
+        'weekly.riskSummary': 'Decision Risk Summary',
+        'weekly.noData': 'No weekly data available yet.',
+        'weekly.dateRange': 'Week of',
+
         // News Detail
         'news.backHome': 'Back to Home',
         'news.share': 'Share',
@@ -229,6 +237,14 @@ const translations: Record<Language, Record<string, string>> = {
         // Archive
         'archive.title': '新聞存檔',
         'archive.subtitle': '瀏覽所有歷史新聞',
+
+        // Weekly
+        'weekly.title': '本週 AI 決策風險報告',
+        'weekly.subtitle': '過去 7 天最重要的 AI 動態彙總',
+        'weekly.topNews': '本週重點新聞',
+        'weekly.riskSummary': '決策風險摘要',
+        'weekly.noData': '目前尚無週報資料。',
+        'weekly.dateRange': '週報區間',
 
         // News Detail
         'news.backHome': '返回首頁',
