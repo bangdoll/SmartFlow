@@ -34,12 +34,16 @@ export async function GET(req: NextRequest) {
         console.log('Translated Pending Items:', translatedCount);
 
         // 4. (每周一) 執行週報趨勢分析
-        // Monday = 1
-        const today = new Date();
+        // 使用台灣時區判斷星期幾（UTC+8）
+        // 因為 Cron 在 UTC 00:00 執行，此時台灣是 08:00
+        const taiwanTime = new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' });
+        const taiwanDate = new Date(taiwanTime);
+        const dayOfWeek = taiwanDate.getDay(); // 0=Sunday, 1=Monday, ...
+
         let weeklyTrendsResult = null;
 
-        if (today.getDay() === 1) {
-            console.log('Monday detected! Running Weekly Trends Analysis...');
+        if (dayOfWeek === 1) {
+            console.log('Monday detected (Taiwan time)! Running Weekly Trends Analysis...');
             const trendsData = await generateWeeklyTrends();
             if (trendsData) {
                 await saveWeeklyTrendsToDb(trendsData);
@@ -49,6 +53,8 @@ export async function GET(req: NextRequest) {
                 weeklyTrendsResult = { status: 'failed', reason: 'No data from generateWeeklyTrends' };
                 console.warn('Weekly trends generation returned null');
             }
+        } else {
+            console.log(`Today is not Monday (Taiwan time). Day of week: ${dayOfWeek}`);
         }
 
         return NextResponse.json({
