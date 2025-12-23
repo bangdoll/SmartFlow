@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, useState } from 'react';
-import { Waves, TrendingUp, Clock, Bookmark, User } from 'lucide-react';
+import { Waves, TrendingUp, Clock, Bookmark, User, Menu, X, CalendarDays, FileText } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { SearchInput } from '@/components/search-input';
 import { LanguageToggle } from '@/components/language-toggle';
@@ -13,13 +13,21 @@ export function Header() {
     const { t, language } = useLanguage();
     const { user, signOut } = useUser();
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-    const [isMenuOpen, setIsMenuOpen] = useState(false); // Quick fix for mobile menu state if needed later, but focusing on auth now
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+    const navLinks = [
+        { href: '/trends', icon: TrendingUp, labelKey: 'nav.trends' },
+        { href: '/weekly', icon: CalendarDays, labelKey: 'nav.weekly' },
+        { href: '/archive', icon: Clock, labelKey: 'nav.archive' },
+        { href: '/bookmarks', icon: Bookmark, labelKey: 'nav.bookmarks' },
+        { href: '/guide', icon: FileText, labelKey: 'nav.guide' },
+    ];
 
     return (
         <>
             <header className="fixed top-0 left-0 right-0 z-[100] bg-white/70 dark:bg-black/70 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 transition-colors">
                 <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
-                    {/* Logo - simplified on mobile */}
+                    {/* Logo */}
                     <a href="/" className="flex items-center gap-1.5 sm:gap-2 group flex-shrink-0 py-2 relative z-50">
                         <div className="bg-black dark:bg-white text-white dark:text-black p-1 sm:p-1.5 rounded-lg group-hover:scale-105 transition-transform duration-300">
                             <Waves className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -36,68 +44,23 @@ export function Header() {
 
                     {/* Navigation */}
                     <nav className="flex items-center gap-1 sm:gap-2 relative z-[101]">
-                        {/* Mobile: Trends Icon */}
-                        <a
-                            href="/trends"
-                            className="w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all md:hidden active:scale-95 relative z-[102]"
-                            title={t('nav.trends')}
-                        >
-                            <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
-                        </a>
+                        {/* Desktop: Text Links */}
+                        {navLinks.slice(0, 4).map((link) => (
+                            <a
+                                key={link.href}
+                                href={link.href}
+                                className="hidden md:flex h-9 px-4 items-center justify-center rounded-lg text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all min-w-[4rem] relative z-[102]"
+                                title={t(link.labelKey)}
+                            >
+                                <span suppressHydrationWarning>{t(link.labelKey)}</span>
+                            </a>
+                        ))}
 
-                        {/* Mobile: Archive Icon */}
-                        <a
-                            href="/archive"
-                            className="w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all md:hidden active:scale-95 relative z-[102]"
-                            title={t('nav.archive')}
-                        >
-                            <Clock className="w-5 h-5 sm:w-6 sm:h-6" />
-                        </a>
-
-                        {/* Mobile: Bookmarks Icon */}
-                        <a
-                            href="/bookmarks"
-                            className="w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all md:hidden active:scale-95 relative z-[102]"
-                            title={t('nav.bookmarks')}
-                        >
-                            <Bookmark className="w-5 h-5 sm:w-6 sm:h-6" />
-                        </a>
-
-                        {/* Desktop: Trends Text */}
-                        <a
-                            href="/trends"
-                            className="hidden md:flex h-9 px-4 items-center justify-center rounded-lg text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all min-w-[4rem] relative z-[102]"
-                            title={t('nav.trends')}
-                        >
-                            <span suppressHydrationWarning>{t('nav.trends')}</span>
-                        </a>
-
-                        {/* Desktop: Archive Text */}
-                        <a
-                            href="/archive"
-                            className="hidden md:flex h-9 px-4 items-center justify-center rounded-lg text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all min-w-[4rem] relative z-[102]"
-                            title={t('nav.archive')}
-                        >
-                            <span suppressHydrationWarning>{t('nav.archive')}</span>
-                        </a>
-
-                        {/* Desktop: Bookmarks Text */}
-                        <a
-                            href="/bookmarks"
-                            className="hidden md:flex h-9 px-4 items-center justify-center rounded-lg text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all min-w-[4rem] relative z-[102]"
-                            title={t('nav.bookmarks')}
-                        >
-                            <span suppressHydrationWarning>{t('nav.bookmarks')}</span>
-                        </a>
-
-                        {/* Icon buttons - Prioritize visibility */}
+                        {/* Icon buttons */}
                         <div className="flex items-center gap-1 ml-1 sm:ml-2 flex-shrink-0 relative z-[102]">
                             <Suspense fallback={<div className="w-8 h-8" />}>
                                 <div className="hidden sm:block">
                                     <SearchInput />
-                                </div>
-                                <div className="sm:hidden">
-                                    {/* Mobile search could go here, or just hide for space now */}
                                 </div>
                             </Suspense>
                             <ThemeToggle />
@@ -157,9 +120,70 @@ export function Header() {
                                 </button>
                             </div>
                         )}
+
+                        {/* Mobile Menu Button */}
+                        <button
+                            onClick={() => setIsMobileMenuOpen(true)}
+                            className="md:hidden w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all active:scale-95"
+                            aria-label="Open menu"
+                        >
+                            <Menu className="w-5 h-5" />
+                        </button>
                     </nav>
                 </div>
             </header>
+
+            {/* Mobile Menu Overlay */}
+            {isMobileMenuOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-[200] md:hidden"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                />
+            )}
+
+            {/* Mobile Menu Panel */}
+            <div
+                className={`fixed top-0 right-0 bottom-0 w-72 bg-white dark:bg-gray-900 z-[201] transform transition-transform duration-300 ease-in-out md:hidden ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+                    }`}
+            >
+                {/* Close Button */}
+                <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800">
+                    <span className="font-semibold text-gray-900 dark:text-white">
+                        {language === 'zh-TW' ? '選單' : 'Menu'}
+                    </span>
+                    <button
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                {/* Menu Links */}
+                <nav className="p-4 space-y-2">
+                    {navLinks.map((link) => {
+                        const Icon = link.icon;
+                        return (
+                            <a
+                                key={link.href}
+                                href={link.href}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                            >
+                                <Icon className="w-5 h-5" />
+                                <span suppressHydrationWarning>{t(link.labelKey)}</span>
+                            </a>
+                        );
+                    })}
+                </nav>
+
+                {/* Search in Mobile Menu */}
+                <div className="p-4 border-t border-gray-100 dark:border-gray-800">
+                    <Suspense fallback={<div className="h-10 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />}>
+                        <SearchInput />
+                    </Suspense>
+                </div>
+            </div>
 
             <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
         </>

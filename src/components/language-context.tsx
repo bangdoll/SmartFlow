@@ -14,9 +14,11 @@ const translations: Record<Language, Record<string, string>> = {
     'en': {
         // Header
         'nav.trends': 'Trends',
+        'nav.weekly': 'Weekly',
         'nav.archive': 'Archive',
         'nav.subscribe': 'Subscribe',
         'nav.bookmarks': 'Bookmarks',
+        'nav.guide': 'Guide',
 
         // Bookmarks Page
         'bookmarks.title': 'My Bookmarks',
@@ -191,9 +193,11 @@ const translations: Record<Language, Record<string, string>> = {
     'zh-TW': {
         // Header
         'nav.trends': '趨勢',
+        'nav.weekly': '週報',
         'nav.archive': '歷史',
         'nav.subscribe': '訂閱',
         'nav.bookmarks': '我的收藏',
+        'nav.guide': '教學',
 
         // Bookmarks Page
         'bookmarks.title': '我的收藏',
