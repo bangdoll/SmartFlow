@@ -15,6 +15,7 @@ const translations: Record<Language, Record<string, string>> = {
         // Header
         'nav.trends': 'Trends',
         'nav.weekly': 'Weekly',
+        'nav.monthly': 'Monthly',
         'nav.archive': 'Archive',
         'nav.subscribe': 'Subscribe',
         'nav.bookmarks': 'Bookmarks',
@@ -72,6 +73,16 @@ const translations: Record<Language, Record<string, string>> = {
         'weekly.riskSummary': 'Decision Risk Summary',
         'weekly.noData': 'No weekly data available yet.',
         'weekly.dateRange': 'Week of',
+
+        // Monthly
+        'monthly.title': 'Monthly AI Trends Report',
+        'monthly.subtitle': 'AI developments and key trends over the past 30 days',
+        'monthly.totalNews': 'Total Articles',
+        'monthly.weeks': 'Weeks Covered',
+        'monthly.topics': 'Topics Tracked',
+        'monthly.dailyAvg': 'Daily Average',
+        'monthly.topKeywords': 'Top Keywords This Month',
+        'monthly.weeklyBreakdown': 'Weekly Breakdown',
 
         // News Detail
         'news.backHome': 'Back to Home',
@@ -194,6 +205,7 @@ const translations: Record<Language, Record<string, string>> = {
         // Header
         'nav.trends': '趨勢',
         'nav.weekly': '週報',
+        'nav.monthly': '月報',
         'nav.archive': '歷史',
         'nav.subscribe': '訂閱',
         'nav.bookmarks': '我的收藏',
@@ -249,6 +261,16 @@ const translations: Record<Language, Record<string, string>> = {
         'weekly.riskSummary': '決策風險摘要',
         'weekly.noData': '目前尚無週報資料。',
         'weekly.dateRange': '週報區間',
+
+        // Monthly
+        'monthly.title': '本月 AI 趨勢報告',
+        'monthly.subtitle': '過去 30 天 AI 領域最重要的動態與趨勢',
+        'monthly.totalNews': '新聞總數',
+        'monthly.weeks': '涵蓋週數',
+        'monthly.topics': '追蹤主題',
+        'monthly.dailyAvg': '日均新聞',
+        'monthly.topKeywords': '本月熱門關鍵字',
+        'monthly.weeklyBreakdown': '週別明細',
 
         // News Detail
         'news.backHome': '返回首頁',

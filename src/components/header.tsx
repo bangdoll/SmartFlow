@@ -18,6 +18,7 @@ export function Header() {
     const navLinks = [
         { href: '/trends', icon: TrendingUp, labelKey: 'nav.trends' },
         { href: '/weekly', icon: CalendarDays, labelKey: 'nav.weekly' },
+        { href: '/monthly', icon: CalendarDays, labelKey: 'nav.monthly' },
         { href: '/archive', icon: Clock, labelKey: 'nav.archive' },
         { href: '/bookmarks', icon: Bookmark, labelKey: 'nav.bookmarks' },
         { href: '/guide', icon: FileText, labelKey: 'nav.guide' },
