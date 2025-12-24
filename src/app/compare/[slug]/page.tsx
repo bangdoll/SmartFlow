@@ -12,7 +12,7 @@ const POPULAR_COMPARISONS = [
     ['Meta', 'Google'],
     ['Microsoft', 'Google'],
     ['Sora', 'Runway'],
-    ['台積電', 'NVIDIA'],
+    ['TSMC', 'NVIDIA'],
 ];
 
 interface Props {

@@ -16,7 +16,7 @@ const COMPARISONS = [
     { t1: 'Microsoft', t2: 'Google', desc: 'AI 巨頭之爭' },
     { t1: 'Meta', t2: 'Google', desc: '開源 vs 閉源' },
     { t1: 'Sora', t2: 'Runway', desc: '影片生成新戰場' },
-    { t1: '台積電', t2: 'NVIDIA', desc: 'AI 晶片供應鏈' },
+    { t1: 'TSMC', t2: 'NVIDIA', desc: 'AI 晶片供應鏈' },
 ];
 
 export default function CompareIndexPage() {
