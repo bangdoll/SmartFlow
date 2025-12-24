@@ -31,10 +31,25 @@ function parseSlug(slug: string) {
 
 // 獲取主題相關新聞
 async function getTopicNews(topic: string, limit = 20) {
+    // 建立搜尋變體（例如 GPT-4 → gpt-4, gpt 4, gpt4）
+    const normalizedTopic = topic.toLowerCase();
+    const variants = [
+        normalizedTopic,
+        normalizedTopic.replace(/-/g, ' '),  // GPT-4 → gpt 4
+        normalizedTopic.replace(/-/g, ''),   // GPT-4 → gpt4
+        normalizedTopic.replace(/\s+/g, '-'), // gpt 4 → gpt-4
+    ].filter((v, i, arr) => arr.indexOf(v) === i); // 去重
+
+    // 建立 OR 查詢條件
+    const orConditions = variants.flatMap(v => [
+        `title.ilike.%${v}%`,
+        `summary_zh.ilike.%${v}%`,
+    ]).join(',');
+
     const { data, error } = await supabase
         .from('news_items')
         .select('id, title, title_en, summary_zh, published_at, source, slug, tags')
-        .or(`title.ilike.%${topic}%,summary_zh.ilike.%${topic}%,tags.cs.{${topic}}`)
+        .or(orConditions)
         .order('published_at', { ascending: false })
         .limit(limit);
 
