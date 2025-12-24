@@ -96,6 +96,53 @@ export function generateXThreadContent(news: NewsContext): string[] {
 // =============================================================================
 
 /**
+ * 清除 Markdown 語法，只保留純文字
+ */
+function cleanMarkdown(text: string): string {
+    return text
+        // 移除表格
+        .replace(/\|[^|]+\|/g, '')
+        .replace(/\|-+\|/g, '')
+        .replace(/\|[-:]+[-|:]+\|/g, '')
+        // 移除 Markdown 分隔線
+        .replace(/^---+$/gm, '')
+        .replace(/^\*\*\*+$/gm, '')
+        // 移除 ** 粗體
+        .replace(/\*\*([^*]+)\*\*/g, '$1')
+        // 移除 * 斜體
+        .replace(/\*([^*]+)\*/g, '$1')
+        // 移除多餘的空行
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+}
+
+/**
+ * 從摘要中提取白話解讀
+ */
+function extractPlainExplanation(summary: string): string {
+    // 嘗試提取 🧠 白話解讀 區塊
+    const match = summary.match(/🧠[^⚠️💡✅📊🔑]+/);
+    if (match) {
+        return cleanMarkdown(match[0].replace(/🧠\s*(白話[文解讀]*|白話文解讀)?\s*:?\s*/i, ''));
+    }
+    // 回退：取第一段
+    const firstParagraph = summary.split('\n\n')[0];
+    return cleanMarkdown(firstParagraph).substring(0, 200);
+}
+
+/**
+ * 從摘要中提取關鍵影響
+ */
+function extractKeyImpact(summary: string): string {
+    // 嘗試提取 💡 關鍵影響 區塊
+    const match = summary.match(/💡[^⚠️🧠✅📊🔑]+/);
+    if (match) {
+        return cleanMarkdown(match[0].replace(/💡\s*(關鍵影響)?\s*:?\s*/i, ''));
+    }
+    return '';
+}
+
+/**
  * LinkedIn 觀點型貼文
  * 策略：專業觀點，帶有個人見解
  */
@@ -104,26 +151,31 @@ export function generateLinkedInPost(news: NewsContext): string {
     post += `「${news.title}」\n\n`;
 
     // 添加分析觀點
-    post += `🔍 我的觀察：\n\n`;
-
     if (news.summary) {
-        // 提取核心觀點
-        const coreMessage = news.summary.substring(0, 300).split('\n')[0];
-        post += `${coreMessage}\n\n`;
+        const explanation = extractPlainExplanation(news.summary);
+        if (explanation && explanation.length > 20) {
+            post += `🔍 我的觀察：\n${explanation.substring(0, 200)}\n\n`;
+        }
     }
 
     // 針對企業主/決策者的觀點
-    post += `💼 企業主應該注意什麼？\n\n`;
+    post += `💼 企業主應該注意什麼？\n`;
 
-    if (news.takeaway) {
-        const cleanTakeaway = news.takeaway.replace(/^💡\s*關鍵影響：/, '');
-        post += `${cleanTakeaway.substring(0, 200)}\n\n`;
+    if (news.summary) {
+        const impact = extractKeyImpact(news.summary);
+        if (impact && impact.length > 20) {
+            post += `${impact.substring(0, 150)}\n\n`;
+        } else if (news.takeaway) {
+            const cleanTakeaway = cleanMarkdown(news.takeaway.replace(/^💡\s*關鍵影響：/, ''));
+            post += `${cleanTakeaway.substring(0, 150)}\n\n`;
+        } else {
+            post += `這則消息可能影響你團隊的工作方式。越早了解，越有競爭優勢。\n\n`;
+        }
     } else {
         post += `這則消息可能影響你團隊的工作方式。越早了解，越有競爭優勢。\n\n`;
     }
 
     // CTA
-    post += `---\n\n`;
     post += `📌 完整分析在 Smart Flow：\n`;
     post += `${news.url}\n\n`;
     post += `#AI #人工智慧 #企業轉型 #科技趨勢`;
@@ -141,28 +193,27 @@ export function generateLinkedInPost(news: NewsContext): string {
  */
 export function generateLinkedInLongPost(news: NewsContext): string {
     let post = `🚨 AI 決策風險警報\n\n`;
-    post += `---\n\n`;
     post += `📰 ${news.title}\n\n`;
 
     if (news.summary) {
-        // 分段處理摘要
-        const sections = news.summary.split(/[🧠⚠️💡✅📊]/);
+        const explanation = extractPlainExplanation(news.summary);
+        if (explanation && explanation.length > 20) {
+            post += `🔑 白話解讀：\n${explanation.substring(0, 280)}\n\n`;
+        }
 
-        if (sections.length > 1) {
-            post += `🔑 重點摘要：\n\n`;
-            post += `${sections[1]?.trim().substring(0, 300) || ''}\n\n`;
+        const impact = extractKeyImpact(news.summary);
+        if (impact && impact.length > 20) {
+            post += `💡 關鍵影響：\n${impact.substring(0, 200)}\n\n`;
         }
     }
 
-    post += `---\n\n`;
-    post += `💬 這則新聞告訴我們什麼？\n\n`;
+    post += `💬 這則新聞告訴我們什麼？\n`;
     post += `AI 的變化速度，已經快到我們需要每天關注才能跟上。\n`;
     post += `但重點不是追新聞，而是理解「這對我的決策有什麼影響」。\n\n`;
 
     post += `📖 完整分析（含白話解讀、影響評估）：\n`;
     post += `${news.url}\n\n`;
 
-    post += `---\n\n`;
     post += `💡 每天 5 分鐘，不錯過讓你做錯決策的 AI 風險。\n`;
     post += `追蹤 Smart Flow，掌握 AI 趨勢不焦慮。\n\n`;
 
