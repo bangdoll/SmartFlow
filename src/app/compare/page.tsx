@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     keywords: ['AI 比較', 'OpenAI vs Anthropic', 'ChatGPT vs Claude', 'GPT-5 vs Gemini 3', 'AI 競爭'],
 };
 
-export const revalidate = 3600; // 1 小時重新驗證
+export const revalidate = 300; // 5 分鐘重新驗證
 
 // 熱門比較組合
 const COMPARISONS = [

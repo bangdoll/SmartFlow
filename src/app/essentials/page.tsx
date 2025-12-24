@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase';
 import { EssentialsView } from '@/components/essentials-view';
 import { NewsItem } from '@/types';
 
-export const revalidate = 86400; // 24 小時重新驗證（長青內容）
+export const revalidate = 300; // 5 分鐘重新驗證
 
 // 獲取精選新聞（按點擊數或手動標記）
 async function getEssentialNews(): Promise<NewsItem[]> {

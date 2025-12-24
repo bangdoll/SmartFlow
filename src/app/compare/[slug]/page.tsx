@@ -123,7 +123,7 @@ export async function generateStaticParams() {
     }));
 }
 
-export const revalidate = 3600; // 1 小時重新驗證
+export const revalidate = 300; // 5 分鐘重新驗證
 
 export default async function ComparePage({ params }: Props) {
     const { slug } = await params;
