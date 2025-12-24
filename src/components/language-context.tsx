@@ -16,6 +16,7 @@ const translations: Record<Language, Record<string, string>> = {
         'nav.trends': 'Trends',
         'nav.weekly': 'Weekly',
         'nav.monthly': 'Monthly',
+        'nav.essentials': 'Essentials',
         'nav.archive': 'Archive',
         'nav.subscribe': 'Subscribe',
         'nav.bookmarks': 'Bookmarks',
@@ -83,6 +84,20 @@ const translations: Record<Language, Record<string, string>> = {
         'monthly.dailyAvg': 'Daily Average',
         'monthly.topKeywords': 'Top Keywords This Month',
         'monthly.weeklyBreakdown': 'Weekly Breakdown',
+
+        // Essentials
+        'essentials.badge': 'Curated for Beginners',
+        'essentials.title': 'AI Essentials: Must-Read Articles',
+        'essentials.subtitle': 'New to AI? Start here. We\'ve curated the most important articles to help you understand the AI landscape quickly.',
+        'essentials.howToUse': 'How to Use This Page',
+        'essentials.step1': 'Start from any category that interests you',
+        'essentials.step2': 'Read the articles with AI-powered summaries',
+        'essentials.step3': 'Use "AI Guide" to ask follow-up questions',
+        'essentials.readMore': 'Read Full Analysis',
+        'essentials.noData': 'No curated articles available yet.',
+        'essentials.ctaTitle': 'Ready for Daily Updates?',
+        'essentials.ctaSubtitle': 'Subscribe to get the latest AI insights delivered to your inbox every morning.',
+        'essentials.ctaButton': 'Explore Today\'s News',
 
         // News Detail
         'news.backHome': 'Back to Home',
@@ -206,6 +221,7 @@ const translations: Record<Language, Record<string, string>> = {
         'nav.trends': '趨勢',
         'nav.weekly': '週報',
         'nav.monthly': '月報',
+        'nav.essentials': '必讀',
         'nav.archive': '歷史',
         'nav.subscribe': '訂閱',
         'nav.bookmarks': '我的收藏',
@@ -271,6 +287,20 @@ const translations: Record<Language, Record<string, string>> = {
         'monthly.dailyAvg': '日均新聞',
         'monthly.topKeywords': '本月熱門關鍵字',
         'monthly.weeklyBreakdown': '週別明細',
+
+        // Essentials
+        'essentials.badge': '新手入門精選',
+        'essentials.title': 'AI 必讀文章',
+        'essentials.subtitle': '剛接觸 AI？從這裡開始。我們精選了最重要的文章，幫助你快速了解 AI 領域全貌。',
+        'essentials.howToUse': '如何使用本頁面',
+        'essentials.step1': '從任何你感興趣的分類開始',
+        'essentials.step2': '閱讀附有 AI 摘要的文章',
+        'essentials.step3': '使用「AI 導讀」詢問後續問題',
+        'essentials.readMore': '閱讀完整分析',
+        'essentials.noData': '目前尚無精選文章。',
+        'essentials.ctaTitle': '準備好接收每日更新了嗎？',
+        'essentials.ctaSubtitle': '訂閱電子報，每天早上收到最新 AI 洞察。',
+        'essentials.ctaButton': '瀏覽今日新聞',
 
         // News Detail
         'news.backHome': '返回首頁',
