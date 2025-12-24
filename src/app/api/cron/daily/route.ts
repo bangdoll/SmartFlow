@@ -3,6 +3,7 @@ import { runScrapeSortAndSummary } from '@/lib/scrape-workflow';
 import { sendDailyNewsletter } from '@/lib/newsletter';
 import { generateWeeklyTrends, saveWeeklyTrendsToDb } from '@/lib/trends-generator';
 import { translatePendingItems } from '@/lib/translation-service';
+import { autoFixNewsContent } from '@/lib/auto-fix-service';
 
 // 設定最大執行時間 (Vercel Hobby 10s/60s，合併後更需注意)
 // 爬蟲限制了處理數量，電子報應該也很快
@@ -33,7 +34,12 @@ export async function GET(req: NextRequest) {
         const translatedCount = await translatePendingItems(20);
         console.log('Translated Pending Items:', translatedCount);
 
-        // 4. (每周一) 執行週報趨勢分析
+        // 4. 自動修復缺少中文標題或摘要的新聞
+        // 檢查過去 7 天的新聞，每次最多修復 20 則
+        const fixedCount = await autoFixNewsContent(7, 20);
+        console.log('Auto-fixed news items:', fixedCount);
+
+        // 5. (每周一) 執行週報趨勢分析
         // 使用台灣時區判斷星期幾（UTC+8）
         // 因為 Cron 在 UTC 00:00 執行，此時台灣是 08:00
         const taiwanTime = new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' });
@@ -62,6 +68,7 @@ export async function GET(req: NextRequest) {
             scrape: scrapeResult,
             newsletter: newsletterResult,
             translated: translatedCount,
+            autoFixed: fixedCount,
             weeklyTrends: weeklyTrendsResult
         });
 
@@ -71,3 +78,4 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
     }
 }
+
