@@ -11,6 +11,7 @@ import { useLanguage } from '@/components/language-context';
 import { preprocessMarkdown } from '@/lib/markdown';
 import { Skeleton } from './ui/skeleton';
 import { BookmarkButton } from './bookmark-button';
+import { SocialPostCopy } from './social-post-copy';
 
 interface NewsItem {
     id: string;
@@ -236,6 +237,9 @@ export function NewsContent({ item, prev, next }: NewsContentProps) {
                         </svg>
                     </button>
                 </div>
+
+                {/* Social Post Copy Templates */}
+                <SocialPostCopy newsId={item.id} title={displayTitle || item.title} />
 
                 {/* --- POST-READ ACTION BLOCK (Wireframe 3) --- */}
                 <div className="bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-xl p-6 mb-8 text-center">
