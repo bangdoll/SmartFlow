@@ -1,4 +1,5 @@
 import { TwitterApi } from 'twitter-api-v2';
+import { generateXHookPost, type NewsContext } from './social-templates';
 
 interface PostParams {
     title: string;
@@ -32,36 +33,15 @@ async function postTweet({ title, takeaway, url, tags = [] }: PostParams) {
 
         const rwClient = client.readWrite;
 
-        // 建構推文內容
-        // 限制：280 字元 (連結算 23 字元)
-        // [新趨勢] Title
-        // 
-        // 💡 Takeaway
-        //
-        // Link #HashTags
+        // 使用模板生成貼文內容
+        const newsContext: NewsContext = {
+            title,
+            takeaway,
+            url,
+            tags,
+        };
 
-        let tweetText = `[新趨勢] ${title}\n\n`;
-
-        if (takeaway) {
-            // 移除 "💡 關鍵影響：" 前綴如果存在，避免重複
-            const cleanTakeaway = takeaway.replace(/^💡\s*關鍵影響：/, '');
-            tweetText += `💡 ${cleanTakeaway}\n\n`;
-        }
-
-        tweetText += `${url}`;
-
-        // Add valid hashtags
-        if (tags && tags.length > 0) {
-            const validTags = tags
-                .map(t => t.replace(/\s+/g, '')) // Remove spaces in tags
-                .map(t => `#${t}`)
-                .join(' ');
-
-            // 簡單檢查長度 (粗略)
-            if (tweetText.length + validTags.length + 1 < 280) {
-                tweetText += `\n${validTags}`;
-            }
-        }
+        const tweetText = generateXHookPost(newsContext);
 
         // 發佈！
         const result = await rwClient.v2.tweet(tweetText);
@@ -73,3 +53,4 @@ async function postTweet({ title, takeaway, url, tags = [] }: PostParams) {
         // 不拋出錯誤，避免中斷爬蟲流程
     }
 }
+
