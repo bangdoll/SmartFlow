@@ -7,7 +7,7 @@ import { notFound } from 'next/navigation';
 const POPULAR_COMPARISONS = [
     ['OpenAI', 'Anthropic'],
     ['ChatGPT', 'Claude'],
-    ['GPT-4', 'Gemini'],
+    ['GPT-5', 'Gemini 2'],
     ['Midjourney', 'DALL-E'],
     ['Meta', 'Google'],
     ['Microsoft', 'Google'],

@@ -13,8 +13,8 @@ export const revalidate = 3600; // 1 小時重新驗證
 // 熱門比較組合
 const COMPARISONS = [
     { t1: 'OpenAI', t2: 'Anthropic', desc: 'AGI 路線之爭' },
-    { t1: 'ChatGPT', t2: 'Claude', desc: '對話 AI 之巔' },
-    { t1: 'GPT-4', t2: 'Gemini', desc: '旗艦模型對決' },
+    { t1: 'ChatGPT', t2: 'Claude', desc: '對話 AI 之州' },
+    { t1: 'GPT-5', t2: 'Gemini 2', desc: '旗艦模型對決' },
     { t1: 'Midjourney', t2: 'DALL-E', desc: '圖像生成王者' },
     { t1: 'Microsoft', t2: 'Google', desc: 'AI 巨頭之爭' },
     { t1: 'Meta', t2: 'Google', desc: '開源 vs 閉源' },
