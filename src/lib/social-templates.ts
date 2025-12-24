@@ -19,33 +19,34 @@ export interface NewsContext {
 /**
  * X 鉤子型貼文 - 短小精悍、引發好奇
  * 策略：觀點鉤子，一句話版本
+ * 限制：280 字元（連結算 23 字元）
  */
 export function generateXHookPost(news: NewsContext): string {
     const hooks = [
-        `如果你今天還沒看到這則 AI 新聞，其實已經晚了一週。`,
-        `這則消息，半年後會變成「早知道」。`,
-        `今天不在意，明天就變你的競爭劣勢。`,
-        `你的同事可能已經知道了。`,
-        `這不是新聞，這是你下一個決策的依據。`,
+        `這則消息，半年後會變成「早知道」`,
+        `今天不在意，明天就變競爭劣勢`,
+        `你的同事可能已經知道了`,
+        `這是你下一個決策的依據`,
     ];
 
     const randomHook = hooks[Math.floor(Math.random() * hooks.length)];
 
+    // 標題限制在 60 字元內
+    const shortTitle = news.title.length > 60
+        ? news.title.substring(0, 57) + '...'
+        : news.title;
+
+    // 基本結構：鉤子 + 標題 + 連結 (大約 23 字元)
     let post = `${randomHook}\n\n`;
-    post += `📌 ${news.title}\n\n`;
-
-    if (news.takeaway) {
-        const cleanTakeaway = news.takeaway.replace(/^💡\s*關鍵影響：/, '').substring(0, 100);
-        post += `💡 ${cleanTakeaway}\n\n`;
-    }
-
+    post += `📌 ${shortTitle}\n\n`;
     post += `👉 ${news.url}`;
 
-    // 加標籤 (如果還有空間)
-    if (news.tags && news.tags.length > 0) {
-        const hashtags = news.tags.slice(0, 3).map(t => `#${t.replace(/\s+/g, '')}`).join(' ');
-        if (post.length + hashtags.length + 1 < 280) {
-            post += `\n\n${hashtags}`;
+    // 計算剩餘空間加標籤
+    const remaining = 280 - post.length;
+    if (remaining > 15 && news.tags && news.tags.length > 0) {
+        const tag = `#${news.tags[0].replace(/\s+/g, '')}`;
+        if (tag.length < remaining - 2) {
+            post += `\n\n${tag}`;
         }
     }
 
