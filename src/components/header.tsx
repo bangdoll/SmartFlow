@@ -47,7 +47,7 @@ export function Header() {
                     {/* Navigation */}
                     <nav className="flex items-center gap-1 sm:gap-2 relative z-[101]">
                         {/* Desktop: Text Links */}
-                        {navLinks.slice(0, 4).map((link) => (
+                        {navLinks.slice(0, 6).map((link) => (
                             <a
                                 key={link.href}
                                 href={link.href}
