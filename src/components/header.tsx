@@ -22,6 +22,7 @@ export function Header() {
         { href: '/bookmarks', icon: Bookmark, labelKey: 'nav.bookmarks' },
         { href: '/monthly', icon: CalendarDays, labelKey: 'nav.monthly' },
         { href: '/essentials', icon: BookOpen, labelKey: 'nav.essentials' },
+        { href: '/compare', icon: GitCompareArrows, labelKey: 'nav.compare' },
         { href: '/guide', icon: FileText, labelKey: 'nav.guide' },
     ];
 
@@ -47,7 +48,7 @@ export function Header() {
                     {/* Navigation */}
                     <nav className="flex items-center gap-1 sm:gap-2 relative z-[101]">
                         {/* Desktop: Text Links */}
-                        {navLinks.slice(0, 6).map((link) => (
+                        {navLinks.slice(0, 7).map((link) => (
                             <a
                                 key={link.href}
                                 href={link.href}
