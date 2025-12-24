@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, useState } from 'react';
-import { Waves, TrendingUp, Clock, Bookmark, User, Menu, X, CalendarDays, FileText, BookOpen } from 'lucide-react';
+import { Waves, TrendingUp, Clock, Bookmark, User, Menu, X, CalendarDays, FileText, BookOpen, GitCompareArrows } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { SearchInput } from '@/components/search-input';
 import { LanguageToggle } from '@/components/language-toggle';
@@ -22,6 +22,7 @@ export function Header() {
         { href: '/bookmarks', icon: Bookmark, labelKey: 'nav.bookmarks' },
         { href: '/monthly', icon: CalendarDays, labelKey: 'nav.monthly' },
         { href: '/essentials', icon: BookOpen, labelKey: 'nav.essentials' },
+        { href: '/compare', icon: GitCompareArrows, labelKey: 'nav.compare' },
         { href: '/guide', icon: FileText, labelKey: 'nav.guide' },
     ];
 
