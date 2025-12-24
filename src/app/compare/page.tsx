@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 export const metadata: Metadata = {
     title: 'AI 比較分析 | OpenAI vs Anthropic, ChatGPT vs Claude',
     description: '深入比較各 AI 公司和產品的最新發展、新聞報導和市場動態。了解 OpenAI、Anthropic、Google、Meta 等科技巨頭在 AI 領域的競爭與差異。',
-    keywords: ['AI 比較', 'OpenAI vs Anthropic', 'ChatGPT vs Claude', 'GPT-4 vs Gemini', 'AI 競爭'],
+    keywords: ['AI 比較', 'OpenAI vs Anthropic', 'ChatGPT vs Claude', 'GPT-5 vs Gemini 3', 'AI 競爭'],
 };
 
 export const revalidate = 3600; // 1 小時重新驗證

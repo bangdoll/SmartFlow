@@ -209,7 +209,7 @@ export function CompareView({ data }: CompareViewProps) {
                 <div className="flex flex-wrap gap-2">
                     {[
                         ['ChatGPT', 'Claude'],
-                        ['GPT-4', 'Gemini'],
+                        ['GPT-5', 'Gemini 3'],
                         ['Midjourney', 'DALL-E'],
                         ['Microsoft', 'Google'],
                     ].map(([t1, t2]) => (
