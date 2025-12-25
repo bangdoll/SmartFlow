@@ -48,6 +48,25 @@ export function EssentialsView({ items }: EssentialsViewProps) {
         'AI 最新突破': 'from-rose-500 to-pink-500',
     };
 
+    // 分類名稱翻譯
+    const categoryTranslations: Record<string, string> = {
+        'AI 基礎入門': 'AI Fundamentals',
+        'ChatGPT 與對話 AI': 'ChatGPT & Conversational AI',
+        'AI 影像生成': 'AI Image Generation',
+        'AI 對企業的影響': 'AI Impact on Business',
+        'AI 安全與倫理': 'AI Safety & Ethics',
+        'AI 與程式開發': 'AI & Software Development',
+        'AI 硬體與晶片': 'AI Hardware & Chips',
+        'AI 最新突破': 'Latest AI Breakthroughs',
+    };
+
+    const getCategoryName = (category: string) => {
+        if (language === 'en') {
+            return categoryTranslations[category] || category;
+        }
+        return category;
+    };
+
     return (
         <div className="space-y-8">
             {/* Header */}
@@ -96,7 +115,7 @@ export function EssentialsView({ items }: EssentialsViewProps) {
                             {categoryIcons[category] || <BookOpen className="w-5 h-5" />}
                         </div>
                         <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                            {category}
+                            {getCategoryName(category)}
                         </h2>
                         <span className="text-sm text-gray-500">
                             {categoryItems.length} {language === 'en' ? 'articles' : '篇文章'}
