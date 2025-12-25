@@ -34,10 +34,10 @@ export async function GET(req: NextRequest) {
         const translatedCount = await translatePendingItems(20);
         console.log('Translated Pending Items:', translatedCount);
 
-        // 4. 自動修復缺少中文標題或摘要的新聞
+        // 4. 自動修復缺少中文/英文內容的新聞（雙向檢查）
         // 檢查過去 7 天的新聞，每次最多修復 20 則
-        const fixedCount = await autoFixNewsContent(7, 20);
-        console.log('Auto-fixed news items:', fixedCount);
+        const fixResult = await autoFixNewsContent(7, 20);
+        console.log(`Auto-fixed news items: ${fixResult.chinese} Chinese, ${fixResult.english} English`);
 
         // 5. (每周一) 執行週報趨勢分析
         // 使用台灣時區判斷星期幾（UTC+8）
@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
             scrape: scrapeResult,
             newsletter: newsletterResult,
             translated: translatedCount,
-            autoFixed: fixedCount,
+            autoFixed: fixResult,
             weeklyTrends: weeklyTrendsResult
         });
 
