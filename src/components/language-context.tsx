@@ -45,12 +45,12 @@ const translations: Record<Language, Record<string, string>> = {
 
         // Subscribe
         'subscribe.title': 'AI Decision Risk Newsletter',
-        'subscribe.description': "5 mins/day. Never miss an AI risk that could cost you.",
-        'subscribe.subDescription': 'These 3 AI updates might change your next decision. Don\'t find out 6 months too late.',
+        'subscribe.description': "These 3 AI news stories? You\'ll regret missing them in 6 months.",
+        'subscribe.subDescription': '5 mins/day. Every morning, we filter 100+ sources → 3 must-know updates for your next decision.',
         'subscribe.placeholder': 'Enter your email',
-        'subscribe.button': 'Send Me the Risks',
+        'subscribe.button': '🚨 Send Me Tomorrow\'s Risks',
         'subscribe.submitting': 'Subscribing...',
-        'subscribe.success': 'Subscribed! Welcome aboard.',
+        'subscribe.success': '✅ Done! First issue arrives 8AM tomorrow.',
         'subscribe.failed': 'Subscription failed, please try again.',
 
         // Header & Search
@@ -141,13 +141,13 @@ const translations: Record<Language, Record<string, string>> = {
         'hero.action': '👉 Read Today\'s Top 5',
 
         // Feed Subscribe Card
-        'feed.subscribe.title': 'Caught up on today\'s AI risks?',
-        'feed.subscribe.subtitle': '📩 Get tomorrow\'s risks before they hit',
-        'feed.subscribe.action': 'Subscribe - 8AM daily delivery',
+        'feed.subscribe.title': 'Done with today\'s AI risks?',
+        'feed.subscribe.subtitle': '📩 Tomorrow\'s risks are already brewing. Get ahead.',
+        'feed.subscribe.action': '🚨 Subscribe - 8AM Delivery',
 
         // Article Next Action
-        'article.action.title': 'Like this analysis?',
-        'article.action.subscribe': 'Get more tomorrow → Subscribe',
+        'article.action.title': 'Useful? There\'s more.',
+        'article.action.subscribe': 'Get tomorrow\'s edge → Subscribe',
         'article.action.next': 'Read Next Article',
 
         // Welcome Section keys
@@ -255,12 +255,12 @@ const translations: Record<Language, Record<string, string>> = {
 
         // Subscribe
         'subscribe.title': '訂閱 AI 決策風險電子報',
-        'subscribe.description': '每天 5 分鐘，不漏接可能讓你做錯決策的 AI 趨勢。',
-        'subscribe.subDescription': '這 3 則 AI 新聞，可能影響你的下一個決定。況且半年後怎麼追？',
+        'subscribe.description': '這 3 則 AI 新聞，半年後你會後悔沒看到。',
+        'subscribe.subDescription': '每天早上 5 分鐘，我們從 100+ 來源過濾 → 3 則「不看會吃虧」的重點。',
         'subscribe.placeholder': '輸入您的 Email',
-        'subscribe.button': '免費寄給我風險摘要',
+        'subscribe.button': '🚨 把明天的風險寄給我',
         'subscribe.submitting': '訂閱中...',
-        'subscribe.success': '訂閱成功！歡迎加入。',
+        'subscribe.success': '✅ 完成！明早 8 點收信。',
         'subscribe.failed': '訂閱失敗，請稍後再試。',
 
         // Trends
@@ -345,9 +345,9 @@ const translations: Record<Language, Record<string, string>> = {
         'hero.action': '👉 直接看今天最重要的 5 則',
 
         // Feed Subscribe Card
-        'feed.subscribe.title': '今天的 AI 風險看完了？',
-        'feed.subscribe.subtitle': '📩 明天的風險，現在就要知道',
-        'feed.subscribe.action': '訂閱 - 每早 8 點直送入箱',
+        'feed.subscribe.title': '今天的看完了？',
+        'feed.subscribe.subtitle': '📩 明天的風險正在發酵中。搶先一步知道。',
+        'feed.subscribe.action': '🚨 訂閱 - 每早 8 點送達',
 
 
         // Feed Focus Mode
@@ -355,8 +355,8 @@ const translations: Record<Language, Record<string, string>> = {
         'feed.focusSubtitle': '已依重要性排序，看完就好。',
 
         // Article Next Action (Wireframe 3 Refinement)
-        'article.action.title': '喜歡這篇分析嗎？',
-        'article.action.subscribe': '明天還有更多 → 訂閱',
+        'article.action.title': '這篇有用？還有更多。',
+        'article.action.subscribe': '搶先知道明天的 → 訂閱',
         'article.action.next': '繼續看今天的下一則重點', // "Next Key Point"
         'article.action.endTitle': '今天的重要消息，你已經看完了。',
         'article.action.endSubscribe': '📩 不想每天自己來找？明天早上，我們直接幫你整理好。',

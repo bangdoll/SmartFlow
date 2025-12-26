@@ -4,7 +4,27 @@
 
 ---
 
+## [2025-12-26]
+
+### 新增 (Added)
+- **週報頁面 i18n 完整支援**: 週報 `/weekly` 頁面現在完整支援英文，包含風險摘要標題、核心訊息、角色建議等區塊；新增資料庫遷移腳本 `20251225_weekly_trends_i18n.sql` 添加英文欄位。
+- **週報翻譯腳本**: 新增 `scripts/translate_weekly_trends.ts`，可批次翻譯現有週報內容至英文。
+
+### 優化/變更 (Changed)
+- **訂閱文案強化 FOMO 導向**: 
+  - 主標語改為「這 3 則 AI 新聞，半年後你會後悔沒看到」(zh) / 「These 3 AI news stories? You'll regret missing them in 6 months」(en)
+  - 按鈕文字改為「🚨 把明天的風險寄給我」，強調緊迫感
+  - 成功訊息改為「✅ 完成！明早 8 點收信」，明確預期
+- **X 貼文模板增強**: 新增 8 個中文 + 8 個英文 FOMO 鉤子短語（如「你老闆可能明天會問你這件事」、「The rules are changing. Are you ready?」）
+- **LinkedIn 貼文模板增強**: 強化企業風險導向，新增「⚠️ 企業主/決策者該擔心什麼？」區塊，支援中英雙語輸出
+
+### 修復 (Fixed)
+- **週報英文內容缺失**: 修復 `/weekly` 頁面在英文模式下仍顯示中文的問題，現在標題、核心訊息、角色建議都會根據語言設定正確切換。
+
+---
+
 ## [2025-12-25]
+
 
 ### 優化/變更 (Changed)
 - **每日自動修復升級為雙向檢查**: `auto-fix-service.ts` 重構，新增 `autoFixChineseContent`（英→中）和 `autoFixEnglishContent`（中→英）兩個函數，確保中文版全中文、英文版全英文。

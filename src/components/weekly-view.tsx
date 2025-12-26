@@ -8,9 +8,12 @@ import { preprocessMarkdown } from '@/lib/markdown';
 
 interface WeeklyTrendsData {
     title: string;
+    titleEn?: string;
     core_message: string;
+    coreMessageEn?: string;
     trends: Array<{ topic: string; count: number; sentiment?: string }>;
     persona_advice: Record<string, string>;
+    personaAdviceEn?: Record<string, string>;
     week_start_date: string;
     week_end_date: string;
 }
@@ -53,46 +56,53 @@ export function WeeklyView({ newsItems, trendsData }: WeeklyViewProps) {
             </div>
 
             {/* Risk Summary from Weekly Trends */}
-            {trendsData && (
-                <div className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border border-red-100 dark:border-red-800/30 rounded-2xl p-6">
-                    <div className="flex items-center gap-2 mb-4">
-                        <AlertTriangle className="w-5 h-5 text-red-500" />
-                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                            {t('weekly.riskSummary')}
-                        </h2>
-                    </div>
-                    <h3 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-2">
-                        {trendsData.title}
-                    </h3>
-                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                        {trendsData.core_message}
-                    </p>
+            {trendsData && (() => {
+                // Determine display content based on language
+                const displayTitle = (language === 'en' && trendsData.titleEn) ? trendsData.titleEn : trendsData.title;
+                const displayCoreMessage = (language === 'en' && trendsData.coreMessageEn) ? trendsData.coreMessageEn : trendsData.core_message;
+                const displayPersonaAdvice = (language === 'en' && trendsData.personaAdviceEn) ? trendsData.personaAdviceEn : trendsData.persona_advice;
 
-                    {/* Persona Advice */}
-                    {trendsData.persona_advice && Object.keys(trendsData.persona_advice).length > 0 && (
-                        <div className="mt-6 pt-4 border-t border-red-200 dark:border-red-800/50">
-                            <div className="flex items-center gap-2 mb-3">
-                                <Users className="w-4 h-4 text-gray-500" />
-                                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                                    {language === 'en' ? 'Advice by Role' : '角色建議'}
-                                </span>
-                            </div>
-                            <div className="grid gap-3">
-                                {Object.entries(trendsData.persona_advice).slice(0, 3).map(([persona, advice]) => (
-                                    <div key={persona} className="bg-white/50 dark:bg-black/20 rounded-lg p-3">
-                                        <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                            {persona}:
-                                        </span>
-                                        <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">
-                                            {advice}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
+                return (
+                    <div className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border border-red-100 dark:border-red-800/30 rounded-2xl p-6">
+                        <div className="flex items-center gap-2 mb-4">
+                            <AlertTriangle className="w-5 h-5 text-red-500" />
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                                {t('weekly.riskSummary')}
+                            </h2>
                         </div>
-                    )}
-                </div>
-            )}
+                        <h3 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-2">
+                            {displayTitle}
+                        </h3>
+                        <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                            {displayCoreMessage}
+                        </p>
+
+                        {/* Persona Advice */}
+                        {displayPersonaAdvice && Object.keys(displayPersonaAdvice).length > 0 && (
+                            <div className="mt-6 pt-4 border-t border-red-200 dark:border-red-800/50">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <Users className="w-4 h-4 text-gray-500" />
+                                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                        {language === 'en' ? 'Advice by Role' : '角色建議'}
+                                    </span>
+                                </div>
+                                <div className="grid gap-3">
+                                    {Object.entries(displayPersonaAdvice).slice(0, 3).map(([persona, advice]) => (
+                                        <div key={persona} className="bg-white/50 dark:bg-black/20 rounded-lg p-3">
+                                            <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                                {persona}:
+                                            </span>
+                                            <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                                                {advice}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                );
+            })()}
 
             {/* Top Trends */}
             {trendsData?.trends && trendsData.trends.length > 0 && (

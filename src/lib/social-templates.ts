@@ -21,14 +21,30 @@ export interface NewsContext {
  * 策略：觀點鉤子，一句話版本
  * 限制：280 字元（連結算 23 字元）
  */
-export function generateXHookPost(news: NewsContext): string {
-    const hooks = [
+export function generateXHookPost(news: NewsContext, lang: 'zh' | 'en' = 'zh'): string {
+    const hooksZh = [
         `這則消息，半年後會變成「早知道」`,
         `今天不在意，明天就變競爭劣勢`,
         `你的同事可能已經知道了`,
         `這是你下一個決策的依據`,
+        `如果今天沒看到這則，你其實已經慢了一週`,
+        `這件事正在改變遊戲規則，你準備好了嗎？`,
+        `你老闆可能明天會問你這件事`,
+        `這不是趨勢預測，這是正在發生的事`,
     ];
 
+    const hooksEn = [
+        `This will be a "wish I knew earlier" moment`,
+        `Your competitors already know this`,
+        `This might change your next decision`,
+        `If you missed this, you're already a week behind`,
+        `The rules are changing. Are you ready?`,
+        `Your boss might ask about this tomorrow`,
+        `This isn't a prediction—it's happening now`,
+        `Today's news, tomorrow's competitive edge`,
+    ];
+
+    const hooks = lang === 'en' ? hooksEn : hooksZh;
     const randomHook = hooks[Math.floor(Math.random() * hooks.length)];
 
     // 標題限制在 60 字元內
@@ -145,22 +161,31 @@ function extractKeyImpact(summary: string): string {
 
 /**
  * LinkedIn 觀點型貼文
- * 策略：專業觀點，帶有個人見解
+ * 策略：專業觀點，帶有個人見解，強調「企業主該擔心什麼」
  */
-export function generateLinkedInPost(news: NewsContext): string {
-    let post = `📊 今天最重要的 AI 動態：\n\n`;
+export function generateLinkedInPost(news: NewsContext, lang: 'zh' | 'en' = 'zh'): string {
+    const isEn = lang === 'en';
+
+    let post = isEn
+        ? `📊 The AI update you shouldn't ignore:\n\n`
+        : `📊 今天最重要的 AI 動態：\n\n`;
+
     post += `「${news.title}」\n\n`;
 
     // 添加分析觀點
     if (news.summary) {
         const explanation = extractPlainExplanation(news.summary);
         if (explanation && explanation.length > 20) {
-            post += `🔍 我的觀察：\n${explanation.substring(0, 200)}\n\n`;
+            post += isEn
+                ? `🔍 My take:\n${explanation.substring(0, 200)}\n\n`
+                : `🔍 我的觀察：\n${explanation.substring(0, 200)}\n\n`;
         }
     }
 
-    // 針對企業主/決策者的觀點
-    post += `💼 企業主應該注意什麼？\n`;
+    // 針對企業主/決策者的觀點 - 更直接的風險導向
+    post += isEn
+        ? `⚠️ What should business leaders worry about?\n`
+        : `⚠️ 企業主/決策者該擔心什麼？\n`;
 
     if (news.summary) {
         const impact = extractKeyImpact(news.summary);
@@ -170,16 +195,25 @@ export function generateLinkedInPost(news: NewsContext): string {
             const cleanTakeaway = cleanMarkdown(news.takeaway.replace(/^💡\s*關鍵影響：/, ''));
             post += `${cleanTakeaway.substring(0, 150)}\n\n`;
         } else {
-            post += `這則消息可能影響你團隊的工作方式。越早了解，越有競爭優勢。\n\n`;
+            post += isEn
+                ? `This could change how your team works. The earlier you adapt, the bigger your edge.\n\n`
+                : `這則消息可能改變你團隊的工作方式。越早適應，競爭優勢越大。\n\n`;
         }
     } else {
-        post += `這則消息可能影響你團隊的工作方式。越早了解，越有競爭優勢。\n\n`;
+        post += isEn
+            ? `This could change how your team works. The earlier you adapt, the bigger your edge.\n\n`
+            : `這則消息可能改變你團隊的工作方式。越早適應，競爭優勢越大。\n\n`;
     }
 
     // CTA
-    post += `📌 完整分析在 Smart Flow：\n`;
+    post += isEn
+        ? `📌 Full analysis on Smart Flow:\n`
+        : `📌 完整分析在 Smart Flow：\n`;
     post += `${news.url}\n\n`;
-    post += `#AI #人工智慧 #企業轉型 #科技趨勢`;
+
+    post += isEn
+        ? `#AI #ArtificialIntelligence #BusinessStrategy #TechTrends #FutureOfWork`
+        : `#AI #人工智慧 #企業決策 #科技趨勢 #數位轉型`;
 
     if (news.tags && news.tags.length > 0) {
         const additionalTags = news.tags.slice(0, 2).map(t => `#${t.replace(/\s+/g, '')}`).join(' ');
