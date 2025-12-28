@@ -35,9 +35,10 @@ export async function GET(req: NextRequest) {
         console.log('Translated Pending Items:', translatedCount);
 
         // 4. 自動修復缺少中文/英文內容的新聞（雙向檢查）
-        // 檢查過去 7 天的新聞，每次最多修復 20 則
-        const fixResult = await autoFixNewsContent(7, 20);
-        console.log(`Auto-fixed news items: ${fixResult.chinese} Chinese, ${fixResult.english} English`);
+        // 檢查過去 14 天的新聞，每次最多修復 50 則
+        // 確保：中文版全部是中文標題，英文版全部有英文標題
+        const fixResult = await autoFixNewsContent(14, 50);
+        console.log(`[Daily Cron] Auto-fixed news items: ${fixResult.chinese} Chinese, ${fixResult.english} English`);
 
         // 5. (每周一) 執行週報趨勢分析
         // 使用台灣時區判斷星期幾（UTC+8）
