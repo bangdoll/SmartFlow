@@ -110,7 +110,17 @@ export function NewsContent({ item, prev, next }: NewsContentProps) {
                 {t('news.backHome')}
             </Link>
 
-            <article className={`bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-white/50 dark:border-gray-800/50 rounded-2xl p-8 shadow-xl ${isTranslating ? 'animate-pulse' : ''}`}>
+            <article
+                className={`
+                    bg-white/10 dark:bg-gray-900/15 
+                    backdrop-blur-xl 
+                    border border-white/30 dark:border-gray-700/30 
+                    rounded-2xl p-8 
+                    shadow-[0_8px_32px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)]
+                    ${isTranslating ? 'animate-pulse' : ''}
+                `}
+                style={{ WebkitBackdropFilter: 'blur(16px)' }}
+            >
                 <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400 mb-4">
                     <span className="font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full">
                         {item.source}
