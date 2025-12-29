@@ -19,10 +19,13 @@ const PersonaAdviceSchema = z.object({
 });
 
 const WeeklyTrendsSchema = z.object({
-    title: z.string().describe('The main title for the weekly issue (e.g. AI Enters Reality Friction Phase).'),
-    core_message: z.string().describe('The single most important takeaway sentence for the week.'),
+    title: z.string().describe('The main title for the weekly issue in Traditional Chinese.'),
+    title_en: z.string().describe('The main title for the weekly issue in English.'),
+    core_message: z.string().describe('The single most important takeaway sentence in Traditional Chinese.'),
+    core_message_en: z.string().describe('The single most important takeaway sentence in English.'),
     trends: z.array(TrendItemSchema).describe('List of top 6-10 trends.'),
-    persona_advice: PersonaAdviceSchema.describe('Tailored advice for different roles.')
+    persona_advice: PersonaAdviceSchema.describe('Tailored advice for different roles in Traditional Chinese.'),
+    persona_advice_en: PersonaAdviceSchema.describe('Tailored advice for different roles in English.')
 });
 
 export async function generateWeeklyTrends() {
@@ -53,24 +56,14 @@ export async function generateWeeklyTrends() {
         You are an expert AI Trend Analyst.
         Your task is to analyze the following news items from the past week and generate a "Weekly Direction" report.
         
-        The goal is NOT just to summarize, but to provide "Orientation" (Navigation) for the user.
-        Tell them WHERE the AI world is going, not just what happened.
-        
         Input News:
         ${newsContext}
         
         Requirements:
-        1. **Core Message**: Synthesize one single, powerful sentence that describes the "Phase" or "Main Theme" of this week. (e.g., "AI enters the Reality Friction phase").
+        1. **Core Message**: Synthesize one single, powerful sentence that describes the "Phase" or "Main Theme" of this week.
         2. **Trends Extraction**: Identify 6 key trends/keywords.
-           - Group related news under these keywords.
-           - 'count' should be the approximate number of articles related to this topic.
-           - 'title' for each trend must be an insight, not just a label. (e.g., "Google's shift means UX is changing" rather than "Google Updates").
-           - 'signal' is the most critical part: Explain "What this means for the future" in one punchy sentence.
-        3. **Persona Advice**: Give specific, actionable advice for:
-           - General User (Focus on privacy, daily use errors)
-           - Employee (Focus on workflow changes, not just tools)
-           - Boss (Focus on risk, liability, strategic pivot)
-        4. Language: **Traditional Chinese (Taiwan)**.
+        3. **Persona Advice**: Give specific, actionable advice for General User, Employee, and Boss.
+        4. **Bilingual Output**: Provide Title, Core Message, and Advice in BOTH Traditional Chinese (Taiwan) and English.
         5. Tone: Professional, insightful, yet accessible. Like a "Decision Helper".
     `;
 
@@ -106,9 +99,12 @@ export async function saveWeeklyTrendsToDb(trendsData: z.infer<typeof WeeklyTren
         .upsert({
             week_start_date: weekStartDate,
             title: trendsData.title,
+            title_en: trendsData.title_en,
             core_message: trendsData.core_message,
+            core_message_en: trendsData.core_message_en,
             trends: trendsData.trends,
             persona_advice: trendsData.persona_advice,
+            persona_advice_en: trendsData.persona_advice_en,
             created_at: new Date().toISOString()
         }, { onConflict: 'week_start_date' });
 
