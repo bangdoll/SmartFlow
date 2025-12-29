@@ -44,7 +44,9 @@ export function preprocessMarkdown(content: string | null): string {
     processed = processed.replace(emojiPattern, '$1\n\n$2');
 
     // 7. Enhance: Make "Advice" sections bold or blockquote?
-    // Let's just ensure spacing first.
+    // For preview, we just want clean text, so we strip markdown bold/italic markers
+    processed = processed.replace(/\*\*(.*?)\*\*/g, '$1');
+    processed = processed.replace(/__(.*?)__/g, '$1');
 
     return processed;
 }
