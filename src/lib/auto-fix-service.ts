@@ -72,7 +72,7 @@ Summary: ${summaryZh?.substring(0, 500) || 'N/A'}
 Output JSON format:
 {
   "title_en": "Professional English title",
-  "summary_en": "2-3 sentence English summary, plain text"
+  "summary_en": "MUST follow this strict 3-part structure with emojis:\\n🗣 **Plain English Breakdown**\\n[Explain simply]\\n\\n⚠️ **Impact on You**\\n[Why it matters]\\n\\n✅ **Actionable Advice**\\n[What to do]"
 }`;
 
     const response = await openai.chat.completions.create({

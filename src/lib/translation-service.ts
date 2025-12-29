@@ -53,7 +53,7 @@ export async function batchTranslate(ids: string[]): Promise<TranslatedItem[]> {
     }));
 
     const prompt = `
-    You are a professional translator. 
+    You are a professional translator and AI analyst. 
     Translate the following news items from Traditional Chinese to English.
     
     Input JSON:
@@ -63,7 +63,15 @@ export async function batchTranslate(ids: string[]): Promise<TranslatedItem[]> {
     1. Output a JSON Object with a "results" key containing an array.
     2. Format: { "results": [{ "id": "...", "title_en": "...", "summary_en": "..." }] }
     3. "title_en": Concise, professional English title.
-    4. "summary_en": Concise 2-paragraph English summary. plain text.
+    4. "summary_en": MUST follow this strict 3-part structure with emojis:
+       🗣 **Plain English Breakdown**
+       [Explain the news simply]
+
+       ⚠️ **Impact on You**
+       [Why this matters]
+
+       ✅ **Actionable Advice**
+       [What to do]
     `;
 
     try {
