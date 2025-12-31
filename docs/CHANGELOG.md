@@ -4,6 +4,19 @@
 
 ---
 
+## [2025-12-31]
+
+### 優化/變更 (Changed)
+- **語言偵測邏輯大幅改進**: `auto-fix-service.ts` 的 `isEnglishText()` 函數優化，現在只要標題有 **3 個以上中文字符**，就判定為中文標題，避免誤判包含技術英文詞彙的中文標題（如 "Claude Code 獲得原生 LSP 支援"）。
+- **週報生成器雙語支援**: `trends-generator.ts` 新增 `title_en`、`core_message_en`、`persona_advice_en` 欄位，週報 `/weekly` 頁面現在同時產生中英文內容，無需事後翻譯。
+- **Markdown 預覽清理**: `markdown.ts` 的 `preprocessMarkdown()` 新增移除 `**` 和 `__` 符號的邏輯，確保新聞列表預覽顯示乾淨的純文字。
+
+### 修復 (Fixed)
+- **雙語內容批次修復**: 執行全面審計與修復，翻譯了 17 則中文版英文標題與 15 則英文版中文標題，確保雙語版網站內容一致。
+- **週報英文內容補齊**: 補翻現有週報的英文欄位（Title、Core Message、Persona Advice），解決 `/weekly` 頁面英文模式顯示中文的問題。
+
+---
+
 ## [2025-12-29]
 
 ### 優化/變更 (Changed)
