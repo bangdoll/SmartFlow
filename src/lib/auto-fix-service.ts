@@ -16,8 +16,10 @@ const supabase = createClient(
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // 檢查文字是否主要為英文
-// 邏輯: 如果沒有中文字，則英文比例 > 50% 視為英文
-// 如果有中文字，則英文必須遠多於中文 (English > Chinese * 2) 才視為英文
+// 改進邏輯：
+// 1. 如果有 3 個以上的中文字符，視為中文標題（即使包含技術英文詞彙）
+// 2. 如果只有 0-2 個中文字符，且英文比例 > 40%，視為英文
+// 3. 這樣可以避免 "Claude Code 獲得原生 LSP 支援" 這類中文標題被誤判
 function isEnglishText(text: string): boolean {
     if (!text || text.length < 5) return false;
 
@@ -25,13 +27,14 @@ function isEnglishText(text: string): boolean {
     const englishChars = text.match(/[a-zA-Z]/g)?.length || 0;
     const chineseChars = text.match(/[\u4e00-\u9fff]/g)?.length || 0;
 
-    // 如果完全沒有中文字 (或極少，可能是雜訊)
-    if (chineseChars <= 2) {
-        return englishChars / text.length > 0.4; // 稍微降低門檻以捕捉短標題
+    // 核心改進：如果有 3 個以上中文字符，不論英文有多少，都視為中文標題
+    // 這樣可以正確處理 "蘋果M2 MacBook Air上的Asahi Linux搭配Sway" 這類標題
+    if (chineseChars >= 3) {
+        return false; // 這是中文標題
     }
 
-    // 如果有中文字，英文必須顯著多於中文才視為英文內容
-    return englishChars > (chineseChars * 2);
+    // 如果只有 0-2 個中文字符，則用英文比例判斷
+    return englishChars / text.length > 0.4;
 }
 
 // 英→中翻譯
