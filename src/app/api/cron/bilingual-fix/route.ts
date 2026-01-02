@@ -9,7 +9,9 @@ import { autoFixNewsContent } from '@/lib/auto-fix-service';
  * 1. 檢查所有中文版頁面，將英文標題/摘要修正為中文
  * 2. 檢查所有英文版頁面，將中文標題/摘要修正為英文
  */
-export const maxDuration = 120; // 給予較長時間處理大量項目
+// 優化版：每次只處理少量項目，確保在 30 秒內完成
+// cron-job.org 免費方案 timeout 是 30 秒
+export const maxDuration = 60;
 
 export async function GET(req: NextRequest) {
     // 驗證 Cron Secret
@@ -25,10 +27,10 @@ export async function GET(req: NextRequest) {
         console.log('--- Starting Bilingual Fix Cron Job ---');
         console.log(`Taiwan Time: ${new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' })}`);
 
-        // 檢查過去 14 天的新聞，每次最多修復 100 則
-        // 確保：中文版全部是中文標題，英文版全部有英文標題
-        const fixResult = await autoFixNewsContent(14, 100);
-        
+        // 優化：每次只處理 5 則，7 天內，確保 30 秒內完成
+        // cron job 會定期執行，最終會處理完所有項目
+        const fixResult = await autoFixNewsContent(7, 5);
+
         const duration = ((Date.now() - startTime) / 1000).toFixed(2);
         console.log(`[Bilingual Fix Cron] Completed in ${duration}s`);
         console.log(`[Bilingual Fix Cron] Fixed: ${fixResult.chinese} Chinese, ${fixResult.english} English`);
