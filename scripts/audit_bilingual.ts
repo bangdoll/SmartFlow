@@ -17,14 +17,13 @@ function isEnglishText(text: string): boolean {
     const englishChars = text.match(/[a-zA-Z]/g)?.length || 0;
     const chineseChars = text.match(/[\u4e00-\u9fff]/g)?.length || 0;
 
-    // If there are significantly more English chars than Chinese, consider it English
-    // Threshold: English > Chinese * 2 (simple heuristic) OR English > 80% without Chinese
-
-    if (chineseChars === 0) {
-        return englishChars / text.length > 0.5;
+    // Core improvement: If there are 3 or more Chinese characters, consider it Chinese
+    if (chineseChars >= 3) {
+        return false; // This is a Chinese title
     }
 
-    return englishChars > (chineseChars * 2);
+    // If there are only 0-2 Chinese characters, use the English ratio to decide
+    return englishChars / text.length > 0.4;
 }
 
 async function auditBilingualContent() {

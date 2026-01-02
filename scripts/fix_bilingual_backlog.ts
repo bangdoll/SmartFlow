@@ -20,10 +20,12 @@ function isEnglishText(text: string): boolean {
     if (!text || text.length < 5) return false;
     const englishChars = text.match(/[a-zA-Z]/g)?.length || 0;
     const chineseChars = text.match(/[\u4e00-\u9fff]/g)?.length || 0;
-    if (chineseChars <= 2) {
-        return englishChars / text.length > 0.4;
+    // Core improvement: If there are 3 or more Chinese characters, consider it Chinese
+    if (chineseChars >= 3) {
+        return false; // This is a Chinese title
     }
-    return englishChars > (chineseChars * 2);
+    // If there are only 0-2 Chinese characters, use the English ratio to decide
+    return englishChars / text.length > 0.4;
 }
 
 async function translateToChineseWithSummary(title: string, url: string, existingSummary: string | null = null): Promise<{ title_zh: string; summary_zh: string }> {
