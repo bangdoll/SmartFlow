@@ -6,11 +6,19 @@
 
 ## [2026-01-02]
 
+### 新增 (Added)
+- **雙語修復專用 API**: 新增 `/api/cron/bilingual-fix` 端點，專門用於雙語內容檢查與修復，可被外部排程服務（如 cron-job.org）呼叫。
+- **外部排程服務整合**: 支援 cron-job.org 等外部服務呼叫 API，突破 Vercel Hobby 方案僅 2 個 Cron Jobs 的限制。
+
 ### 優化/變更 (Changed)
+- **Summarize API 效能優化**: 每次處理數量從 3 則減至 1 則，網頁抓取超時從 10 秒減至 5 秒，內容截斷從 4000 字元減至 2000 字元，確保在 30 秒內完成（約 16 秒）。
+- **Bilingual-Fix API 效能優化**: 每次處理數量從 100 則減至 5 則，檢查範圍從 14 天減至 7 天，確保在 30 秒內完成（約 2 秒/無待處理時）。
 - **語言偵測邏輯統一優化**: 更新 `audit_bilingual.ts` 和 `fix_bilingual_backlog.ts` 的 `isEnglishText()` 函數，同步採用「3+ 中文字符即判定為中文」的改進邏輯，減少誤判包含技術術語的中文標題。
 - **批次雙語修復腳本增強**: 新增 `fix_missing_en_titles.ts`、`fix_final_edges.ts` 等腳本，自動處理邊緣案例與缺少英文標題的項目。
 
 ### 修復 (Fixed)
+- **cron-job.org 401 錯誤**: 修正外部排程呼叫 bilingual-fix API 時缺少 Authorization header 的問題。
+- **cron-job.org 超時錯誤**: 優化 API 效能，從原本 69 秒降至 2 秒，符合 cron-job.org 免費方案 30 秒 timeout 限制。
 - **全面雙語審計修復**: 執行 14 天內容審計，修復 **21 則中文項目**（英文標題翻譯成中文）、**30 則英文項目**（補齊英文標題與摘要）、**7 則邊緣案例**（如「ManusAI 加入 Meta」→「ManusAI 加入 Meta（臉書母公司）」）。
 - **審計通過驗證**: 最終審計結果 `Chinese Issues: 0, English Issues: 0`，所有雙語內容一致性問題已解決。
 

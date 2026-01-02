@@ -33,6 +33,7 @@
 
 ## 近期重大更新
 
+- **外部排程整合與 API 效能優化 (2026-01-02)**: 新增 `/api/cron/bilingual-fix` 與 `/api/cron/summarize` 專用端點，支援 cron-job.org 等外部排程服務呼叫；優化 API 效能至 30 秒內完成，符合免費方案限制。
 - **雙語內容全面審計修復 (2026-01-02)**: 執行 14 天雙語審計，修復 21 則中文項目、30 則英文項目、7 則邊緣案例；統一 `isEnglishText()` 語言偵測邏輯（3+ 中文字符即判定為中文），最終審計結果 0 錯誤。
 - **語言偵測與週報雙語強化 (2025-12-31)**: 改進語言偵測邏輯，避免誤判含技術英文的中文標題；週報生成器現同時產生中英文內容；全面審計並修復 426 則新聞的雙語內容。
 - **雙語一致性與 UI 升級 (2025-12-29)**: 導入嚴格的雙語內容檢查機制，確保中英文版內容完全分離；新聞詳情頁全面導入 Glassmorphism (玻璃擬態) 設計，提升視覺質感。
@@ -97,8 +98,24 @@
 
 ## API 端點 (Cron Jobs)
 
-- `GET /api/cron/scrape`: 執行爬蟲與摘要 (需 `Authorization: Bearer <CRON_SECRET>`)
-- `GET /api/cron/newsletter`: 發送電子報 (需 `Authorization: Bearer <CRON_SECRET>`)
+所有 API 端點都需要 `Authorization: Bearer <CRON_SECRET>` 驗證標頭。
+
+| 端點 | 說明 | 建議執行頻率 |
+|------|------|-------------|
+| `/api/cron/daily` | 每日主排程（爬蟲+摘要+電子報+雙語修復） | 每日 1 次 |
+| `/api/cron/scrape` | 執行爬蟲，抓取最新新聞 | 需要時 |
+| `/api/cron/summarize` | 為待處理新聞生成摘要（每次 1 則） | 每 5-10 分鐘 |
+| `/api/cron/bilingual-fix` | 雙語內容檢查與修復（每次 5 則） | 每日 2-3 次 |
+| `/api/cron/newsletter` | 發送電子報 | 每日 1 次 |
+
+### 外部排程服務整合
+
+由於 Vercel Hobby 方案僅支援 2 個 Cron Jobs，可使用 [cron-job.org](https://cron-job.org) 等外部服務增加執行頻率：
+
+1. 在 cron-job.org 建立新排程
+2. 設定 URL 為 `https://your-domain.com/api/cron/bilingual-fix`
+3. 在 ADVANCED 設定中加入 Header：`Authorization: Bearer <你的 CRON_SECRET>`
+4. 設定執行時間（建議 UTC 00:00、08:00、16:00）
 
 ## 授權
 
