@@ -3,10 +3,6 @@
         {
             "path": "/api/cron/daily",
             "schedule": "0 0 * * *"
-        },
-        {
-            "path": "/api/cron/bilingual-fix",
-            "schedule": "0 8 * * *"
         }
     ]
 }
