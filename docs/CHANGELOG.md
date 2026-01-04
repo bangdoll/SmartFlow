@@ -4,6 +4,17 @@
 
 ---
 
+## [2026-01-04]
+
+### 優化/變更 (Changed)
+- **News Cron Job 頻率優化**: 
+  - `Smart Flow Summarize`: 頻率從每日 1 次大幅提升至 **每 10 分鐘 1 次**，確保新文章能即時生成摘要與翻譯。
+  - `Smart Flow Scrape`: 頻率從每日 1 次提升至 **每 15 分鐘 1 次**，確保新聞來源抓取更即時。
+  - `Smart Flow Bilingual Fix`: 設定為 **每 15 分鐘 1 次**，持續監控並修復雙語內容。
+- **除錯功能增強**: 啟用 cron-job.org 的「在工作歷史中儲存回應 (Save responses in job history)」選項，方便追蹤 API 執行結果與除錯。
+
+---
+
 ## [2026-01-02]
 
 ### 新增 (Added)
