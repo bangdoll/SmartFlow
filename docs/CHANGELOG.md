@@ -13,6 +13,11 @@
   - `Smart Flow Bilingual Fix`: 設定為 **每 15 分鐘 1 次**，持續監控並修復雙語內容。
 - **除錯功能增強**: 啟用 cron-job.org 的「在工作歷史中儲存回應 (Save responses in job history)」選項，方便追蹤 API 執行結果與除錯。
 
+### 文檔與成長 (Documentation & Growth)
+- **Product Hunt 發布包**: 建立 `product_hunt_kit`，包含完整的發布戰略 (`LAUNCH_PLAN.md`)、文案 (`COPYWRITING.md`)、60秒 Demo 影片腳本 (`DEMO_VIDEO_SCRIPT.md`) 與高清宣傳圖集。
+- **動態品牌識別**: 新增 `scripts/generate_logo_gif.py`，生成帶有呼吸特效的動態 Logo (`logo-animation.gif`)，用於社群頭像。
+- **成長策略更新**: 更新 `docs/growth_strategy.md`，合併舊版審計報告與新的 2026 Q1 增長駭客戰略 (Product Stickiness, Acquisition, Authority)。
+
 ### 修復 (Fixed)
 - **週報關鍵字顯示異常**: 修復 `/weekly` 頁面「本週熱門關鍵字」區塊只顯示排名與數字但缺少文字的問題（因資料庫欄位 `tag` 與前端預期的 `topic` 不符）。
 
