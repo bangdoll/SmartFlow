@@ -12,16 +12,15 @@ export const revalidate = 300; // 5 分鐘重新驗證
 
 // 熱門比較組合（含中英文描述）
 const COMPARISONS = [
-    { t1: 'DeepSeek', t2: 'OpenAI', desc: '新星挑戰王者', descEn: 'Rising Star vs King' },
-    { t1: 'Cursor', t2: 'GitHub Copilot', desc: 'AI 寫程式神器', descEn: 'AI Coding Assistants' },
-    { t1: 'OpenAI', t2: 'Anthropic', desc: 'AGI 路線之爭', descEn: 'AGI Approach Battle' },
-    { t1: 'ChatGPT', t2: 'Claude', desc: '對話 AI 之巔', descEn: 'Conversational AI Champions' },
-    { t1: 'Midjourney', t2: 'Flux', desc: '圖像生成王者', descEn: 'Image Gen Overlords' },
-    { t1: 'Llama 3', t2: 'Mistral', desc: '開源模型對決', descEn: 'Open Source Battle' },
-    { t1: 'Google', t2: 'Perplexity', desc: '搜尋引擎革命', descEn: 'Search Revolution' },
-    { t1: 'Sora', t2: 'Runway', desc: '影片生成新戰場', descEn: 'Video Generation Arena' },
-    { t1: 'TSMC', t2: 'NVIDIA', desc: 'AI 晶片供應鏈', descEn: 'AI Chip Supply Chain' },
+    { t1: 'GPT-5.2', t2: 'Gemini 3', desc: '通用模型巔峰對決', descEn: 'Peak of General Models' },
+    { t1: 'Claude 4.5', t2: 'GPT-5.2', desc: '推理與代理終極較量', descEn: 'Ultimate Reasoning Battle' },
+    { t1: 'Midjourney v7', t2: 'Flux 2', desc: '圖像生成的藝術與真實', descEn: 'Art vs Realism' },
+    { t1: 'Cursor', t2: 'Claude Code 2.0', desc: 'IDE vs Agent', descEn: 'IDE vs Agent' },
+    { t1: 'Sora 2', t2: 'Runway Gen-4', desc: '影片生成新紀元', descEn: 'New Era of Video Gen' },
+    { t1: 'Grok 3', t2: 'Llama 4', desc: '開源與自由模型領先者', descEn: 'Open/Free Model Leaders' },
+    { t1: 'DeepSeek V3', t2: 'OpenAI o3', desc: '高性價比推理對決', descEn: 'High Value Reasoning' },
     { t1: 'Apple', t2: 'Google', desc: '手機 AI 生態', descEn: 'Mobile AI Ecology' },
+    { t1: 'TSMC', t2: 'NVIDIA', desc: 'AI 晶片供應鏈', descEn: 'AI Chip Supply Chain' },
 ];
 
 // 檢查主題是否有新聞
