@@ -16,9 +16,12 @@ async function getLatestWeeklyTrends() {
 
     return {
         title: data.title,
+        titleEn: data.title_en,
         core_message: data.core_message,
+        coreMessageEn: data.core_message_en,
         trends: data.trends,
-        persona_advice: data.persona_advice
+        persona_advice: data.persona_advice,
+        personaAdviceEn: data.persona_advice_en
     };
 }
 

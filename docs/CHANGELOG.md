@@ -18,6 +18,7 @@
 
 ### 內容更新 (Content)
 - **Compare 頁面更新**: 優化比較主題，改為採用資料庫中有實際新聞數據的主題（如 `Apple vs Google`、`Innovation vs Ethics`），確保頁面內容豐富不空白。
+- **Trends 頁面自動化**: 修正 `/trends` 頁面與組件，使其連動週報資料庫 (`weekly_trends`)。現在「本週智流一句話」會每週一自動更新，並支援中英雙語切換。
 
 ---
 

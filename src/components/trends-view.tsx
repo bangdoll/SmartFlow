@@ -135,16 +135,22 @@ const STATIC_TRENDS: Record<'en' | 'zh-TW', TrendsData> = {
 export function TrendsView({ initialData }: { initialData: any | null }) {
     const { language, t } = useLanguage();
 
-    // Use DB data if available, but currently we assume DB data is ZH-only or structured differently.
-    // For now, to solve the "English Version" request, we prioritize the Static English content 
-    // when Language is EN, unless DB has explicit EN support (which it likely doesn't yet).
-    // If initialData is present, we might want to use it for ZH, but for EN fallback to static?
-    // Let's stick to Static for consistency until DB is fully bilingual.
-    // OR: check if `initialData` has the correct language fields.
+    // Determine data source: Priority to DB (initialData), fallback to Static (though Static might be stale)
+    const activeData = initialData ? {
+        title: (language === 'en' && initialData.titleEn) ? initialData.titleEn : initialData.title,
+        coreMessage: (language === 'en' && initialData.coreMessageEn) ? initialData.coreMessageEn : initialData.core_message,
+        trends: initialData.trends, // Trends array structure should match
+        advice: (language === 'en' && initialData.personaAdviceEn) ? initialData.personaAdviceEn : initialData.persona_advice
+    } : (STATIC_TRENDS[language] || STATIC_TRENDS['zh-TW']); // Fallback to legacy static data if DB fails
 
-    // Simple Strategy: Use Static Dict based on Language.
-    // If DB data is critical, we would need to fetch translated fields.
-    const data = STATIC_TRENDS[language] || STATIC_TRENDS['zh-TW'];
+    // Safety check for advice object structure if coming from DB (DB uses general/employee/boss keys)
+    const advice = activeData.advice || { general: '', employee: '', boss: '' };
+
+    // Alias to match existing JSX usage
+    const data = {
+        ...activeData,
+        advice: advice
+    };
 
     return (
         <div className="relative max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8 pt-24">
@@ -182,7 +188,7 @@ export function TrendsView({ initialData }: { initialData: any | null }) {
                     <Hash className="w-5 h-5 text-gray-500" />
                     {language === 'zh-TW' ? '本週關鍵趨勢解讀' : 'Key Trends Implementation'}
                 </h2>
-                {data.trends.map((item, index) => (
+                {data.trends.map((item: TrendItem, index: number) => (
                     <Link
                         key={item.tag}
                         href={`/archive?tag=${encodeURIComponent(item.tag)}`}
