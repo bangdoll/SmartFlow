@@ -42,7 +42,11 @@ async function getLatestWeeklyTrends() {
         titleEn: data.title_en,
         core_message: data.core_message,
         coreMessageEn: data.core_message_en,
-        trends: data.trends,
+        trends: Array.isArray(data.trends) ? data.trends.map((trend: any) => ({
+            topic: trend.topic || trend.tag || 'Unknown', // Handle both 'topic' and 'tag'
+            count: trend.count || 0,
+            sentiment: trend.sentiment
+        })) : [],
         persona_advice: data.persona_advice,
         personaAdviceEn: data.persona_advice_en,
         week_start_date: data.week_start_date,
