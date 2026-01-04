@@ -17,7 +17,7 @@
 - **週報關鍵字顯示異常**: 修復 `/weekly` 頁面「本週熱門關鍵字」區塊只顯示排名與數字但缺少文字的問題（因資料庫欄位 `tag` 與前端預期的 `topic` 不符）。
 
 ### 內容更新 (Content)
-- **Compare 頁面更新**: 新增 2026 年最新 AI 版本比較主題，包括 `GPT-5.2 vs Gemini 3`、`Claude 4.5 vs GPT-5.2`、`Midjourney v7 vs Flux 2` 等未來趨勢主題。
+- **Compare 頁面更新**: 優化比較主題，改為採用資料庫中有實際新聞數據的主題（如 `Apple vs Google`、`Innovation vs Ethics`），確保頁面內容豐富不空白。
 
 ---
 

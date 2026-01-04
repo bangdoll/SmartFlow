@@ -12,15 +12,14 @@ export const revalidate = 300; // 5 分鐘重新驗證
 
 // 熱門比較組合（含中英文描述）
 const COMPARISONS = [
-    { t1: 'GPT-5.2', t2: 'Gemini 3', desc: '通用模型巔峰對決', descEn: 'Peak of General Models' },
-    { t1: 'Claude 4.5', t2: 'GPT-5.2', desc: '推理與代理終極較量', descEn: 'Ultimate Reasoning Battle' },
-    { t1: 'Midjourney v7', t2: 'Flux 2', desc: '圖像生成的藝術與真實', descEn: 'Art vs Realism' },
-    { t1: 'Cursor', t2: 'Claude Code 2.0', desc: 'IDE vs Agent', descEn: 'IDE vs Agent' },
-    { t1: 'Sora 2', t2: 'Runway Gen-4', desc: '影片生成新紀元', descEn: 'New Era of Video Gen' },
-    { t1: 'Grok 3', t2: 'Llama 4', desc: '開源與自由模型領先者', descEn: 'Open/Free Model Leaders' },
-    { t1: 'DeepSeek V3', t2: 'OpenAI o3', desc: '高性價比推理對決', descEn: 'High Value Reasoning' },
-    { t1: 'Apple', t2: 'Google', desc: '手機 AI 生態', descEn: 'Mobile AI Ecology' },
+    { t1: 'Apple', t2: 'Google', desc: '手機 AI 生態與系統對決', descEn: 'Mobile AI Ecosystems' },
+    { t1: 'OpenAI', t2: 'Google', desc: 'AI 霸主爭奪戰', descEn: 'Battle for AI Supremacy' },
+    { t1: 'Innovation', t2: 'Ethics', desc: '發展速度與安全倫理的拉鋸', descEn: 'Speed vs Safety' },
+    { t1: 'GPT-5.2', t2: 'Gemini 3', desc: '2026 通用模型巔峰對決', descEn: 'Peak of General Models' },
+    { t1: 'Security', t2: 'Privacy', desc: '數據保護的永恆難題', descEn: 'Data Protection Paradox' },
+    { t1: 'ChatGPT', t2: 'Apple', desc: '雲端 AI 與 邊緣 AI 的融合', descEn: 'Cloud vs Edge AI' },
     { t1: 'TSMC', t2: 'NVIDIA', desc: 'AI 晶片供應鏈', descEn: 'AI Chip Supply Chain' },
+    { t1: 'DeepSeek V3', t2: 'OpenAI o3', desc: '高性價比推理對決', descEn: 'High Value Reasoning' },
 ];
 
 // 檢查主題是否有新聞

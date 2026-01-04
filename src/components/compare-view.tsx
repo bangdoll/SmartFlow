@@ -208,10 +208,10 @@ export function CompareView({ data }: CompareViewProps) {
                 </h3>
                 <div className="flex flex-wrap gap-2">
                     {[
+                        ['Apple', 'Google'],
+                        ['OpenAI', 'Google'],
+                        ['Innovation', 'Ethics'],
                         ['GPT-5.2', 'Gemini 3'],
-                        ['Claude 4.5', 'GPT-5.2'],
-                        ['Midjourney v7', 'Flux 2'],
-                        ['Sora 2', 'Runway Gen-4'],
                     ].map(([t1, t2]) => (
                         <Link
                             key={`${t1}-${t2}`}
