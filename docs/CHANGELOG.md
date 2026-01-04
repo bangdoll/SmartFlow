@@ -19,6 +19,7 @@
 ### 內容更新 (Content)
 - **Compare 頁面更新**: 優化比較主題，改為採用資料庫中有實際新聞數據的主題（如 `Apple vs Google`、`Innovation vs Ethics`），確保頁面內容豐富不空白。
 - **Trends 頁面自動化**: 修正 `/trends` 頁面與組件，使其連動週報資料庫 (`weekly_trends`)。現在「本週智流一句話」會每週一自動更新，並支援中英雙語切換。
+- **思維模型分析引擎**: 更新週報生成邏輯 (`trends-generator.ts`)，引入查理·芒格 (Charlie Munger) 的 100 個思維模型（如機會成本、二階思考），提升週報洞察的深度與商業價值。
 
 ---
 

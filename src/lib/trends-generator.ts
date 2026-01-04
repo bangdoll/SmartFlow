@@ -62,9 +62,10 @@ export async function generateWeeklyTrends() {
         Requirements:
         1. **Core Message**: Synthesize one single, powerful sentence that describes the "Phase" or "Main Theme" of this week.
         2. **Trends Extraction**: Identify 6 key trends/keywords.
-        3. **Persona Advice**: Give specific, actionable advice for General User, Employee, and Boss.
-        4. **Bilingual Output**: Provide Title, Core Message, and Advice in BOTH Traditional Chinese (Taiwan) and English.
-        5. Tone: Professional, insightful, yet accessible. Like a "Decision Helper".
+        3. **Mental Model Analysis**: Select 3 relevant "Charlie Munger Mental Models" (e.g., Opportunity Cost, Inversion, Second-Order Thinking, Network Effects, etc.) that best explain this week's events. Use these models to frame your insights.
+        4. **Persona Advice**: Give specific, actionable advice for General User, Employee, and Boss, incorporating the selected mental models where appropriate.
+        5. **Bilingual Output**: Provide Title, Core Message, and Advice in BOTH Traditional Chinese (Taiwan) and English.
+        6. Tone: Professional, insightful, yet accessible. Like a "Decision Helper".
     `;
 
     // 3. Generate Insights
