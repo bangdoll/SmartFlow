@@ -5,14 +5,16 @@ import { notFound } from 'next/navigation';
 
 // 熱門比較組合 - 用於 generateStaticParams
 const POPULAR_COMPARISONS = [
+    ['DeepSeek', 'OpenAI'],
+    ['Cursor', 'GitHub Copilot'],
     ['OpenAI', 'Anthropic'],
     ['ChatGPT', 'Claude'],
-    ['GPT-5', 'Gemini 3'],
-    ['Midjourney', 'DALL-E'],
-    ['Meta', 'Google'],
-    ['Microsoft', 'Google'],
+    ['Midjourney', 'Flux'],
+    ['Llama 3', 'Mistral'],
+    ['Google', 'Perplexity'],
     ['Sora', 'Runway'],
     ['TSMC', 'NVIDIA'],
+    ['Apple', 'Google'],
 ];
 
 interface Props {

@@ -16,6 +16,9 @@
 ### 修復 (Fixed)
 - **週報關鍵字顯示異常**: 修復 `/weekly` 頁面「本週熱門關鍵字」區塊只顯示排名與數字但缺少文字的問題（因資料庫欄位 `tag` 與前端預期的 `topic` 不符）。
 
+### 內容更新 (Content)
+- **Compare 頁面更新**: 新增 2026 年熱門 AI 比較主題，包括 `DeepSeek vs OpenAI`、`Cursor vs GitHub Copilot`、`Midjourney vs Flux` 等。
+
 ---
 
 ## [2026-01-02]
