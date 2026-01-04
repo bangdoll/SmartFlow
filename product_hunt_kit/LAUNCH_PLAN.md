@@ -23,10 +23,10 @@ PH 非重視視覺吸引力，SmartFlow 的設計風格（Glassmorphism）是一
     - *重點：不要說話，用字幕說明即可，節奏要快。*
 
 ### 2. 文案撰寫 (Copywriting)
-- [ ] **Name**: SmartFlow
-- [ ] **Tagline (60字元)**: "All your AI news in one place, analyzed with mental models. 🧠" (強調「一站式」與「思維模型」)
-- [ ] **Description (260字元)**: "Automated AI news aggregator that scrapes top sources daily. Features instant bilingual support, AI audio summaries, and weekly trend analysis powered by Charlie Munger's mental models. Stay smart, effortlessly."
-- [ ] **Maker's Comment (第一則留言)**:
+- [x] **Name**: SmartFlow
+- [x] **Tagline (60字元)**: "All your AI news in one place, analyzed with mental models. 🧠" (強調「一站式」與「思維模型」)
+- [x] **Description (260字元)**: "Automated AI news aggregator that scrapes top sources daily. Features instant bilingual support, AI audio summaries, and weekly trend analysis powered by Charlie Munger's mental models. Stay smart, effortlessly."
+- [x] **Maker's Comment (第一則留言)**: 已撰寫於 `product_hunt_kit/COPYWRITING.md`。
     - 介紹自己為什麼做這個（例如：資訊焦慮、英文閱讀門檻）。
     - 提到這是一個 Open Source 專案（如果是的話，PH 社群超愛開源）。
     - 邀請大家反饋，並承諾全天在線回答。
