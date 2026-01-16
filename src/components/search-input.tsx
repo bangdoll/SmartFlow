@@ -63,13 +63,12 @@ export function SearchInput() {
     return (
         <div ref={containerRef} className={`relative flex items-center transition-all duration-300 ${isOpen ? 'w-32 sm:w-48 md:w-64' : 'w-8 sm:w-10'}`}>
             {isOpen ? (
-                <form onSubmit={handleSearch} action="/search" method="get" className="relative w-full">
+                <form action="/search" method="get" className="relative w-full">
                     <input
                         ref={inputRef}
                         type="text"
                         name="q"
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
+                        defaultValue={query}
                         placeholder={t('search.placeholder')}
                         className="w-full h-8 sm:h-10 pl-8 sm:pl-10 pr-6 sm:pr-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-full text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all shadow-sm"
                     />
