@@ -5,6 +5,7 @@ import { marked } from 'marked';
 
 export async function sendDailyNewsletter() {
   const resendApiKey = process.env.RESEND_API_KEY;
+  const emailFrom = process.env.EMAIL_FROM || '智流 Smart Flow <onboarding@resend.dev>';
   if (!resendApiKey) {
     console.warn('RESEND_API_KEY is missing');
     return { success: false, message: 'RESEND_API_KEY is missing' };
@@ -138,7 +139,7 @@ export async function sendDailyNewsletter() {
   for (const sub of subscribers) {
     try {
       const { error } = await resend.emails.send({
-        from: '智流 Smart Flow <onboarding@resend.dev>',
+        from: emailFrom,
         to: sub.email,
         subject: emailSubject,
         html: htmlContent,
