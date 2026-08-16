@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
+import { z } from 'zod';
 
 function getOpenAI() {
     const apiKey = process.env.OPENAI_API_KEY;
@@ -16,11 +17,11 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function POST(req: NextRequest) {
     try {
-        const { newsId } = await req.json();
-
-        if (!newsId) {
+        const parsed = z.object({ newsId: z.string().uuid() }).safeParse(await req.json());
+        if (!parsed.success) {
             return NextResponse.json({ error: 'Missing newsId' }, { status: 400 });
         }
+        const { newsId } = parsed.data;
 
         // 1. Fetch current data
         const { data: newsItem, error: fetchError } = await supabase
@@ -95,7 +96,6 @@ export async function POST(req: NextRequest) {
 
     } catch (error: unknown) {
         console.error('Translation API Error:', error);
-        const message = error instanceof Error ? error.message : 'Internal Server Error';
-        return NextResponse.json({ error: message }, { status: 500 });
+        return NextResponse.json({ error: 'Translation is temporarily unavailable' }, { status: 503 });
     }
 }

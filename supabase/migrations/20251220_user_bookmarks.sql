@@ -14,17 +14,17 @@ alter table user_bookmarks enable row level security;
 -- Allow users to view their own bookmarks
 create policy "Users can view own bookmarks" 
 on user_bookmarks for select 
-using (auth.uid() = user_id);
+using ((select auth.uid()) = user_id);
 
 -- Allow users to insert their own bookmarks
 create policy "Users can insert own bookmarks" 
 on user_bookmarks for insert 
-with check (auth.uid() = user_id);
+with check ((select auth.uid()) = user_id);
 
 -- Allow users to delete their own bookmarks
 create policy "Users can delete own bookmarks" 
 on user_bookmarks for delete 
-using (auth.uid() = user_id);
+using ((select auth.uid()) = user_id);
 
 -- Index for performance
 create index if not exists idx_user_bookmarks_user_id on user_bookmarks(user_id);

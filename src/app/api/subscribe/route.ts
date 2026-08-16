@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { z } from 'zod';
 
 const SubscribeSchema = z.object({
-    email: z.string().email('請輸入有效的 Email 地址'),
+    email: z.string().trim().toLowerCase().email('請輸入有效的 Email 地址'),
 });
 
 export async function POST(req: NextRequest) {
@@ -21,11 +21,19 @@ export async function POST(req: NextRequest) {
         const { email } = result.data;
 
         // 檢查是否已訂閱
-        const { data: existing } = await supabase
+        const { data: existing, error: existingError } = await supabase
             .from('subscribers')
             .select('id')
             .eq('email', email)
             .single();
+
+        if (existingError && existingError.code !== 'PGRST116') {
+            console.error('Subscription lookup error:', existingError);
+            return NextResponse.json(
+                { error: '訂閱失敗，請稍後再試。' },
+                { status: 503 }
+            );
+        }
 
         if (existing) {
             return NextResponse.json(
@@ -41,9 +49,15 @@ export async function POST(req: NextRequest) {
 
         if (error) {
             console.error('Subscription error:', error);
+            if (error.code === '23505') {
+                return NextResponse.json(
+                    { error: '此 Email 已經訂閱過了。' },
+                    { status: 409 }
+                );
+            }
             return NextResponse.json(
                 { error: '訂閱失敗，請稍後再試。' },
-                { status: 500 }
+                { status: 503 }
             );
         }
 

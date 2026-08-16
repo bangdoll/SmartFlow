@@ -18,7 +18,6 @@ export async function POST(req: NextRequest) {
 
     } catch (error: unknown) {
         console.error('Batch Translation API Error:', error);
-        const message = error instanceof Error ? error.message : 'Internal Server Error';
-        return NextResponse.json({ error: message }, { status: 500 });
+        return NextResponse.json({ error: 'Translation is temporarily unavailable' }, { status: 503 });
     }
 }

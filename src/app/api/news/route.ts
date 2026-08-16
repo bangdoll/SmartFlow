@@ -38,7 +38,7 @@ export async function GET(request: Request) {
 
         if (error) {
             console.error('Error fetching news:', error);
-            return NextResponse.json({ error: error.message }, { status: 500 });
+            return NextResponse.json({ error: 'Unable to load news right now' }, { status: 503 });
         }
 
         return NextResponse.json(data || [], {

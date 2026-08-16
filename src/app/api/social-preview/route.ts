@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { generateAllPreviews, type NewsContext } from '@/lib/social-templates';
+import { publicCacheHeaders } from '@/lib/cache-control';
+import { SITE_URL } from '@/lib/site';
+import { z } from 'zod';
+
+const SocialPreviewQuerySchema = z.object({
+    newsId: z.string().uuid(),
+});
 
 /**
  * 社群貼文預覽 API
@@ -12,8 +19,9 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const newsId = searchParams.get('newsId');
 
-    if (!newsId) {
-        return NextResponse.json({ error: 'Missing newsId' }, { status: 400 });
+    const parsed = SocialPreviewQuerySchema.safeParse({ newsId });
+    if (!parsed.success) {
+        return NextResponse.json({ error: 'Invalid newsId' }, { status: 400 });
     }
 
     try {
@@ -21,7 +29,7 @@ export async function GET(req: NextRequest) {
         const { data: newsItem, error } = await supabase
             .from('news_items')
             .select('id, title, summary_zh, original_url, tags')
-            .eq('id', newsId)
+            .eq('id', parsed.data.newsId)
             .single();
 
         if (error || !newsItem) {
@@ -42,22 +50,24 @@ export async function GET(req: NextRequest) {
             title: newsItem.title,
             summary: newsItem.summary_zh,
             takeaway,
-            url: `https://smart-flow.rd.coach/news/${newsItem.id.substring(0, 8)}`,
+            url: `${SITE_URL}/news/${newsItem.id.substring(0, 8)}`,
             tags: newsItem.tags || [],
         };
 
         // 生成所有平台的貼文預覽
         const previews = generateAllPreviews(newsContext);
 
-        return NextResponse.json({
-            newsId: newsItem.id,
-            title: newsItem.title,
-            previews,
-        });
+        return NextResponse.json(
+            {
+                newsId: newsItem.id,
+                title: newsItem.title,
+                previews,
+            },
+            { headers: publicCacheHeaders(300, 1800) }
+        );
 
     } catch (error: unknown) {
         console.error('Social preview error:', error);
-        const message = error instanceof Error ? error.message : 'Internal Server Error';
-        return NextResponse.json({ error: message }, { status: 500 });
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

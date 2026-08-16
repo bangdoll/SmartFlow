@@ -1,9 +1,8 @@
 'use client';
 
 import { NewsItem } from '@/types';
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Calendar, Tag, ExternalLink, X, Share2, ArrowUpRight } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -44,10 +43,44 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
     const [currentY, setCurrentY] = useState(0);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const pullThreshold = 100; // Pixels to pull to trigger refresh
+    const observerRef = useRef<IntersectionObserver | null>(null);
 
     useEffect(() => {
         setFeedItems(initialItems);
     }, [initialItems]);
+
+    const handleRefresh = useCallback(async () => {
+        setIsRefreshing(true);
+        try {
+            setToast({ message: t('feed.toast.checking'), type: 'info' });
+
+            // Refresh only reads the public feed. Scraping and LLM work stays
+            // behind the protected maintenance endpoint instead of being
+            // triggerable by every visitor.
+            const res = await fetch('/api/news?limit=3&offset=0');
+            if (res.ok) {
+                const newItems: NewsItem[] = await res.json();
+
+                setFeedItems(prev => {
+                    const existingIds = new Set(prev.map(i => i.id));
+                    const uniqueNewItems = newItems.filter(i => !existingIds.has(i.id));
+
+                    if (uniqueNewItems.length > 0) {
+                        setToast({ message: t('feed.toast.updated').replace('{count}', uniqueNewItems.length.toString()), type: 'success' });
+                        return [...uniqueNewItems, ...prev];
+                    }
+
+                    setToast({ message: t('feed.toast.latest'), type: 'info' });
+                    return prev;
+                });
+            }
+        } catch (error) {
+            console.error('Refresh failed:', error);
+            setToast({ message: t('feed.toast.error'), type: 'info' });
+        } finally {
+            setTimeout(() => setIsRefreshing(false), 500);
+        }
+    }, [t]);
 
     // Touch Event Handlers for Pull to Refresh (Disable in Focus Mode? Maybe redundant if list is short)
     useEffect(() => {
@@ -92,7 +125,7 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
             document.removeEventListener('touchmove', handleTouchMove);
             document.removeEventListener('touchend', handleTouchEnd);
         };
-    }, [isPulling, startY, currentY, isRefreshing, mode]);
+    }, [isPulling, startY, currentY, isRefreshing, mode, handleRefresh]);
 
     // Toast State
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' } | null>(null);
@@ -103,41 +136,6 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
             return () => clearTimeout(timer);
         }
     }, [toast]);
-
-    const handleRefresh = async () => {
-        setIsRefreshing(true);
-        try {
-            setToast({ message: t('feed.toast.checking'), type: 'info' });
-
-            // Refresh only reads the public feed. Scraping and LLM work stays
-            // behind the protected maintenance endpoint instead of being
-            // triggerable by every visitor.
-            const res = await fetch('/api/news?limit=3&offset=0');
-            if (res.ok) {
-                const newItems: NewsItem[] = await res.json();
-
-                setFeedItems(prev => {
-                    // Filter out duplicates based on ID
-                    const existingIds = new Set(prev.map(i => i.id));
-                    const uniqueNewItems = newItems.filter(i => !existingIds.has(i.id));
-
-                    if (uniqueNewItems.length > 0) {
-                        setToast({ message: t('feed.toast.updated').replace('{count}', uniqueNewItems.length.toString()), type: 'success' });
-                        return [...uniqueNewItems, ...prev];
-                    } else {
-                        setToast({ message: t('feed.toast.latest'), type: 'info' });
-                        return prev;
-                    }
-                });
-            }
-        } catch (error) {
-            console.error('Refresh failed:', error);
-            setToast({ message: t('feed.toast.error'), type: 'info' });
-        } finally {
-            // Wait a bit to show the animation finish
-            setTimeout(() => setIsRefreshing(false), 500);
-        }
-    };
 
     // Combine initial and loaded items
     const combined = useMemo(() => {
@@ -183,21 +181,32 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
         return result;
     }, [translatedCombined, selectedTag, sortBy, mode]);
 
-    const loadMore = async (reset = false) => {
-        if (isLoading) return;
+    const loadMoreStateRef = useRef({
+        isLoading: false,
+        selectedTag: null as string | null,
+        displayCount: 0,
+    });
+    loadMoreStateRef.current = {
+        ...loadMoreStateRef.current,
+        selectedTag,
+        displayCount: displayItems.length,
+    };
+
+    const loadMore = useCallback(async (reset = false) => {
+        const state = loadMoreStateRef.current;
+        if (state.isLoading) return;
+        loadMoreStateRef.current = { ...state, isLoading: true };
         setIsLoading(true);
 
         try {
-            // If we have refreshed items (prepended), the offset calculation changes.
-            // But easiest way is just rely on list length.
-            const currentCount = reset ? 0 : displayItems.length;
+            const currentCount = reset ? 0 : loadMoreStateRef.current.displayCount;
             const params = new URLSearchParams({
                 offset: currentCount.toString(),
                 limit: '10',
             });
 
-            if (selectedTag) {
-                params.append('tag', selectedTag);
+            if (loadMoreStateRef.current.selectedTag) {
+                params.append('tag', loadMoreStateRef.current.selectedTag);
             }
             // if (sortBy === 'popular') {
             //     params.append('sort', 'popular');
@@ -223,20 +232,22 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
         } catch (error) {
             console.error('Error loading news:', error);
         } finally {
+            loadMoreStateRef.current = { ...loadMoreStateRef.current, isLoading: false };
             setIsLoading(false);
         }
-    };
+    }, []);
 
     // Reset loaded items when tag or sort changes
     useEffect(() => {
         if (mode === 'focus') return; // No sorting in focus mode
         setLoadedItems([]);
         setHasMore(true);
-        // 如果切換到 popular，或者切換了 tag，我們需要重新載入
-        if (sortBy === 'popular' || (selectedTag && loadedItems.length === 0)) {
-            loadMore(true); // reset=true
+        // Reload when a tag is selected. This also fixes switching directly
+        // from one tag to another while old loaded items are still present.
+        if (sortBy === 'popular' || selectedTag) {
+            void loadMore(true);
         }
-    }, [selectedTag, sortBy, mode]); // Removed initialItems from dep to avoid loop
+    }, [selectedTag, sortBy, mode, loadMore]);
 
     // Simplified tag handling - now handled by Link navigation
     // const handleTagClick... removed
@@ -405,7 +416,6 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
                                 // Direct Language (No 'en' fallback, avoids flash but requires suppression)
                                 const showEn = language === 'en';
                                 const hasEn = !!item.title_en;
-                                const isTranslatingItem = showEn && !hasEn;
 
                                 // Hydration Mismatch Specifics:
                                 // Server renders 'en' format. Client (zh) renders 'zh' format.
@@ -501,7 +511,7 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
                                             ) : displaySummary ? (
                                                 <div
                                                     className="mb-4 cursor-pointer"
-                                                    onClick={(e) => {
+                                                    onClick={() => {
                                                         // Hard Navigation to bypass any Router/State issues
                                                         const shortId = item.id.substring(0, 8);
                                                         // If in focus mode, we might want to pass 'is last' context in query?
@@ -619,14 +629,17 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
                         {mode === 'default' && (
                             <div
                                 ref={(node) => {
+                                    observerRef.current?.disconnect();
+                                    observerRef.current = null;
                                     if (!node || isLoading || !hasMore) return;
-                                    const observer = new IntersectionObserver((entries) => {
-                                        if (entries[0].isIntersecting) {
-                                            loadMore(false);
+
+                                    observerRef.current = new IntersectionObserver((entries) => {
+                                        if (entries[0]?.isIntersecting) {
+                                            observerRef.current?.disconnect();
+                                            void loadMore(false);
                                         }
                                     }, { threshold: 0.1, rootMargin: '100px' });
-                                    observer.observe(node);
-                                    return () => observer.disconnect();
+                                    observerRef.current.observe(node);
                                 }}
                                 className="mt-8 text-center py-8"
                             >

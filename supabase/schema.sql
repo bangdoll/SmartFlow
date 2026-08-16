@@ -67,7 +67,7 @@ alter table subscribers enable row level security;
 alter table newsletter_logs enable row level security;
 
 -- 開放公開讀取新聞 (供前端顯示)
-create policy "Allow public read access for news_items"
+create policy "Public items are viewable by everyone"
   on news_items for select
   using (true);
 
@@ -85,15 +85,15 @@ alter table user_bookmarks enable row level security;
 
 create policy "Users can view own bookmarks"
   on user_bookmarks for select
-  using (auth.uid() = user_id);
+  using ((select auth.uid()) = user_id);
 
 create policy "Users can insert own bookmarks"
   on user_bookmarks for insert
-  with check (auth.uid() = user_id);
+  with check ((select auth.uid()) = user_id);
 
 create policy "Users can delete own bookmarks"
   on user_bookmarks for delete
-  using (auth.uid() = user_id);
+  using ((select auth.uid()) = user_id);
 
 create index if not exists idx_user_bookmarks_user_id on user_bookmarks(user_id);
 create index if not exists idx_user_bookmarks_news_id on user_bookmarks(news_id);

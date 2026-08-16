@@ -10,7 +10,7 @@ interface AuthModalProps {
 }
 
 export function AuthModal({ isOpen, onClose }: AuthModalProps) {
-    const { language, t } = useLanguage();
+    const { language } = useLanguage();
     const supabase = createClient();
 
     if (!isOpen) return null;

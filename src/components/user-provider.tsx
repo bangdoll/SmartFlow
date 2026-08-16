@@ -1,7 +1,7 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
+import { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 
@@ -22,7 +22,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const router = useRouter();
     const supabase = createClient();
 
-    const refreshSession = async () => {
+    const refreshSession = useCallback(async () => {
         setIsLoading(true);
         try {
             const { data: { user }, error } = await supabase.auth.getUser();
@@ -51,7 +51,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [supabase]);
 
     useEffect(() => {
         // Initial load
@@ -60,7 +60,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         // Listen for auth changes
         const {
             data: { subscription },
-        } = supabase.auth.onAuthStateChange(async (event, session) => {
+        } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
             if (session) {
                 setSession(session);
                 setUser(session.user);
@@ -82,7 +82,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         return () => {
             subscription.unsubscribe();
         };
-    }, [router, supabase]);
+    }, [refreshSession, router, supabase]);
 
     const signIn = async (refresh = true) => {
         // Just triggers a refresh check, actual sign-in handled by AuthModal direct calls usually
