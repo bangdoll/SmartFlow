@@ -92,6 +92,7 @@ export function SocialPostCopy({ newsId, title }: SocialPostCopyProps) {
         <div className="border-t border-gray-100 dark:border-gray-800 pt-6 mt-6">
             <button
                 onClick={handleOpen}
+                title={title}
                 className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
                 <div className="flex items-center gap-3">

@@ -1,6 +1,13 @@
 import * as cheerio from 'cheerio';
 import { ScrapedNews } from '@/types';
 
+const FETCH_TIMEOUT_MS = 10_000;
+
+function toIsoDate(value?: string | number): string {
+    const date = value === undefined ? new Date() : new Date(value);
+    return Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
+}
+
 // 通用 RSS Feed 解析器
 async function parseRSSFeed(
     feedUrl: string,
@@ -14,7 +21,8 @@ async function parseRSSFeed(
             headers: {
                 'User-Agent': 'Mozilla/5.0 (compatible; SmartFlowBot/1.0)',
             },
-            next: { revalidate: 3600 }
+            next: { revalidate: 3600 },
+            signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
         });
 
         if (!response.ok) {
@@ -51,7 +59,7 @@ async function parseRSSFeed(
                     title,
                     original_url: link,
                     source: sourceName,
-                    published_at: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
+                    published_at: toIsoDate(pubDate),
                     content: title
                 });
             }
@@ -99,7 +107,8 @@ export async function scrapeHackerNews(): Promise<ScrapedNews[]> {
         console.log('Fetching Hacker News top stories...');
 
         const topStoriesRes = await fetch('https://hacker-news.firebaseio.com/v0/topstories.json', {
-            next: { revalidate: 3600 }
+            next: { revalidate: 3600 },
+            signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
         });
 
         if (!topStoriesRes.ok) throw new Error('Failed to fetch HN top stories');
@@ -113,7 +122,9 @@ export async function scrapeHackerNews(): Promise<ScrapedNews[]> {
 
         const storyPromises = storiesToCheck.map(async (id) => {
             try {
-                const storyRes = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`);
+                const storyRes = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`, {
+                    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+                });
                 if (!storyRes.ok) return null;
                 return await storyRes.json();
             } catch {
@@ -134,7 +145,7 @@ export async function scrapeHackerNews(): Promise<ScrapedNews[]> {
                         title: story.title,
                         original_url: story.url,
                         source: 'Hacker News',
-                        published_at: new Date(story.time * 1000).toISOString(),
+                        published_at: toIsoDate(typeof story.time === 'number' ? story.time * 1000 : undefined),
                         content: story.title
                     });
                 }
@@ -160,7 +171,8 @@ export async function scrapeRedditArtificial(): Promise<ScrapedNews[]> {
             headers: {
                 'User-Agent': 'SmartFlow-AI-News-Bot/1.0',
             },
-            next: { revalidate: 3600 }
+            next: { revalidate: 3600 },
+            signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
         });
 
         if (!response.ok) {
@@ -183,7 +195,7 @@ export async function scrapeRedditArtificial(): Promise<ScrapedNews[]> {
                     title: item.title,
                     original_url: url,
                     source: 'Reddit r/artificial',
-                    published_at: new Date(item.created_utc * 1000).toISOString(),
+                    published_at: toIsoDate(typeof item.created_utc === 'number' ? item.created_utc * 1000 : undefined),
                     content: item.selftext || item.title
                 });
             }
@@ -216,7 +228,8 @@ export async function scrapeGoogleNews(): Promise<ScrapedNews[]> {
                     headers: {
                         'User-Agent': 'Mozilla/5.0 (compatible; SmartFlowBot/1.0)',
                     },
-                    next: { revalidate: 3600 }
+                    next: { revalidate: 3600 },
+                    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
                 });
 
                 if (!response.ok) continue;
@@ -237,7 +250,7 @@ export async function scrapeGoogleNews(): Promise<ScrapedNews[]> {
                             title,
                             original_url: link,
                             source: `Google News (${source})`,
-                            published_at: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
+                            published_at: toIsoDate(pubDate),
                             content: title
                         });
                     }

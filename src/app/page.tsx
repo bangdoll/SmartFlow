@@ -3,9 +3,7 @@ import { SubscribeForm } from '@/components/subscribe-form';
 import { supabase } from '@/lib/supabase';
 import { NewsItem } from '@/types';
 import { WelcomeSection } from '@/components/welcome-section';
-import { HotNewsSection } from '@/components/hot-news';
 import { PinnedGuideCard } from '@/components/pinned-guide-card';
-import { DailyInsight } from '@/components/daily-insight';
 
 // 使用 ISR (增量靜態再生)，每 5 分鐘更新一次
 export const revalidate = 300;
@@ -72,16 +70,6 @@ const FALLBACK_NEWS: NewsItem[] = [
     slug: 'fallback-microsoft-windows'
   }
 ];
-
-async function getHotNews() {
-  const { data: items } = await supabase
-    .from('news_items')
-    .select('id, title, original_url, summary_zh, summary_en, title_en, slug, published_at, source, tags, created_at')
-    .order('published_at', { ascending: false })
-    .limit(3);
-
-  return items || [];
-}
 
 async function getLatestNews(): Promise<NewsItem[]> {
   const { data: items } = await supabase

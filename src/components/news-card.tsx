@@ -1,7 +1,7 @@
 'use client';
 
 import { NewsItem } from '@/types';
-import { ExternalLink, Calendar, Tag } from 'lucide-react';
+import { Calendar, Tag } from 'lucide-react';
 import Link from 'next/link';
 import { useLanguage } from './language-context';
 import { preprocessMarkdown } from '@/lib/markdown';
@@ -95,4 +95,3 @@ export function NewsCard({ news }: NewsCardProps) {
         </article>
     );
 }
-

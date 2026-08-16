@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateSummary } from '@/lib/llm';
 import { hasMaintenanceAuth } from '@/lib/api-auth';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin as supabase } from '@/lib/supabase';
 import * as cheerio from 'cheerio';
 
 // Phase 2: 為待處理項目生成摘要
 // 優化版：適用於外部 cron 服務的 30 秒限制
 export const maxDuration = 60;
+export const dynamic = 'force-dynamic';
 
 // 每次只處理 1 則，確保在 30 秒內完成（外部 cron 服務限制）
 const MAX_PROCESS_PER_RUN = 1;

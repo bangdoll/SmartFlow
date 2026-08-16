@@ -9,6 +9,8 @@ const SocialPreviewQuerySchema = z.object({
     newsId: z.string().uuid(),
 });
 
+export const dynamic = 'force-dynamic';
+
 /**
  * 社群貼文預覽 API
  * GET /api/social-preview?newsId=xxx

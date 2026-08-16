@@ -13,6 +13,7 @@ import { hasMaintenanceAuth } from '@/lib/api-auth';
 // 優化版：每次只處理少量項目，確保在 30 秒內完成
 // cron-job.org 免費方案 timeout 是 30 秒
 export const maxDuration = 60;
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
     if (!hasMaintenanceAuth(req)) {

@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { NewsContent } from '@/components/news-content';
 import { SITE_URL } from '@/lib/site';
+import { serializeJsonLd } from '@/lib/json-ld';
 
 // News changes through the scheduled scraper, so ISR avoids regenerating the
 // same article for every crawler and visitor.
@@ -196,7 +197,7 @@ export default async function NewsDetailPage({ params }: Props) {
             <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+                dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
             />
             {/* Header handled by layout */}
             <NewsContent item={item} prev={prev} next={next} />

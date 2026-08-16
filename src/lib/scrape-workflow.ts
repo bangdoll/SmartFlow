@@ -1,6 +1,6 @@
 import { scrapeAllSources } from '@/lib/scraper';
 import { generateSummary } from '@/lib/llm';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin as supabase } from '@/lib/supabase';
 import { nanoid } from 'nanoid';
 
 export async function runScrapeSortAndSummary() {

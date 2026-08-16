@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useLanguage } from './language-context';
 import { ArrowDown } from 'lucide-react';
 

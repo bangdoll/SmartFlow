@@ -1,9 +1,8 @@
 'use client';
 
 import { NewsItem } from '@/types';
-import Link from 'next/link';
 import { useLanguage } from './language-context';
-import { Lightbulb, ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 
 interface DailyInsightProps {
     insightItem: NewsItem | null;
@@ -26,8 +25,6 @@ export function DailyInsight({ insightItem }: DailyInsightProps) {
 
     // Strict Modes handled by Text Replacement within stable structure to prevent Hydration Mismatch
     const showEn = language === 'en';
-    const hasEn = !!item.title_en;
-
     let displayTitle = item.title;
     let isTranslating = false;
 

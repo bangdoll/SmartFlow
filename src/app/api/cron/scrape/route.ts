@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { scrapeAllSources } from '@/lib/scraper';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin as supabase } from '@/lib/supabase';
 import { nanoid } from 'nanoid';
 import { hasMaintenanceAuth } from '@/lib/api-auth';
 
 // Phase 1: 純爬取，不生成摘要 (避免逾時)
 export const maxDuration = 60;
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
     if (!hasMaintenanceAuth(req)) {

@@ -45,13 +45,6 @@ export function SearchInput() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [query]);
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (query.trim()) {
-            router.push(`/search?q=${encodeURIComponent(query.trim())}`);
-        }
-    };
-
     const clearSearch = () => {
         setQuery('');
         setIsOpen(false);

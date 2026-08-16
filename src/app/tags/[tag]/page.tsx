@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { NewsItem } from '@/types';
 import { Metadata } from 'next';
 import { SITE_URL } from '@/lib/site';
+import { serializeJsonLd } from '@/lib/json-ld';
 
 // Allow any tag
 export const revalidate = 600;
@@ -74,7 +75,7 @@ export default async function TagPage({ params }: Props) {
 
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJson) }}
+                dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJson) }}
             />
 
             <div className="relative max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8 pt-24 sm:pt-12">

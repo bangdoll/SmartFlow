@@ -1,20 +1,46 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
-// 確保環境變數存在
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+type ClientMode = 'default' | 'admin';
 
-if (!supabaseUrl) {
-  console.error('Error: NEXT_PUBLIC_SUPABASE_URL is missing from environment variables.');
-  throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL');
+function getClientConfig(mode: ClientMode) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = mode === 'admin'
+    ? process.env.SUPABASE_SERVICE_ROLE_KEY
+    : process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url) throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL');
+  if (!key) {
+    throw new Error(mode === 'admin'
+      ? 'Missing SUPABASE_SERVICE_ROLE_KEY'
+      : 'Missing SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY');
+  }
+
+  return { url, key };
 }
 
-if (!supabaseKey) {
-  console.error('Error: Supabase server key is missing from environment variables.');
-  throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY');
+/**
+ * Delay client construction until a request actually uses Supabase. This
+ * keeps route bundles import-safe during static analysis/build collection,
+ * while still failing clearly when a runtime request lacks configuration.
+ */
+function createLazyClient(mode: ClientMode): SupabaseClient {
+  let client: SupabaseClient | undefined;
+
+  return new Proxy({} as SupabaseClient, {
+    get(_target, property, receiver) {
+      if (!client) {
+        const { url, key } = getClientConfig(mode);
+        client = createClient(url, key);
+      }
+
+      const value = Reflect.get(client, property, receiver);
+      return typeof value === 'function' ? value.bind(client) : value;
+    },
+  });
 }
 
-// 建立 Supabase 客戶端
-// 注意：在後端 API Route 中使用 Service Role Key 可以繞過 RLS，
-// 這對於爬蟲寫入資料是必要的。
-export const supabase = createClient(supabaseUrl, supabaseKey);
+// Default server client preserves the existing read/write behaviour.
+export const supabase = createLazyClient('default');
+
+// Internal jobs and privileged writes must explicitly use the service role.
+export const supabaseAdmin = createLazyClient('admin');

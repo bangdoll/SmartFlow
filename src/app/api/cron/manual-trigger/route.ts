@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { scrapeAllSources } from '@/lib/scraper';
 import { generateSummary } from '@/lib/llm';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin as supabase } from '@/lib/supabase';
 import { nanoid } from 'nanoid';
 import * as cheerio from 'cheerio';
 import { hasMaintenanceAuth } from '@/lib/api-auth';
 
 // 手動觸發：執行 Phase 1 (scrape) + Phase 2 (summarize 1-2 則)
 export const maxDuration = 60;
+export const dynamic = 'force-dynamic';
 
 // 抓取網頁文章內容（簡化版）
 async function fetchArticleContent(url: string): Promise<string> {

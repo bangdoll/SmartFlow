@@ -1,7 +1,7 @@
 'use client';
 
 import { useLanguage } from '@/components/language-context';
-import { TrendingUp, TrendingDown, Minus, Calendar, ExternalLink, BarChart2 } from 'lucide-react';
+import { TrendingUp, Calendar, BarChart2 } from 'lucide-react';
 import Link from 'next/link';
 
 interface TopicData {

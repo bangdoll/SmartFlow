@@ -9,6 +9,7 @@ import { hasMaintenanceAuth } from '@/lib/api-auth';
 // 設定最大執行時間 (Vercel Hobby 10s/60s，合併後更需注意)
 // 爬蟲限制了處理數量，電子報應該也很快
 export const maxDuration = 60;
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
     if (!hasMaintenanceAuth(req)) {
