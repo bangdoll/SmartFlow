@@ -37,6 +37,7 @@
 
 ## 近期重大更新
 
+- **全站安全性與部署穩定性強化 (2026-08-17)**: 完成全站 API 與資料庫巡檢，為聊天、翻譯、TTS、訂閱、OG 圖片與新聞點擊端點補上輸入驗證與限流；分離 Cron 與管理端點權限；強化 HTML、JSON-LD 與外部連結安全處理；加入爬蟲逾時、Supabase lazy client 與安全性標頭。程式碼已合併至 GitHub `main`，並完成 Vercel 生產環境部署與 Supabase migration/RLS 驗證。
 - **搜尋功能與 UI 修復 (2026-01-17)**: 修復首頁搜尋框按 Enter 無法觸發搜尋的問題（改用純原生 HTML 表單提交）；修正放大鏡圖示垂直對齊。
 - **Product Hunt 發布準備 (2026-01-04)**: 完成全套發布準備，包含 `product_hunt_kit` (戰略/文案/腳本/視覺素材) 與動態 Logo 生成，並更新 `growth_strategy.md` 制定 Q1 增長計畫。
 - **外部排程整合與 API 效能優化 (2026-01-02)**: 新增 `/api/cron/bilingual-fix` 與 `/api/cron/summarize` 專用端點，支援 cron-job.org 等外部排程服務呼叫；優化 API 效能至 30 秒內完成，符合免費方案限制。
@@ -77,7 +78,7 @@
 1. **複製專案**
    ```bash
    git clone <repository-url>
-   cd ai-trends-daily
+   cd SmartFlow
    npm install
    ```
 
@@ -102,9 +103,18 @@
 3. 在 Vercel Project Settings > Environment Variables 中設定所有環境變數。
 4. 部署後，Cron Jobs 會自動設定 (需確保 Vercel 專案有啟用 Cron 功能)。
 
+### 重要環境變數
+
+- `CRON_SECRET`: Vercel Cron 與外部排程服務呼叫排程端點時使用。
+- `ADMIN_SECRET`: 管理端除錯端點使用，請勿與公開前端程式碼共用。
+- `RESEND_API_KEY`: Resend 寄信 API 金鑰。
+- `EMAIL_FROM`: 生產環境請設定為 Resend 已驗證網域的寄件地址，例如 `智流 Smart Flow <newsletter@smart-flow.rd.coach>`。若未設定，程式會退回 `onboarding@resend.dev`，僅適合測試寄送。
+
+管理端點與 Cron 端點的密鑰應分開設定；更新環境變數後，請重新部署 Vercel 讓新的設定生效。
+
 ## API 端點 (Cron Jobs)
 
-所有 API 端點都需要 `Authorization: Bearer <CRON_SECRET>` 驗證標頭。
+以下排程端點需要 `Authorization: Bearer <CRON_SECRET>` 驗證標頭。公開 API 不使用 Cron 密鑰，而是透過輸入驗證與請求限流保護；管理端除錯端點則需要 `Authorization: Bearer <ADMIN_SECRET>`。
 
 | 端點 | 說明 | 建議執行頻率 |
 |------|------|-------------|
@@ -113,6 +123,12 @@
 | `/api/cron/summarize` | 為待處理新聞生成摘要（每次 1 則） | 每 10 分鐘 |
 | `/api/cron/bilingual-fix` | 雙語內容檢查與修復（每次 5 則） | 每 15 分鐘 |
 | `/api/cron/newsletter` | 發送電子報 | 每日 1 次 |
+
+### 管理端除錯端點
+
+- `/api/debug/check-news`、`/api/debug/send`: 僅接受 `ADMIN_SECRET`，不可用 `CRON_SECRET` 取代。
+- `/api/debug/reset`: 僅接受 `ADMIN_SECRET`，且必須使用 `POST`。
+- 公開 API 超過限流時會回傳 `429 Too Many Requests`；限流狀態以目前的 Vercel 執行個體為範圍，並非跨執行個體的集中式計數。
 
 ### 外部排程服務整合
 

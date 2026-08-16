@@ -4,6 +4,25 @@
 
 ---
 
+## [2026-08-17]
+
+### 優化/變更 (Changed)
+- **全站 API 安全性強化**: 為聊天、翻譯、TTS、訂閱、OG 圖片與新聞點擊等公開端點加入輸入驗證與請求限流，異常流量會回傳 `429 Too Many Requests`。
+- **維運權限分離**: Cron 排程維持使用 `CRON_SECRET`；`/api/debug/check-news`、`/api/debug/send` 與 `/api/debug/reset` 改由獨立的 `ADMIN_SECRET` 保護，並將重置操作限制為 `POST`。
+- **輸出與外部連結安全處理**: 強化電子報 HTML、JSON-LD 與外部 URL 的跳脫及協定檢查，降低不可信資料進入輸出內容的風險。
+- **執行穩定性與效能**: 為爬蟲加入逾時與日期 fallback，Supabase client 改為延遲初始化，並補上安全性 HTTP headers；同時清理前端未使用程式碼與重複載入。
+
+### 資料庫與部署 (Database & Deployment)
+- **Supabase 安全性同步**: 遠端 migration 已更新至最新版本，完成新聞點擊 RPC 的 `SECURITY INVOKER` 設定、欄位級更新權限與使用者書籤 RLS policy 強化。
+- **生產環境部署**: 程式碼已透過 GitHub PR #2 合併至 `main`，Vercel 生產環境部署完成並驗證 `https://smart-flow.rd.coach/` 可正常運作。
+- **寄件設定**: 電子報支援透過 `EMAIL_FROM` 使用自訂寄件地址；使用自訂網域前仍須先在 Resend 完成 DNS 驗證，未設定時保留 `onboarding@resend.dev` 作為測試 fallback。
+
+### 驗證 (Validation)
+- TypeScript 檢查通過。
+- ESLint 0 errors，僅保留 2 個非阻塞圖片警告。
+- Next.js production build 與本機 HTTP smoke tests 通過。
+- Supabase migration、RLS policy 與 Vercel production deployment 狀態已確認。
+
 ## [2026-01-17]
 
 ### 修復 (Fixed)
