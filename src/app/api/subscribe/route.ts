@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { z } from 'zod';
+import { rateLimit } from '@/lib/rate-limit';
 
 const SubscribeSchema = z.object({
     email: z.string().trim().toLowerCase().email('請輸入有效的 Email 地址'),
 });
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
+    const limited = rateLimit(req, { name: 'subscribe', limit: 5, windowMs: 60 * 60_000 });
+    if (limited) return limited;
+
     try {
         const body = await req.json();
         const result = SubscribeSchema.safeParse(body);

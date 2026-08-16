@@ -1,8 +1,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 import { z } from 'zod';
+import { rateLimit } from '@/lib/rate-limit';
+import { supabaseAdmin as supabase } from '@/lib/supabase';
 
 function getOpenAI() {
     const apiKey = process.env.OPENAI_API_KEY;
@@ -10,11 +11,7 @@ function getOpenAI() {
     return new OpenAI({ apiKey });
 }
 
-// Initialize Supabase Admin Client (Service Role for writing to Storage/DB)
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-if (!supabaseServiceKey) throw new Error('Missing Supabase server key');
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+export const dynamic = 'force-dynamic';
 
 // Helper to optimize text for TTS reading
 function formatSummaryForTTS(text: string): string {
@@ -96,11 +93,21 @@ function formatSummaryForTTS(text: string): string {
 }
 
 export async function POST(req: NextRequest) {
+    const limited = rateLimit(req, { name: 'tts', limit: 6, windowMs: 60_000 });
+    if (limited) return limited;
+
     try {
+        let body: unknown;
+        try {
+            body = await req.json();
+        } catch {
+            return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+        }
+
         const parsed = z.object({
             newsId: z.string().uuid(),
             lang: z.enum(['zh-TW', 'en']).default('zh-TW'),
-        }).safeParse(await req.json());
+        }).safeParse(body);
 
         if (!parsed.success) {
             return NextResponse.json({ error: 'Invalid newsId or language' }, { status: 400 });
@@ -151,8 +158,13 @@ export async function POST(req: NextRequest) {
                 const translatedTitle = titleTranslation.choices[0]?.message?.content?.trim();
                 if (translatedTitle) {
                     cleanTitle = translatedTitle;
-                    // Async update DB
-                    supabase.from('news_items').update({ title_en: translatedTitle }).eq('id', newsId).then();
+                    const { error: titleUpdateError } = await supabase
+                        .from('news_items')
+                        .update({ title_en: translatedTitle })
+                        .eq('id', newsId);
+                    if (titleUpdateError) {
+                        console.error('Title translation update error:', titleUpdateError);
+                    }
                 }
             }
 

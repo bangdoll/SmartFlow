@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { publicCacheHeaders } from '@/lib/cache-control';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const tag = (searchParams.get('tag') || '').trim().slice(0, 80);

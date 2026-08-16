@@ -2,7 +2,7 @@
 import { openai } from '@ai-sdk/openai';
 import { generateObject } from 'ai';
 import { z } from 'zod';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin as supabase } from '@/lib/supabase';
 import { MENTAL_MODELS } from './mental-models';
 
 // Schema Definition for Weekly Trends

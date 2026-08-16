@@ -2,7 +2,6 @@
 
 import { NewsItem } from '@/types';
 import { Flame, ExternalLink, ArrowUpRight } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from './language-context';
 import { preprocessMarkdown } from '@/lib/markdown';
@@ -171,7 +170,7 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
                                 {/* Summary Snippet - Regular Div with Hard Navigation */}
                                 <div
                                     className="block mt-auto group/summary cursor-pointer"
-                                    onClick={(e) => {
+                                    onClick={() => {
                                         if (isTranslating) return;
                                         window.location.href = `/news/${item.id.substring(0, 8)}`;
                                     }}

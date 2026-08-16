@@ -6,7 +6,7 @@ import { useTheme } from "next-themes"
 import { useLanguage } from '@/components/language-context';
 
 export function ThemeToggle() {
-    const { setTheme, theme, resolvedTheme } = useTheme()
+    const { setTheme, resolvedTheme } = useTheme()
     const { t } = useLanguage();
     const [mounted, setMounted] = React.useState(false)
 

@@ -1,28 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin as supabase } from '@/lib/supabase';
 import { Resend } from 'resend';
-import { hasMaintenanceAuth } from '@/lib/api-auth';
+import { hasAdminAuth } from '@/lib/api-auth';
+import { escapeHtml, safeHttpUrl } from '@/lib/email';
+import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
-  if (!hasMaintenanceAuth(req)) {
+  if (!hasAdminAuth(req)) {
     return new NextResponse('Unauthorized', { status: 401 });
   }
 
   const resendApiKey = process.env.RESEND_API_KEY;
   if (!resendApiKey) {
-    console.warn('RESEND_API_KEY is missing');
-    // During build or if missing, we can't send email.
-    // But for build safety, we just don't instantiate globally.
+    return NextResponse.json({ error: 'RESEND_API_KEY is missing' }, { status: 503 });
   }
-  const resend = new Resend(resendApiKey || 're_123456789'); // Dummy key to prevent crash if missing during safe check, or handle properly below.
+  const resend = new Resend(resendApiKey);
 
   const searchParams = req.nextUrl.searchParams;
-  const email = searchParams.get('email');
+  const parsedEmail = z.string().trim().toLowerCase().email().safeParse(searchParams.get('email'));
 
-  if (!email) {
+  if (!parsedEmail.success) {
     return NextResponse.json({ error: 'Missing email parameter' }, { status: 400 });
   }
+  const email = parsedEmail.data;
+  const emailFrom = process.env.EMAIL_FROM || '智流 Smart Flow <onboarding@resend.dev>';
 
   try {
     // 取得最新的新聞
@@ -43,13 +46,13 @@ export async function GET(req: NextRequest) {
     const newsHtml = newsItems.map(item => `
           <div style="margin-bottom: 24px; border-bottom: 1px solid #eee; padding-bottom: 16px;">
             <h2 style="font-size: 18px; margin: 0 0 8px 0;">
-              <a href="${item.original_url}" style="color: #000; text-decoration: none;">${item.title}</a>
+              <a href="${safeHttpUrl(item.original_url)}" style="color: #000; text-decoration: none;">${escapeHtml(item.title)}</a>
             </h2>
             <div style="font-size: 12px; color: #666; margin-bottom: 8px;">
-              ${item.source} • ${new Date(item.published_at).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' })}
+              ${escapeHtml(item.source)} • ${escapeHtml(new Date(item.published_at).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' }))}
             </div>
             <p style="font-size: 14px; color: #333; line-height: 1.6; margin: 0;">
-              ${item.summary_zh || item.summary_en || '暫無摘要'}
+              ${escapeHtml(item.summary_zh || item.summary_en || '暫無摘要')}
             </p>
           </div>
         `).join('');
@@ -80,7 +83,7 @@ export async function GET(req: NextRequest) {
 
     // 發送 Email
     const { data, error } = await resend.emails.send({
-      from: '智流 Smart Flow <onboarding@resend.dev>',
+      from: emailFrom,
       to: email,
       subject: emailSubject,
       html: htmlContent,

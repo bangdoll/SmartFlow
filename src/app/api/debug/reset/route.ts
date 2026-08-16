@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
-import { hasMaintenanceAuth } from '@/lib/api-auth';
+import { supabaseAdmin as supabase } from '@/lib/supabase';
+import { hasAdminAuth } from '@/lib/api-auth';
 
-export async function GET(request: NextRequest) {
-    if (!hasMaintenanceAuth(request)) {
+export const dynamic = 'force-dynamic';
+
+export async function POST(request: NextRequest) {
+    if (!hasAdminAuth(request)) {
         return new NextResponse('Unauthorized', { status: 401 });
     }
 

@@ -2,10 +2,9 @@
 
 import { NewsItem } from '@/types';
 import { useLanguage } from '@/components/language-context';
-import { Calendar, TrendingUp, Clock, ChevronDown, ChevronUp, BarChart2 } from 'lucide-react';
+import { Calendar, Clock, ChevronDown, ChevronUp, BarChart2 } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
-import { preprocessMarkdown } from '@/lib/markdown';
 
 interface TrendItem {
     topic: string;

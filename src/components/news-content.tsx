@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Share2, ArrowLeft, Calendar, ExternalLink, Clock, Tag, ChevronLeft, ChevronRight, ArrowRight, Mail } from 'lucide-react';
+import { Share2, ArrowLeft, Calendar, ExternalLink, Tag, ChevronLeft, ChevronRight, ArrowRight, Mail } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { useState, useEffect } from 'react';
 import remarkGfm from 'remark-gfm';

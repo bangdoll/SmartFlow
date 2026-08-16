@@ -5,13 +5,8 @@
  * 2. 英文版：確保所有新聞都有英文標題和摘要
  */
 
-import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
-
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { supabaseAdmin as supabase } from '@/lib/supabase';
 
 function getOpenAI() {
     const apiKey = process.env.OPENAI_API_KEY;

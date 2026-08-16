@@ -2,6 +2,7 @@
 
 import { useLanguage } from '@/components/language-context';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowLeft, BookOpen, Volume2, MessageSquare, Mail } from 'lucide-react';
 
 export function GuideContent() {
@@ -44,7 +45,7 @@ export function GuideContent() {
                             <li><strong>{t('guidePage.step1.li3').split('：')[0]}</strong>：{t('guidePage.step1.li3').split('：')[1] || t('guidePage.step1.li3')}</li>
                         </ol>
                         <div className="mt-4 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 shadow-md">
-                            <img src="/images/guide/welcome.png" alt="Welcome" className="w-full" />
+                            <Image src="/images/guide/welcome.png" alt="Welcome" width={2382} height={1770} className="w-full h-auto" />
                         </div>
                     </div>
 
@@ -57,7 +58,7 @@ export function GuideContent() {
                             {t('guidePage.step2.text')}
                         </p>
                         <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 shadow-md my-6">
-                            <img src="/images/guide/feed.png" alt="Feed" className="w-full" />
+                            <Image src="/images/guide/feed.png" alt="Feed" width={2382} height={1770} className="w-full h-auto" />
                         </div>
                     </div>
 
@@ -90,7 +91,7 @@ export function GuideContent() {
                             </li>
                         </ul>
                         <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 shadow-md">
-                            <img src="/images/guide/detail.png" alt="Detail" className="w-full" />
+                            <Image src="/images/guide/detail.png" alt="Detail" width={2382} height={1770} className="w-full h-auto" />
                         </div>
                     </div>
 
@@ -103,7 +104,7 @@ export function GuideContent() {
                             {t('guidePage.step4.text')}
                         </p>
                         <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 shadow-md mt-4">
-                            <img src="/images/guide/subscribe.png" alt="Subscribe" className="w-full" />
+                            <Image src="/images/guide/subscribe.png" alt="Subscribe" width={2382} height={1770} className="w-full h-auto" />
                         </div>
                     </div>
 

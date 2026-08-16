@@ -2,7 +2,6 @@
 
 import { useLanguage } from './language-context';
 import { Mail, ArrowRight } from 'lucide-react';
-import { useState } from 'react';
 
 export function FeedSubscribeCard() {
     const { t } = useLanguage();

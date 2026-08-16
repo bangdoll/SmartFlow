@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { publicCacheHeaders } from '@/lib/cache-control';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
     try {
         // Calculate date 7 days ago

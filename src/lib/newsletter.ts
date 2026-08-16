@@ -1,6 +1,7 @@
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin as supabase } from '@/lib/supabase';
 import { Resend } from 'resend';
 import { marked } from 'marked';
+import { escapeMarkdownForEmail, escapeHtml, safeHttpUrl } from '@/lib/email';
 
 
 export async function sendDailyNewsletter() {
@@ -59,17 +60,19 @@ export async function sendDailyNewsletter() {
   const newsHtml = await Promise.all(newsItems.map(async (item) => {
     let summaryHtml = '暫無摘要';
     if (item.summary_zh || item.summary_en) {
-      // Parse markdown to HTML
-      summaryHtml = await marked.parse(item.summary_zh || item.summary_en || '');
+      // Escape feed/LLM HTML before parsing Markdown for the email body.
+      summaryHtml = await marked.parse(
+        escapeMarkdownForEmail(item.summary_zh || item.summary_en || ''),
+      );
     }
 
     return `
       <div style="margin-bottom: 24px; border-bottom: 1px solid #eee; padding-bottom: 16px;">
         <h2 style="font-size: 18px; margin: 0 0 8px 0;">
-          <a href="${item.original_url}" style="color: #000; text-decoration: none;">${item.title}</a>
+          <a href="${safeHttpUrl(item.original_url)}" style="color: #000; text-decoration: none;">${escapeHtml(item.title)}</a>
         </h2>
         <div style="font-size: 12px; color: #666; margin-bottom: 8px;">
-          ${item.source} • ${new Date(item.published_at).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' })}
+          ${escapeHtml(item.source)} • ${escapeHtml(new Date(item.published_at).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' }))}
         </div>
         <div style="font-size: 14px; color: #333; line-height: 1.6; margin: 0;">
           ${summaryHtml}

@@ -1,15 +1,19 @@
 import { ImageResponse } from 'next/og';
 import { publicCacheHeaders } from '@/lib/cache-control';
+import { rateLimit } from '@/lib/rate-limit';
 
 
 
 export async function GET(request: Request) {
+    const limited = rateLimit(request, { name: 'og-image', limit: 30, windowMs: 60_000 });
+    if (limited) return limited;
+
     try {
         const { searchParams } = new URL(request.url);
 
         // ?title=<title>&source=<source>
         const title = searchParams.get('title')?.slice(0, 100) || 'AI Trends Daily';
-        const source = searchParams.get('source') || 'Smart Flow';
+        const source = searchParams.get('source')?.slice(0, 80) || 'Smart Flow';
 
         return new ImageResponse(
             (

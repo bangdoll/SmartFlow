@@ -8,6 +8,7 @@ import { LanguageProvider } from "@/components/language-context";
 
 import { BookmarksProvider } from "@/hooks/use-bookmarks";
 import { UserProvider } from '@/components/user-provider';
+import { serializeJsonLd } from '@/lib/json-ld';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -84,7 +85,7 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
+            __html: serializeJsonLd({
               '@context': 'https://schema.org',
               '@type': 'WebSite',
               name: '智流 Smart Flow',

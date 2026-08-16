@@ -17,7 +17,7 @@ interface CompareListProps {
 }
 
 export function CompareList({ comparisons }: CompareListProps) {
-    const { t, language } = useLanguage();
+    const { language } = useLanguage();
 
     return (
         <div className="max-w-4xl mx-auto pt-24 px-4 sm:px-6 pb-12">

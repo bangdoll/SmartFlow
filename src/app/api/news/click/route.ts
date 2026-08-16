@@ -1,10 +1,16 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { z } from 'zod';
+import { rateLimit } from '@/lib/rate-limit';
 
 const ClickSchema = z.object({ id: z.string().uuid() });
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: Request) {
+    const limited = rateLimit(request, { name: 'news-click', limit: 120, windowMs: 60_000 });
+    if (limited) return limited;
+
     try {
         const parsed = ClickSchema.safeParse(await request.json());
         if (!parsed.success) {

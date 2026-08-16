@@ -97,6 +97,7 @@ export function AudioPlayer({ newsId, initialAudioUrl, title, language = 'zh-TW'
             <audio
                 ref={audioRef}
                 src={audioUrl || undefined}
+                aria-label={title || t('player.listen')}
                 onTimeUpdate={handleTimeUpdate}
                 onEnded={handleEnded}
                 onLoadedData={() => {

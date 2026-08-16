@@ -1,17 +1,11 @@
-import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
+import { supabaseAdmin as supabase } from '@/lib/supabase';
 
 function getOpenAI() {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) throw new Error('OPENAI_API_KEY is not configured');
     return new OpenAI({ apiKey });
 }
-
-// Initialize Supabase Admin Client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-if (!supabaseServiceKey) throw new Error('Missing Supabase server key');
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export interface TranslatedItem {
     id: string;
@@ -48,7 +42,11 @@ export async function batchTranslate(ids: string[]): Promise<TranslatedItem[]> {
     );
 
     if (itemsToTranslate.length === 0) {
-        return items.map(i => ({ id: i.id, title_en: i.title_en, summary_en: i.summary_en }));
+        return items.map(i => ({
+            id: i.id,
+            title_en: i.title_en || '',
+            summary_en: i.summary_en || '',
+        }));
     }
 
     console.log(`[Translation Service] Translating ${itemsToTranslate.length} items...`);
@@ -95,16 +93,18 @@ export async function batchTranslate(ids: string[]): Promise<TranslatedItem[]> {
 
         const responseContent = completion.choices[0]?.message?.content || '{}';
         const parsed = JSON.parse(responseContent);
-        const results = (parsed.results || []) as TranslationResult[];
+        const requestedIds = new Set(ids);
+        const results = (parsed.results || [])
+            .filter((result: TranslationResult) => result.id && requestedIds.has(result.id)) as TranslationResult[];
 
         // 4. Update Database
         const updatePromises = results.map(async (res) => {
-            if (res.id && (res.title_en || res.summary_en)) {
+            if (res.id && (typeof res.title_en === 'string' || typeof res.summary_en === 'string')) {
                 return supabase
                     .from('news_items')
                     .update({
-                        title_en: res.title_en,
-                        summary_en: res.summary_en
+                        ...(typeof res.title_en === 'string' ? { title_en: res.title_en } : {}),
+                        ...(typeof res.summary_en === 'string' ? { summary_en: res.summary_en } : {}),
                     })
                     .eq('id', res.id);
             }

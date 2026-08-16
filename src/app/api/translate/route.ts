@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 import { z } from 'zod';
+import { rateLimit } from '@/lib/rate-limit';
+import { supabaseAdmin as supabase } from '@/lib/supabase';
 
 function getOpenAI() {
     const apiKey = process.env.OPENAI_API_KEY;
@@ -9,15 +10,21 @@ function getOpenAI() {
     return new OpenAI({ apiKey });
 }
 
-// Initialize Supabase Admin Client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-if (!supabaseServiceKey) throw new Error('Missing Supabase server key');
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
+    const limited = rateLimit(req, { name: 'translate', limit: 10, windowMs: 60_000 });
+    if (limited) return limited;
+
     try {
-        const parsed = z.object({ newsId: z.string().uuid() }).safeParse(await req.json());
+        let body: unknown;
+        try {
+            body = await req.json();
+        } catch {
+            return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+        }
+
+        const parsed = z.object({ newsId: z.string().uuid() }).safeParse(body);
         if (!parsed.success) {
             return NextResponse.json({ error: 'Missing newsId' }, { status: 400 });
         }

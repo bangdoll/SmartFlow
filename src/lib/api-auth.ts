@@ -4,8 +4,19 @@
  * backwards-compatible fallback for existing scheduled jobs.
  */
 export function hasMaintenanceAuth(request: Request): boolean {
-    const secret = process.env.ADMIN_SECRET || process.env.CRON_SECRET;
-    if (!secret) return false;
+    return hasBearerSecret(request, process.env.ADMIN_SECRET) ||
+        hasBearerSecret(request, process.env.CRON_SECRET);
+}
 
-    return request.headers.get('authorization') === `Bearer ${secret}`;
+/**
+ * Admin-only endpoints must not accept CRON_SECRET. Cron credentials are
+ * intentionally allowed to invoke scheduled maintenance jobs, but they
+ * should never unlock destructive or diagnostic operations.
+ */
+export function hasAdminAuth(request: Request): boolean {
+    return hasBearerSecret(request, process.env.ADMIN_SECRET);
+}
+
+function hasBearerSecret(request: Request, secret: string | undefined): boolean {
+    return Boolean(secret) && request.headers.get('authorization') === `Bearer ${secret}`;
 }
