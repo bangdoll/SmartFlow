@@ -47,7 +47,7 @@ create index if not exists idx_subscribers_email on subscribers(email);
 create or replace function increment_news_click(news_id uuid)
 returns void
 language sql
-security definer
+security invoker
 set search_path = public
 as $$
   update public.news_items
@@ -55,6 +55,9 @@ as $$
   where id = news_id;
 $$;
 
+revoke update on table news_items from public, anon, authenticated;
+grant update (click_count) on table news_items to anon, authenticated;
+grant update on table news_items to service_role;
 grant execute on function increment_news_click(uuid) to anon, authenticated, service_role;
 
 -- 設定 Row Level Security (RLS)
@@ -70,6 +73,11 @@ alter table newsletter_logs enable row level security;
 create policy "Public items are viewable by everyone"
   on news_items for select
   using (true);
+
+create policy "Public can increment news clicks"
+  on news_items for update
+  using (true)
+  with check (true);
 
 -- 使用者書籤
 create table if not exists user_bookmarks (
