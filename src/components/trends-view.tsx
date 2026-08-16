@@ -23,6 +23,16 @@ interface TrendsData {
     };
 }
 
+interface InitialTrendsData {
+    title?: string | null;
+    titleEn?: string | null;
+    core_message?: string | null;
+    coreMessageEn?: string | null;
+    trends?: TrendItem[];
+    persona_advice?: Partial<TrendsData['advice']> | null;
+    personaAdviceEn?: Partial<TrendsData['advice']> | null;
+}
+
 const STATIC_TRENDS: Record<'en' | 'zh-TW', TrendsData> = {
     'zh-TW': {
         title: "這週 AI 世界，真正在往哪裡走？",
@@ -132,19 +142,27 @@ const STATIC_TRENDS: Record<'en' | 'zh-TW', TrendsData> = {
     }
 };
 
-export function TrendsView({ initialData }: { initialData: any | null }) {
+export function TrendsView({ initialData }: { initialData: InitialTrendsData | null }) {
     const { language, t } = useLanguage();
 
     // Determine data source: Priority to DB (initialData), fallback to Static (though Static might be stale)
-    const activeData = initialData ? {
-        title: (language === 'en' && initialData.titleEn) ? initialData.titleEn : initialData.title,
-        coreMessage: (language === 'en' && initialData.coreMessageEn) ? initialData.coreMessageEn : initialData.core_message,
-        trends: initialData.trends, // Trends array structure should match
-        advice: (language === 'en' && initialData.personaAdviceEn) ? initialData.personaAdviceEn : initialData.persona_advice
-    } : (STATIC_TRENDS[language] || STATIC_TRENDS['zh-TW']); // Fallback to legacy static data if DB fails
+    const activeData: TrendsData = initialData ? {
+        title: (language === 'en' && initialData.titleEn) ? initialData.titleEn : initialData.title || '',
+        coreMessage: (language === 'en' && initialData.coreMessageEn) ? initialData.coreMessageEn : initialData.core_message || '',
+        trends: initialData.trends || [],
+        advice: (language === 'en' && initialData.personaAdviceEn) ? {
+            general: initialData.personaAdviceEn.general || '',
+            employee: initialData.personaAdviceEn.employee || '',
+            boss: initialData.personaAdviceEn.boss || '',
+        } : {
+            general: initialData.persona_advice?.general || '',
+            employee: initialData.persona_advice?.employee || '',
+            boss: initialData.persona_advice?.boss || '',
+        }
+    } : (STATIC_TRENDS[language] || STATIC_TRENDS['zh-TW']);
 
     // Safety check for advice object structure if coming from DB (DB uses general/employee/boss keys)
-    const advice = activeData.advice || { general: '', employee: '', boss: '' };
+    const advice = activeData.advice;
 
     // Alias to match existing JSX usage
     const data = {
@@ -174,7 +192,14 @@ export function TrendsView({ initialData }: { initialData: any | null }) {
                         <Zap className="w-4 h-4" />
                         {language === 'zh-TW' ? '本週智流一句話' : 'Weekly Insight'}
                     </div>
-                    <h2 className="text-2xl md:text-3xl font-bold leading-snug mb-4" dangerouslySetInnerHTML={{ __html: data.coreMessage }} />
+                    <h2 className="text-2xl md:text-3xl font-bold leading-snug mb-4">
+                        {data.coreMessage.split(/<br\s*\/?>(?:\s*)/i).map((line, index) => (
+                            <span key={`${index}-${line}`}>
+                                {index > 0 && <br />}
+                                {line}
+                            </span>
+                        ))}
+                    </h2>
 
                     <p className="text-blue-50 text-lg leading-relaxed opacity-90">
                         * {language === 'zh-TW' ? '這一頁每週一更新，幫你校準方向。' : 'Updated every Monday to calibrate your direction.'}

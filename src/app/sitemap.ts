@@ -1,25 +1,26 @@
 import { MetadataRoute } from 'next';
 import { createClient } from '@supabase/supabase-js';
+import { SITE_URL } from '@/lib/site';
 
 // Initialize Supabase client for sitemap generation
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY! // Use service key to ensure access
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-    const baseUrl = process.env.PRODUCTION_URL || 'https://smart-flow.rd.coach';
+    const baseUrl = SITE_URL;
 
     // Fetch latest news for sitemap
     const { data: news } = await supabase
         .from('news_items')
-        .select('id, updated_at, tags')
+        .select('id, published_at, created_at, tags')
         .order('published_at', { ascending: false })
         .limit(100);
 
     const newsUrls = (news || []).map((item) => ({
         url: `${baseUrl}/news/${item.id}`,
-        lastModified: new Date(item.updated_at),
+        lastModified: new Date(item.published_at || item.created_at),
         changeFrequency: 'weekly' as const,
         priority: 0.8,
     }));
@@ -59,5 +60,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             priority: 0.7,
         },
         ...newsUrls,
+        ...tagUrls,
     ];
 }

@@ -107,24 +107,11 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
     const handleRefresh = async () => {
         setIsRefreshing(true);
         try {
-            // 1. Try to trigger a manual scrape first
             setToast({ message: t('feed.toast.checking'), type: 'info' });
 
-            // Call the manual trigger endpoint
-            const triggerRes = await fetch('/api/cron/manual-trigger', { method: 'POST' });
-            const triggerData = await triggerRes.json();
-
-            // Even if rate limited (success: false), we proceed to fetch items 
-            // because there might be new items from other sources or just standard delay
-
-            if (triggerData.success) {
-                setToast({ message: t('feed.toast.analyzing'), type: 'info' });
-            } else {
-                // Rate limited or error, silent log
-                console.log('Manual trigger skipped:', triggerData.message);
-            }
-
-            // 2. Fetch latest 3 items from DB
+            // Refresh only reads the public feed. Scraping and LLM work stays
+            // behind the protected maintenance endpoint instead of being
+            // triggerable by every visitor.
             const res = await fetch('/api/news?limit=3&offset=0');
             if (res.ok) {
                 const newItems: NewsItem[] = await res.json();
@@ -138,12 +125,7 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
                         setToast({ message: t('feed.toast.updated').replace('{count}', uniqueNewItems.length.toString()), type: 'success' });
                         return [...uniqueNewItems, ...prev];
                     } else {
-                        // If we just ran a scraper and found nothing new
-                        if (triggerData.success) {
-                            setToast({ message: t('feed.toast.noNew'), type: 'info' });
-                        } else {
-                            setToast({ message: t('feed.toast.latest'), type: 'info' });
-                        }
+                        setToast({ message: t('feed.toast.latest'), type: 'info' });
                         return prev;
                     }
                 });

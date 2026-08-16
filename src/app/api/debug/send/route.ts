@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { Resend } from 'resend';
+import { hasMaintenanceAuth } from '@/lib/api-auth';
 
 
 export async function GET(req: NextRequest) {
+  if (!hasMaintenanceAuth(req)) {
+    return new NextResponse('Unauthorized', { status: 401 });
+  }
+
   const resendApiKey = process.env.RESEND_API_KEY;
   if (!resendApiKey) {
     console.warn('RESEND_API_KEY is missing');
@@ -86,8 +91,8 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true, data });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal Server Error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

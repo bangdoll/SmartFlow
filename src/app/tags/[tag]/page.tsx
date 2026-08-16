@@ -2,10 +2,10 @@ import { NewsFeed } from '@/components/news-feed';
 import { supabase } from '@/lib/supabase';
 import { NewsItem } from '@/types';
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { SITE_URL } from '@/lib/site';
 
 // Allow any tag
-export const dynamic = 'force-dynamic';
+export const revalidate = 600;
 
 interface Props {
     params: Promise<{ tag: string }>;
@@ -14,7 +14,7 @@ interface Props {
 async function getNewsByTag(tag: string): Promise<NewsItem[]> {
     const { data: items } = await supabase
         .from('news_items')
-        .select('*')
+        .select('id, original_url, title, title_en, source, published_at, summary_en, summary_zh, tags, click_count, slug')
         .contains('tags', [tag])
         .order('published_at', { ascending: false })
         .limit(50);
@@ -52,12 +52,12 @@ export default async function TagPage({ params }: Props) {
             "@type": "ListItem",
             "position": 1,
             "name": "Home",
-            "item": process.env.PRODUCTION_URL || "https://smart-flow.rd.coach"
+            "item": SITE_URL
         }, {
             "@type": "ListItem",
             "position": 2,
             "name": decodedTag,
-            "item": `${process.env.PRODUCTION_URL || "https://smart-flow.rd.coach"}/tags/${tag}`
+            "item": `${SITE_URL}/tags/${encodeURIComponent(decodedTag)}`
         }]
     };
 

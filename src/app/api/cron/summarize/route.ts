@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateSummary } from '@/lib/llm';
+import { hasMaintenanceAuth } from '@/lib/api-auth';
 import { supabase } from '@/lib/supabase';
 import * as cheerio from 'cheerio';
 
@@ -71,11 +72,8 @@ export async function GET(req: NextRequest) {
     const startTime = Date.now();
 
     // 驗證 Cron Secret
-    const authHeader = req.headers.get('authorization');
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-        if (process.env.NODE_ENV !== 'development') {
-            return new NextResponse('Unauthorized', { status: 401 });
-        }
+    if (!hasMaintenanceAuth(req)) {
+        return new NextResponse('Unauthorized', { status: 401 });
     }
 
     try {

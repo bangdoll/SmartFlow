@@ -4,7 +4,21 @@ import { streamText } from 'ai';
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-  const { messages, context, language = 'zh-TW' } = await req.json();
+  const body = await req.json();
+  const messages = body?.messages;
+
+  if (!Array.isArray(messages) || messages.length === 0 || messages.length > 20) {
+    return new Response('Invalid message history', { status: 400 });
+  }
+
+  if (JSON.stringify(messages).length > 100_000) {
+    return new Response('Message history is too large', { status: 413 });
+  }
+
+  const context = body?.context && typeof body.context === 'object' ? body.context : {};
+  const title = typeof context.title === 'string' ? context.title.slice(0, 500) : '未提供';
+  const summary = typeof context.summary === 'string' ? context.summary.slice(0, 4_000) : '未提供';
+  const language = body?.language === 'en' ? 'en' : 'zh-TW';
 
   const isEnglish = language === 'en';
 
@@ -13,8 +27,8 @@ export async function POST(req: Request) {
     你的任務是幫助使用者深入理解這則新聞。
     
     以下是目前新聞的內容脈絡：
-    標題: ${context?.title || '未提供'}
-    摘要: ${context?.summary || '未提供'}
+    標題: ${title}
+    摘要: ${summary}
     
     請遵守以下規則：
     1. 回答需簡潔扼要，語氣親切專業。

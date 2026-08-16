@@ -4,18 +4,15 @@ import { sendDailyNewsletter } from '@/lib/newsletter';
 import { generateWeeklyTrends, saveWeeklyTrendsToDb } from '@/lib/trends-generator';
 import { translatePendingItems } from '@/lib/translation-service';
 import { autoFixNewsContent } from '@/lib/auto-fix-service';
+import { hasMaintenanceAuth } from '@/lib/api-auth';
 
 // 設定最大執行時間 (Vercel Hobby 10s/60s，合併後更需注意)
 // 爬蟲限制了處理數量，電子報應該也很快
 export const maxDuration = 60;
 
 export async function GET(req: NextRequest) {
-    // 驗證 Cron Secret
-    const authHeader = req.headers.get('authorization');
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-        if (process.env.NODE_ENV !== 'development') {
-            return new NextResponse('Unauthorized', { status: 401 });
-        }
+    if (!hasMaintenanceAuth(req)) {
+        return new NextResponse('Unauthorized', { status: 401 });
     }
 
     try {
@@ -73,10 +70,9 @@ export async function GET(req: NextRequest) {
             weeklyTrends: weeklyTrendsResult
         });
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Daily job failed:', error);
-        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+        const message = error instanceof Error ? error.message : 'Internal Server Error';
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }
-

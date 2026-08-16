@@ -17,6 +17,23 @@ export interface BookmarkItem {
     tags?: string[];
 }
 
+interface BookmarkNewsRecord {
+    id: string;
+    title: string;
+    title_en?: string | null;
+    summary_zh?: string | null;
+    summary_en?: string | null;
+    slug?: string | null;
+    published_at: string;
+    original_url: string;
+    source: string;
+    tags?: string[] | null;
+}
+
+interface BookmarkRow {
+    news_items: BookmarkNewsRecord | BookmarkNewsRecord[] | null;
+}
+
 interface BookmarksContextType {
     bookmarks: BookmarkItem[];
     addBookmark: (item: BookmarkItem) => Promise<void>;
@@ -49,8 +66,8 @@ export function BookmarksProvider({ children }: { children: ReactNode }) {
                 if (error) throw error;
 
                 // Transform to BookmarkItem
-                const items = (data || []).map((row: any) => {
-                    const news = row.news_items;
+                const items = ((data || []) as unknown as BookmarkRow[]).map((row) => {
+                    const news = Array.isArray(row.news_items) ? row.news_items[0] : row.news_items;
                     if (!news) return null;
 
                     return {

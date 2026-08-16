@@ -1,46 +1,41 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { NewsItem } from '@/types';
 import { useLanguage } from '@/components/language-context';
 
 export function useBatchTranslation(items: NewsItem[]) {
     const { language } = useLanguage();
     const [translations, setTranslations] = useState<Record<string, { title_en?: string; summary_en?: string }>>({});
-    const [translatingIds, setTranslatingIds] = useState<Set<string>>(new Set());
+    const translatingIds = useRef(new Set<string>());
 
     useEffect(() => {
-        if (language !== 'en') {
-            setTranslatingIds(new Set());
-            return;
-        }
+        if (language !== 'en') return;
 
         const itemsToTranslate = items.filter(item => {
             const hasEn = item.title_en || translations[item.id]?.title_en;
-            return !hasEn && !translatingIds.has(item.id);
+            return !hasEn && !translatingIds.current.has(item.id);
         });
 
         if (itemsToTranslate.length === 0) return;
 
         const ids = itemsToTranslate.map(i => i.id);
 
-        // Mark as translating
-        setTranslatingIds(prev => {
-            const next = new Set(prev);
-            ids.forEach(id => next.add(id));
-            return next;
-        });
+        ids.forEach(id => translatingIds.current.add(id));
 
         // Fetch translations
-        fetch('/api/translate/batch', {
+        void fetch('/api/translate/batch', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ids }),
         })
-            .then(res => res.json())
+            .then(async res => {
+                if (!res.ok) throw new Error('Translation request failed');
+                return res.json() as Promise<{ results?: Array<{ id: string; title_en?: string; summary_en?: string }> }>;
+            })
             .then(data => {
                 if (data.results) {
                     setTranslations(prev => {
                         const next = { ...prev };
-                        data.results.forEach((res: any) => {
+                        data.results?.forEach(res => {
                             if (res.title_en) {
                                 next[res.id] = {
                                     title_en: res.title_en,
@@ -53,17 +48,9 @@ export function useBatchTranslation(items: NewsItem[]) {
                 }
             })
             .catch(err => console.error('Batch translation error:', err))
-            .finally(() => {
-                setTranslatingIds(prev => {
-                    const next = new Set(prev);
-                    ids.forEach(id => next.delete(id));
-                    return next;
-                });
-            });
+            .finally(() => ids.forEach(id => translatingIds.current.delete(id)));
 
-    }, [language, items, translations, translatingIds]);
-    // Note: 'items' dependency might cause loop if items change frequently, but here items usually stable or append.
-    // 'translations' dependency ensures we don't re-fetch if we just updated.
+    }, [language, items, translations]);
 
     // Merge logic
     const mergedItems = useMemo(() => {

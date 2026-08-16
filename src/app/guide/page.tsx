@@ -1,4 +1,3 @@
-import { Header } from '@/components/header';
 import { GuideContent } from '@/components/guide-content';
 
 export const metadata = {
@@ -9,7 +8,6 @@ export const metadata = {
 export default function GuidePage() {
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors">
-            <Header />
             <GuideContent />
         </div>
     );

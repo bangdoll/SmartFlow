@@ -2,15 +2,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
+import { z } from 'zod';
 
-// Initialize OpenAI
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
+function getOpenAI() {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) throw new Error('OPENAI_API_KEY is not configured');
+    return new OpenAI({ apiKey });
+}
 
 // Initialize Supabase Admin Client (Service Role for writing to Storage/DB)
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+if (!supabaseServiceKey) throw new Error('Missing Supabase server key');
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // Helper to optimize text for TTS reading
@@ -19,7 +22,7 @@ function formatSummaryForTTS(text: string): string {
 
     // Split into lines to process robustly
     const lines = text.split('\n');
-    let processedLines: string[] = [];
+    const processedLines: string[] = [];
 
     let inTable = false;
     const pros: string[] = [];
@@ -94,21 +97,24 @@ function formatSummaryForTTS(text: string): string {
 
 export async function POST(req: NextRequest) {
     try {
-        const { newsId, lang = 'zh-TW' } = await req.json();
+        const parsed = z.object({
+            newsId: z.string().uuid(),
+            lang: z.enum(['zh-TW', 'en']).default('zh-TW'),
+        }).safeParse(await req.json());
 
-        if (!newsId) {
-            return NextResponse.json({ error: 'Missing newsId' }, { status: 400 });
+        if (!parsed.success) {
+            return NextResponse.json({ error: 'Invalid newsId or language' }, { status: 400 });
         }
 
+        const { newsId, lang } = parsed.data;
         const targetLang = lang === 'en' ? 'en' : 'zh';
-        const audioColumn = targetLang === 'en' ? 'audio_url_en' : 'audio_url';
-        const summaryColumn = targetLang === 'en' ? 'summary_en' : 'summary_zh';
+        const audioColumn: 'audio_url_en' | 'audio_url' = targetLang === 'en' ? 'audio_url_en' : 'audio_url';
 
         // 1. Check if audio_url already exists
         // Always fetch summary_zh as fallback source for translation
         const { data: newsItem, error: fetchError } = await supabase
             .from('news_items')
-            .select(`id, title, summary_zh, ${summaryColumn}, ${audioColumn}`)
+            .select(`id, title, title_en, summary_zh, summary_en, audio_url, audio_url_en`)
             .eq('id', newsId)
             .single();
 
@@ -117,20 +123,25 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'News item not found' }, { status: 404 });
         }
 
+        const cachedAudioUrl = targetLang === 'en' ? newsItem.audio_url_en : newsItem.audio_url;
+        if (cachedAudioUrl) {
+            return NextResponse.json({ audioUrl: cachedAudioUrl, status: 'cached' });
+        }
+
         // 2. Generate Audio using OpenAI TTS
-        let cleanTitle = newsItem.title || '';
+        let cleanTitle = targetLang === 'en' ? newsItem.title_en || newsItem.title || '' : newsItem.title || '';
         let cleanSummary = '';
-        let rawSummary = (newsItem as any)[summaryColumn] || ''; // Changed to 'let' for potential reassignment
+        let rawSummary = targetLang === 'en' ? newsItem.summary_en || '' : newsItem.summary_zh || '';
 
         if (targetLang === 'en') {
             // ENGLISH MODE
 
             // A. Handle Title
-            if ((newsItem as any).title_en) {
-                cleanTitle = (newsItem as any).title_en;
+            if (newsItem.title_en) {
+                cleanTitle = newsItem.title_en;
             } else {
                 console.log('Missing title_en, translating title...');
-                const titleTranslation = await openai.chat.completions.create({
+                const titleTranslation = await getOpenAI().chat.completions.create({
                     model: "gpt-4o",
                     messages: [
                         { role: "system", content: "Translate this news title to English. Only output the translation." },
@@ -147,9 +158,9 @@ export async function POST(req: NextRequest) {
 
             // B. Handle Summary
             // For English, check if we have summary_en. If not, generate (translate) it from summary_zh.
-            if (!rawSummary && (newsItem as any).summary_zh) {
+            if (!rawSummary && newsItem.summary_zh) {
                 console.log('Missing summary_en, generating translation...');
-                const translationCompletion = await openai.chat.completions.create({
+                const translationCompletion = await getOpenAI().chat.completions.create({
                     model: "gpt-4o",
                     messages: [
                         {
@@ -158,7 +169,7 @@ export async function POST(req: NextRequest) {
                         },
                         {
                             role: "user",
-                            content: (newsItem as any).summary_zh
+                            content: newsItem.summary_zh
                         }
                     ],
                     temperature: 0.3,
@@ -195,7 +206,7 @@ export async function POST(req: NextRequest) {
         // Limit text length
         const truncatedText = textToSpeak.slice(0, 4000);
 
-        const mp3 = await openai.audio.speech.create({
+        const mp3 = await getOpenAI().audio.speech.create({
             model: "tts-1",
             voice: "alloy",
             input: truncatedText,
@@ -205,8 +216,8 @@ export async function POST(req: NextRequest) {
 
         // 3. Upload to Supabase Storage
         // Use unique filename with lang suffix
-        const fileName = `${newsId}_${targetLang}_${Date.now()}.mp3`;
-        const { data: uploadData, error: uploadError } = await supabase
+        const fileName = `${newsId}_${targetLang}.mp3`;
+        const { error: uploadError } = await supabase
             .storage
             .from('news-audio')
             .upload(fileName, buffer, {
@@ -226,7 +237,7 @@ export async function POST(req: NextRequest) {
             .getPublicUrl(fileName);
 
         // 5. Update Database
-        const updatePayload: any = {};
+        const updatePayload: { audio_url?: string; audio_url_en?: string } = {};
         updatePayload[audioColumn] = publicUrl;
 
         const { error: updateError } = await supabase
@@ -241,8 +252,9 @@ export async function POST(req: NextRequest) {
         // Return URL with client-side cache buster
         return NextResponse.json({ audioUrl: `${publicUrl}?t=${Date.now()}`, status: 'generated' });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('TTS API Error:', error);
-        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+        const message = error instanceof Error ? error.message : 'Internal Server Error';
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

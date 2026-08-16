@@ -1,14 +1,13 @@
 import { MetadataRoute } from 'next';
+import { SITE_URL } from '@/lib/site';
 
 export default function robots(): MetadataRoute.Robots {
-    const baseUrl = process.env.PRODUCTION_URL || 'https://smart-flow.rd.coach';
-
     return {
         rules: {
             userAgent: '*',
             allow: '/',
             disallow: '/api/',
         },
-        sitemap: `${baseUrl}/sitemap.xml`,
+        sitemap: `${SITE_URL}/sitemap.xml`,
     };
 }

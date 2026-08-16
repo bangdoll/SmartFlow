@@ -2,16 +2,12 @@ import { supabase } from '@/lib/supabase';
 import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import Link from 'next/link';
-import { Share2, ArrowLeft, Calendar, ExternalLink, Clock, Tag, ChevronLeft, ChevronRight } from 'lucide-react';
-import { ChatBox } from '@/components/chat-box';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import { AudioPlayer } from '@/components/audio-player';
 import { NewsContent } from '@/components/news-content';
+import { SITE_URL } from '@/lib/site';
 
-// 強制動態渲染，確保獲取最新數據
-export const dynamic = 'force-dynamic';
+// News changes through the scheduled scraper, so ISR avoids regenerating the
+// same article for every crawler and visitor.
+export const revalidate = 900;
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -83,7 +79,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         };
     }
 
-    const ogUrl = new URL(`${process.env.NEXT_PUBLIC_APP_URL || 'https://smart-flow.rd.coach'}/api/og`);
+    const ogUrl = new URL(`${SITE_URL}/api/og`);
     ogUrl.searchParams.set('title', item.title);
     if (item.source) ogUrl.searchParams.set('source', item.source);
 
@@ -108,10 +104,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             description: item.summary_zh || item.summary_en,
             images: [ogUrl.toString()],
         },
+        alternates: {
+            canonical: `${SITE_URL}/news/${id}`,
+        },
     };
 }
 
 // Helper to fix common Markdown formatting issues
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function preprocessMarkdown(content: string | null): string {
     if (!content) return '';
 
@@ -179,14 +179,14 @@ export default async function NewsDetailPage({ params }: Props) {
         '@type': 'NewsArticle',
         headline: item.title,
         image: [
-            `${process.env.NEXT_PUBLIC_APP_URL || 'https://smart-flow.rd.coach'}/api/og?title=${encodeURIComponent(item.title)}&source=${encodeURIComponent(item.source)}`
+            `${SITE_URL}/api/og?title=${encodeURIComponent(item.title)}&source=${encodeURIComponent(item.source)}`
         ],
         datePublished: item.published_at,
         dateModified: item.published_at,
         author: [{
             '@type': 'Organization',
-            name: item.source || 'Smart Flow AI',
-            url: item.original_url
+            name: 'Smart Flow Team',
+            url: SITE_URL
         }],
         description: item.summary_zh || item.summary_en,
     };

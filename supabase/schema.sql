@@ -11,11 +11,12 @@ create table if not exists news_items (
   source text not null,              -- 來源網站 (如 TechCrunch)
   published_at timestamp with time zone not null, -- 發布時間
   summary_en text,                   -- 英文摘要 (LLM 生成)
-  summary_en text,                   -- 英文摘要 (LLM 生成)
   summary_zh text,                   -- 中文摘要 (LLM 生成)
   audio_url text,                    -- 中文語音連結 (預設)
   audio_url_en text,                 -- 英文語音連結 (新增)
   tags text[],                       -- 標籤
+  slug text,
+  click_count integer not null default 0,
   created_at timestamp with time zone default now() -- 建立時間
 );
 
@@ -39,7 +40,22 @@ create table if not exists newsletter_logs (
 
 -- 建立索引以加速查詢
 create index if not exists idx_news_items_published_at on news_items(published_at);
+create index if not exists idx_news_items_click_count on news_items(click_count desc);
+create index if not exists idx_news_items_slug on news_items(slug);
 create index if not exists idx_subscribers_email on subscribers(email);
+
+create or replace function increment_news_click(news_id uuid)
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  update public.news_items
+  set click_count = click_count + 1
+  where id = news_id;
+$$;
+
+grant execute on function increment_news_click(uuid) to anon, authenticated, service_role;
 
 -- 設定 Row Level Security (RLS)
 -- 為了安全起見，預設啟用 RLS，但因為我們主要透過 Server 端 API 存取 (使用 Service Role Key)，
@@ -54,6 +70,33 @@ alter table newsletter_logs enable row level security;
 create policy "Allow public read access for news_items"
   on news_items for select
   using (true);
+
+-- 使用者書籤
+create table if not exists user_bookmarks (
+  id uuid primary key default uuid_generate_v4(),
+  user_id uuid references auth.users not null,
+  news_id uuid references news_items(id) on delete cascade not null,
+  slug text,
+  created_at timestamp with time zone default now() not null,
+  unique(user_id, news_id)
+);
+
+alter table user_bookmarks enable row level security;
+
+create policy "Users can view own bookmarks"
+  on user_bookmarks for select
+  using (auth.uid() = user_id);
+
+create policy "Users can insert own bookmarks"
+  on user_bookmarks for insert
+  with check (auth.uid() = user_id);
+
+create policy "Users can delete own bookmarks"
+  on user_bookmarks for delete
+  using (auth.uid() = user_id);
+
+create index if not exists idx_user_bookmarks_user_id on user_bookmarks(user_id);
+create index if not exists idx_user_bookmarks_news_id on user_bookmarks(news_id);
 
 -- 訂閱者只能透過 API 新增 (這裡暫不開放直接 Client 端寫入，除非有 Auth)
 -- 為了簡單起見，假設所有寫入操作都通過後端 API (使用 Service Role)。

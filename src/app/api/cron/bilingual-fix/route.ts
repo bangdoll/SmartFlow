@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { autoFixNewsContent } from '@/lib/auto-fix-service';
+import { hasMaintenanceAuth } from '@/lib/api-auth';
 
 /**
  * 雙語內容修復 Cron Job
@@ -14,12 +15,8 @@ import { autoFixNewsContent } from '@/lib/auto-fix-service';
 export const maxDuration = 60;
 
 export async function GET(req: NextRequest) {
-    // 驗證 Cron Secret
-    const authHeader = req.headers.get('authorization');
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-        if (process.env.NODE_ENV !== 'development') {
-            return new NextResponse('Unauthorized', { status: 401 });
-        }
+    if (!hasMaintenanceAuth(req)) {
+        return new NextResponse('Unauthorized', { status: 401 });
     }
 
     try {

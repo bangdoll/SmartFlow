@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 
 // 確保環境變數存在
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!; // 使用 Service Role Key 進行後端操作
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl) {
   console.error('Error: NEXT_PUBLIC_SUPABASE_URL is missing from environment variables.');
@@ -10,8 +10,8 @@ if (!supabaseUrl) {
 }
 
 if (!supabaseKey) {
-  console.error('Error: SUPABASE_SERVICE_ROLE_KEY is missing from environment variables.');
-  throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY');
+  console.error('Error: Supabase server key is missing from environment variables.');
+  throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY');
 }
 
 // 建立 Supabase 客戶端

@@ -2,12 +2,6 @@
 
 import { useBookmarks, BookmarkItem } from '@/hooks/use-bookmarks';
 import { Bookmark } from 'lucide-react';
-import { cn } from '@/lib/utils'; // Assuming utils exists, or I will use clsx/tailwind-merge directly if not sure
-import { useState, useEffect } from 'react';
-
-// Simplified cn if not available, but usually it is in shadcn/ui projects.
-// Start of file check showed clsx and tailwind-merge in package.json.
-// I'll assume lib/utils exists or create a local utility.
 
 interface BookmarkButtonProps {
     item: BookmarkItem;
@@ -17,12 +11,7 @@ interface BookmarkButtonProps {
 
 export function BookmarkButton({ item, className, size = 'md' }: BookmarkButtonProps) {
     const { isBookmarked, addBookmark, removeBookmark } = useBookmarks();
-    const [active, setActive] = useState(false);
-
-    // Sync with global state
-    useEffect(() => {
-        setActive(isBookmarked(item.id));
-    }, [isBookmarked, item.id]);
+    const active = isBookmarked(item.id);
 
     const handleClick = (e: React.MouseEvent) => {
         e.preventDefault();

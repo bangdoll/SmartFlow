@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase';
 import { CompareView } from '@/components/compare-view';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { ilikePattern } from '@/lib/search-query';
 
 // 熱門比較組合 - 用於 generateStaticParams
 const POPULAR_COMPARISONS = [
@@ -42,8 +43,8 @@ async function getTopicNews(topic: string, limit = 20) {
 
     // 建立 OR 查詢條件
     const orConditions = variants.flatMap(v => [
-        `title.ilike.%${v}%`,
-        `summary_zh.ilike.%${v}%`,
+        `title.ilike.${ilikePattern(v)}`,
+        `summary_zh.ilike.${ilikePattern(v)}`,
     ]).join(',');
 
     const { data, error } = await supabase

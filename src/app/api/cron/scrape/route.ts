@@ -2,17 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { scrapeAllSources } from '@/lib/scraper';
 import { supabase } from '@/lib/supabase';
 import { nanoid } from 'nanoid';
+import { hasMaintenanceAuth } from '@/lib/api-auth';
 
 // Phase 1: 純爬取，不生成摘要 (避免逾時)
 export const maxDuration = 60;
 
 export async function GET(req: NextRequest) {
-    // 驗證 Cron Secret
-    const authHeader = req.headers.get('authorization');
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-        if (process.env.NODE_ENV !== 'development') {
-            return new NextResponse('Unauthorized', { status: 401 });
-        }
+    if (!hasMaintenanceAuth(req)) {
+        return new NextResponse('Unauthorized', { status: 401 });
     }
 
     try {
@@ -64,8 +61,9 @@ export async function GET(req: NextRequest) {
             inserted: insertedCount
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Phase 1 scrape failed:', error);
-        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+        const message = error instanceof Error ? error.message : 'Internal Server Error';
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

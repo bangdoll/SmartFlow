@@ -1,15 +1,28 @@
 -- Fix type mismatch between user_bookmarks.news_id (text) and news_items.id (uuid)
 
--- 1. Clear existing data to avoid casting errors from invalid strings (safe for dev environemnt)
-truncate table user_bookmarks;
+-- This migration can run before the table-creation migration on a fresh
+-- project, so guard it. Never delete bookmark data to make a type change.
+DO $$
+BEGIN
+  IF to_regclass('public.user_bookmarks') IS NOT NULL THEN
+    IF EXISTS (
+      SELECT 1
+      FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND table_name = 'user_bookmarks'
+        AND column_name = 'news_id'
+        AND data_type = 'text'
+    ) THEN
+      ALTER TABLE public.user_bookmarks
+        ALTER COLUMN news_id TYPE uuid USING news_id::uuid;
+    END IF;
 
--- 2. Convert news_id column from text to uuid
-alter table user_bookmarks 
-  alter column news_id type uuid using news_id::uuid;
-
--- 3. Now verify and add the foreign key constraint
-alter table user_bookmarks
-  add constraint fk_user_bookmarks_news
-  foreign key (news_id)
-  references news_items (id)
-  on delete cascade;
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_constraint WHERE conname = 'fk_user_bookmarks_news'
+    ) THEN
+      ALTER TABLE public.user_bookmarks
+        ADD CONSTRAINT fk_user_bookmarks_news
+        FOREIGN KEY (news_id) REFERENCES public.news_items(id) ON DELETE CASCADE;
+    END IF;
+  END IF;
+END $$;

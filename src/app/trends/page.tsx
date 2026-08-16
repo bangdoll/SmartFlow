@@ -1,6 +1,8 @@
 import { supabase } from '@/lib/supabase';
 import { TrendsView } from '@/components/trends-view';
 
+export const revalidate = 3600;
+
 // Helper to get latest trends from DB
 async function getLatestWeeklyTrends() {
     const { data, error } = await supabase

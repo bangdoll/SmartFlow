@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { CompareList } from '@/components/compare-list';
 import { supabase } from '@/lib/supabase';
+import { ilikePattern } from '@/lib/search-query';
 
 export const metadata: Metadata = {
     title: 'AI 比較分析 | OpenAI vs Anthropic, ChatGPT vs Claude',
@@ -27,7 +28,7 @@ async function getTopicNewsCount(topic: string): Promise<number> {
     const { count, error } = await supabase
         .from('news_items')
         .select('id', { count: 'exact', head: true })
-        .or(`title.ilike.%${topic}%,summary_zh.ilike.%${topic}%`)
+        .or(`title.ilike.${ilikePattern(topic)},summary_zh.ilike.${ilikePattern(topic)}`)
         .limit(1);
 
     if (error) return 0;

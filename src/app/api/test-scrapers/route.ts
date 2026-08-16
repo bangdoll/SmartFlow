@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import {
     scrapeTechCrunch,
     scrapeArsTechnica,
@@ -7,9 +7,14 @@ import {
     scrapeRedditArtificial,
     scrapeGoogleNews
 } from '@/lib/scraper';
+import { hasMaintenanceAuth } from '@/lib/api-auth';
 
 // 測試 API：顯示各來源的爬取結果（不寫入資料庫）
-export async function GET() {
+export async function GET(request: NextRequest) {
+    if (!hasMaintenanceAuth(request)) {
+        return new NextResponse('Unauthorized', { status: 401 });
+    }
+
     console.log('--- Testing All Scrapers ---');
 
     const results = await Promise.all([

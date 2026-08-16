@@ -1,15 +1,16 @@
 import { supabase } from '@/lib/supabase';
 import RSS from 'rss';
+import { SITE_URL } from '@/lib/site';
+import { publicCacheHeaders } from '@/lib/cache-control';
 
-// export const revalidate = 3600; // Cache for 1 hour
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 export async function GET() {
     const feed = new RSS({
         title: 'AI Trends Daily',
         description: '每日精選全球人工智慧新聞摘要',
-        site_url: process.env.NEXT_PUBLIC_APP_URL || 'https://smart-flow.rd.coach',
-        feed_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://smart-flow.rd.coach'}/feed.xml`,
+        site_url: SITE_URL,
+        feed_url: `${SITE_URL}/feed.xml`,
         language: 'zh-TW',
         pubDate: new Date(),
         copyright: `All rights reserved ${new Date().getFullYear()}, AI Trends Daily`,
@@ -17,7 +18,7 @@ export async function GET() {
 
     const { data: items } = await supabase
         .from('news_items')
-        .select('*')
+        .select('id, title, summary_zh, summary_en, original_url, published_at, tags')
         .order('published_at', { ascending: false })
         .limit(20);
 
@@ -38,6 +39,7 @@ export async function GET() {
     return new Response(feed.xml({ indent: true }), {
         headers: {
             'Content-Type': 'application/xml; charset=utf-8',
+            ...publicCacheHeaders(3600, 86400),
         },
     });
 }

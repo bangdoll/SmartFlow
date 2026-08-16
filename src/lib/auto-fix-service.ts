@@ -10,10 +10,14 @@ import OpenAI from 'openai';
 
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+function getOpenAI() {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) throw new Error('OPENAI_API_KEY is not configured');
+    return new OpenAI({ apiKey });
+}
 
 // 檢查文字是否主要為英文
 // 改進邏輯：
@@ -54,7 +58,7 @@ ${existingSummary ? `現有摘要 (可能是英文)：${existingSummary}` : `網
   "summary_zh": "🗣 白話文解讀\\n[解釋]\\n\\n⚠️ 這對你的影響\\n[影響]\\n\\n✅ 你不需要做什麼\\n[建議]"
 }`;
 
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 800,
@@ -78,7 +82,7 @@ Output JSON format:
   "summary_en": "MUST follow this strict 3-part structure with emojis:\\n🗣 **Plain English Breakdown**\\n[Explain simply]\\n\\n⚠️ **Impact on You**\\n[Why it matters]\\n\\n✅ **Actionable Advice**\\n[What to do]"
 }`;
 
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 500,

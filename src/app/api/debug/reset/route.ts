@@ -1,7 +1,12 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { hasMaintenanceAuth } from '@/lib/api-auth';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+    if (!hasMaintenanceAuth(request)) {
+        return new NextResponse('Unauthorized', { status: 401 });
+    }
+
     try {
         // 刪除所有新聞
         const { error } = await supabase
@@ -12,8 +17,8 @@ export async function GET() {
         if (error) throw error;
 
         return NextResponse.json({ success: true, message: 'All news items cleared.' });
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Internal Server Error';
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

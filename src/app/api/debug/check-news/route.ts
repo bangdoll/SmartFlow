@@ -1,9 +1,14 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { hasMaintenanceAuth } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+    if (!hasMaintenanceAuth(request)) {
+        return new NextResponse('Unauthorized', { status: 401 });
+    }
+
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
@@ -14,20 +19,14 @@ export async function GET(request: Request) {
         const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
         const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-        console.log('Env Debug:', {
-            url: supabaseUrl ? `${supabaseUrl.slice(0, 10)}...` : 'MISSING',
-            serviceKey: serviceKey ? `${serviceKey.slice(0, 5)}...` : 'MISSING',
-            anonKey: anonKey ? `${anonKey.slice(0, 5)}...` : 'MISSING'
-        });
-
         if (!supabaseUrl || !serviceKey || !anonKey) {
             throw new Error('Missing Supabase Environment Variables');
         }
 
         const results = {
             id,
-            adminFetch: null as any,
-            publicFetch: null as any,
+            adminFetch: null as { error: string } | { success: true; title?: string } | null,
+            publicFetch: null as { error: string } | { success: true } | null,
         };
 
         // 1. Admin Fetch
@@ -42,7 +41,7 @@ export async function GET(request: Request) {
 
         // 2. Public Fetch
         const publicClient = createClient(supabaseUrl, anonKey);
-        const { data: publicData, error: publicError } = await publicClient
+        const { error: publicError } = await publicClient
             .from('news_items')
             .select('*')
             .eq('id', id)
@@ -51,7 +50,8 @@ export async function GET(request: Request) {
         results.publicFetch = publicError ? { error: publicError.message } : { success: true };
 
         return NextResponse.json(results);
-    } catch (e: any) {
-        return NextResponse.json({ error: e.message, stack: e.stack }, { status: 500 });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Internal Server Error';
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

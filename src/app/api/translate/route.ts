@@ -2,14 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 
-// Initialize OpenAI
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
+function getOpenAI() {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) throw new Error('OPENAI_API_KEY is not configured');
+    return new OpenAI({ apiKey });
+}
 
 // Initialize Supabase Admin Client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+if (!supabaseServiceKey) throw new Error('Missing Supabase server key');
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function POST(req: NextRequest) {
@@ -37,7 +39,7 @@ export async function POST(req: NextRequest) {
 
         // 2. Translate Title if missing
         if (!titleEn && newsItem.title) {
-            const completion = await openai.chat.completions.create({
+            const completion = await getOpenAI().chat.completions.create({
                 model: "gpt-4o",
                 messages: [
                     {
@@ -57,7 +59,7 @@ export async function POST(req: NextRequest) {
 
         // 3. Translate Summary if missing (Logic similar to TTS route but purely for text)
         if (!summaryEn && newsItem.summary_zh) {
-            const completion = await openai.chat.completions.create({
+            const completion = await getOpenAI().chat.completions.create({
                 model: "gpt-4o",
                 messages: [
                     {
@@ -91,8 +93,9 @@ export async function POST(req: NextRequest) {
             summary_en: summaryEn
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Translation API Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const message = error instanceof Error ? error.message : 'Internal Server Error';
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

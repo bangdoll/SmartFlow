@@ -436,7 +436,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         // Load saved language from localStorage
         const saved = localStorage.getItem('language') as Language;
         if (saved && (saved === 'en' || saved === 'zh-TW')) {
-            setLanguageState(saved);
+            const timer = window.setTimeout(() => setLanguageState(saved), 0);
+            return () => window.clearTimeout(timer);
         }
     }, []);
 

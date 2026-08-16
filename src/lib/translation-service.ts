@@ -1,20 +1,28 @@
 import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 
-// Initialize OpenAI
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
+function getOpenAI() {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) throw new Error('OPENAI_API_KEY is not configured');
+    return new OpenAI({ apiKey });
+}
 
 // Initialize Supabase Admin Client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+if (!supabaseServiceKey) throw new Error('Missing Supabase server key');
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export interface TranslatedItem {
     id: string;
     title_en: string;
     summary_en: string;
+}
+
+interface TranslationResult {
+    id?: string;
+    title_en?: string;
+    summary_en?: string;
 }
 
 /**
@@ -75,7 +83,7 @@ export async function batchTranslate(ids: string[]): Promise<TranslatedItem[]> {
     `;
 
     try {
-        const completion = await openai.chat.completions.create({
+        const completion = await getOpenAI().chat.completions.create({
             model: "gpt-4o-mini",
             messages: [
                 { role: "system", content: "You are a batch translation service. Output valid JSON only." },
@@ -87,10 +95,10 @@ export async function batchTranslate(ids: string[]): Promise<TranslatedItem[]> {
 
         const responseContent = completion.choices[0]?.message?.content || '{}';
         const parsed = JSON.parse(responseContent);
-        const results = parsed.results || [];
+        const results = (parsed.results || []) as TranslationResult[];
 
         // 4. Update Database
-        const updatePromises = results.map(async (res: any) => {
+        const updatePromises = results.map(async (res) => {
             if (res.id && (res.title_en || res.summary_en)) {
                 return supabase
                     .from('news_items')
@@ -106,7 +114,7 @@ export async function batchTranslate(ids: string[]): Promise<TranslatedItem[]> {
 
         // 5. Merge results
         return items.map(original => {
-            const translated = results.find((r: any) => r.id === original.id);
+            const translated = results.find((r) => r.id === original.id);
             return {
                 id: original.id,
                 title_en: translated?.title_en || original.title_en,

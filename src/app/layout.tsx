@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-
-const inter = Inter({ subsets: ["latin"] });
 
 import { ThemeProvider } from "@/components/theme-provider";
 import { LanguageProvider } from "@/components/language-context";
@@ -13,6 +10,7 @@ import { BookmarksProvider } from "@/hooks/use-bookmarks";
 import { UserProvider } from '@/components/user-provider';
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "智流 Smart Flow - 掌握每日科技趨勢",
   description: "每日 AI 科技新聞摘要，幫助您快速掌握最新趨勢。我們利用 AI 技術為您篩選並整理最重要的科技新聞。",
   keywords: ["AI", "人工智慧", "科技新聞", "趨勢", "Smart Flow", "智流"],
@@ -20,11 +18,11 @@ export const metadata: Metadata = {
   openGraph: {
     title: "智流 Smart Flow - 掌握每日科技趨勢",
     description: "每日 AI 科技新聞摘要，利用 AI 技術為您篩選並整理最重要的科技新聞。",
-    url: "https://smart-flow.rd.coach",
+    url: SITE_URL,
     siteName: "智流 Smart Flow",
     images: [
       {
-        url: "/og-image.png", // Assuming this exists or will fallback
+        url: "/logo.png",
         width: 1200,
         height: 630,
       },
@@ -48,6 +46,7 @@ export const metadata: Metadata = {
 
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { Analytics } from '@vercel/analytics/react';
+import { SITE_URL } from '@/lib/site';
 
 export default function RootLayout({
   children,
@@ -56,7 +55,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-TW" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className="font-sans">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -90,7 +89,7 @@ export default function RootLayout({
               '@type': 'WebSite',
               name: '智流 Smart Flow',
               alternateName: 'Smart Flow',
-              url: process.env.PRODUCTION_URL || 'https://smart-flow.rd.coach',
+              url: SITE_URL,
             }),
           }}
         />

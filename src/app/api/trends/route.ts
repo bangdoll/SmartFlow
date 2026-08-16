@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { publicCacheHeaders } from '@/lib/cache-control';
 
 export async function GET() {
     try {
@@ -30,7 +31,9 @@ export async function GET() {
             .sort((a, b) => b.count - a.count)
             .slice(0, 10); // Top 10
 
-        return NextResponse.json(sortedTags);
+        return NextResponse.json(sortedTags, {
+            headers: publicCacheHeaders(900, 3600),
+        });
     } catch (error) {
         console.error('Error fetching trends:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

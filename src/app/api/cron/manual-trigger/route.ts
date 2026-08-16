@@ -4,6 +4,7 @@ import { generateSummary } from '@/lib/llm';
 import { supabase } from '@/lib/supabase';
 import { nanoid } from 'nanoid';
 import * as cheerio from 'cheerio';
+import { hasMaintenanceAuth } from '@/lib/api-auth';
 
 // 手動觸發：執行 Phase 1 (scrape) + Phase 2 (summarize 1-2 則)
 export const maxDuration = 60;
@@ -55,6 +56,10 @@ async function fetchArticleContent(url: string): Promise<string> {
 }
 
 export async function POST(req: NextRequest) {
+    if (!hasMaintenanceAuth(req)) {
+        return new NextResponse('Unauthorized', { status: 401 });
+    }
+
     try {
         // 1. Rate Limiting Check
         const { data: latestNews } = await supabase
@@ -150,12 +155,12 @@ export async function POST(req: NextRequest) {
             message: `新增 ${insertedCount} 則，已摘要 ${summarizedCount} 則`
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Manual trigger failed:', error);
+        const message = error instanceof Error ? error.message : 'Internal Server Error';
         return NextResponse.json({
             success: false,
-            error: error.message || 'Internal Server Error'
+            error: message
         }, { status: 500 });
     }
 }
-

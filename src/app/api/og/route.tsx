@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og';
+import { publicCacheHeaders } from '@/lib/cache-control';
 
 
 
@@ -76,6 +77,7 @@ export async function GET(request: Request) {
             {
                 width: 1200,
                 height: 630,
+                headers: publicCacheHeaders(86400, 604800),
             },
         );
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

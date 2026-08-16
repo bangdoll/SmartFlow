@@ -2,6 +2,13 @@ import { supabase } from '@/lib/supabase';
 import { WeeklyView } from '@/components/weekly-view';
 import { NewsItem } from '@/types';
 
+interface WeeklyTrendRecord {
+    topic?: unknown;
+    tag?: unknown;
+    count?: unknown;
+    sentiment?: unknown;
+}
+
 export const revalidate = 300; // 5 分鐘重新驗證
 
 // 獲取過去 7 天的新聞
@@ -42,10 +49,10 @@ async function getLatestWeeklyTrends() {
         titleEn: data.title_en,
         core_message: data.core_message,
         coreMessageEn: data.core_message_en,
-        trends: Array.isArray(data.trends) ? data.trends.map((trend: any) => ({
-            topic: trend.topic || trend.tag || 'Unknown', // Handle both 'topic' and 'tag'
-            count: trend.count || 0,
-            sentiment: trend.sentiment
+        trends: Array.isArray(data.trends) ? data.trends.map((trend: WeeklyTrendRecord) => ({
+            topic: typeof trend.topic === 'string' ? trend.topic : typeof trend.tag === 'string' ? trend.tag : 'Unknown',
+            count: typeof trend.count === 'number' ? trend.count : 0,
+            sentiment: typeof trend.sentiment === 'string' ? trend.sentiment : undefined
         })) : [],
         persona_advice: data.persona_advice,
         personaAdviceEn: data.persona_advice_en,

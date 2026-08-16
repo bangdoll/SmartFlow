@@ -11,12 +11,13 @@ interface HotNewsProps {
     items: NewsItem[];
 }
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Skeleton } from './ui/skeleton';
 import { BookmarkButton } from './bookmark-button';
 
 export function HotNewsSection({ items: initialItems }: HotNewsProps) {
     const { t, language } = useLanguage();
+    const router = useRouter();
     const [hotItems, setHotItems] = useState<NewsItem[]>(initialItems);
     const [translatingIds, setTranslatingIds] = useState<Set<string>>(new Set());
 
@@ -53,7 +54,7 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
             .then(data => {
                 if (data.results) {
                     setHotItems(prev => prev.map(item => {
-                        const updated = data.results.find((u: any) => u.id === item.id);
+                        const updated = data.results.find((u: { id: string }) => u.id === item.id);
                         return updated ? { ...item, title_en: updated.title_en, summary_en: updated.summary_en } : item;
                     }));
                 }
@@ -81,11 +82,6 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
             console.error('Failed to track click', e);
         }
     };
-
-    // Inject useRouter - actually not needed if we use Links
-    const router = useRouter();
-
-
 
     return (
         <section className="mb-12 animate-in slide-in-from-bottom-4 duration-700">
