@@ -5,8 +5,9 @@ import { Metadata } from 'next';
 import { SITE_URL } from '@/lib/site';
 import { serializeJsonLd } from '@/lib/json-ld';
 
-// Allow any tag
-export const revalidate = 600;
+// Tags change with the scheduled feed refresh, but do not need to rebuild for
+// every crawler visit. A one-hour ISR window reduces repeated function work.
+export const revalidate = 3600;
 
 interface Props {
     params: Promise<{ tag: string }>;
@@ -18,7 +19,9 @@ async function getNewsByTag(tag: string): Promise<NewsItem[]> {
         .select('id, original_url, title, title_en, source, published_at, summary_en, summary_zh, tags, click_count, slug')
         .contains('tags', [tag])
         .order('published_at', { ascending: false })
-        .limit(50);
+        // NewsFeed loads the next page on demand, so keep the initial HTML
+        // payload small and avoid serializing 50 complete cards per request.
+        .limit(10);
 
     return items || [];
 }

@@ -4,6 +4,19 @@
 
 ---
 
+## [2026-08-19]
+
+### 優化/變更 (Changed)
+- **Vercel 用量優化**: 標籤頁與新聞詳情頁的 ISR 快取窗口統一調整為 1 小時，並將 CDN stale-while-revalidate 延長至 2 小時，降低重複函式執行與 ISR 寫入。
+- **標籤頁載入優化**: 標籤頁初始資料由 50 筆縮減為 10 筆，並修正頁面載入時重複抓取第一頁的問題，改由無限捲動按需載入後續資料。
+- **文章頁傳輸優化**: 新聞詳情頁由 `select *` 改為只讀取頁面實際使用欄位，減少 ISR HTML 與 Origin Transfer 的資料量。
+- **Vercel Node.js runtime 升級**: `ytdownload`、`mna-form`、`moon-tv`、`v0-image-compressor` 四個專案已由 22.x 設為 24.x；Vercel API 回讀確認全部生效。
+
+### 驗證 (Validation)
+- ESLint 通過，維持 0 errors；既有 2 個 `<img>` 效能提醒未影響建置。
+- Next.js production build 通過編譯、TypeScript、靜態頁面產生與路由輸出；本機未配置正式 Supabase 環境變數，因此資料頁以既有 fallback 完成隔離驗證。
+- 程式碼審查確認標籤頁初始 10 筆與 infinite scroll offset 銜接正確，未發現重抓或漏載回歸。
+
 ## [2026-08-17]
 
 ### 優化/變更 (Changed)
