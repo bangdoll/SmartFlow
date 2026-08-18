@@ -242,12 +242,13 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
         if (mode === 'focus') return; // No sorting in focus mode
         setLoadedItems([]);
         setHasMore(true);
-        // Reload when a tag is selected. This also fixes switching directly
-        // from one tag to another while old loaded items are still present.
-        if (sortBy === 'popular' || selectedTag) {
+        // Reload for a new sort order, or when a tag has no server-rendered
+        // initial page. Tag pages already include the first 10 items, so
+        // fetching offset 0 here would duplicate the same request on mount.
+        if (sortBy === 'popular' || (selectedTag && initialItems.length === 0)) {
             void loadMore(true);
         }
-    }, [selectedTag, sortBy, mode, loadMore]);
+    }, [selectedTag, sortBy, mode, loadMore, initialItems.length]);
 
     // Simplified tag handling - now handled by Link navigation
     // const handleTagClick... removed

@@ -7,8 +7,10 @@ import { SITE_URL } from '@/lib/site';
 import { serializeJsonLd } from '@/lib/json-ld';
 
 // News changes through the scheduled scraper, so ISR avoids regenerating the
-// same article for every crawler and visitor.
-export const revalidate = 900;
+// same article for every crawler and visitor. Articles are immutable after
+// publication in normal operation, so a one-hour window avoids unnecessary
+// function invocations and ISR writes while keeping new pages discoverable.
+export const revalidate = 3600;
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -21,7 +23,12 @@ const getNewsItem = cache(async (id: string) => {
     // Check if Short UUID (8 chars)
     const shortUuidRegex = /^[0-9a-f]{8}$/i;
 
-    let query = supabase.from('news_items').select('*, title_en');
+    // Keep the server-rendered payload limited to fields used by the detail
+    // view. Selecting `*` also serializes maintenance columns into the ISR
+    // response and increases origin transfer for every article visit.
+    let query = supabase
+        .from('news_items')
+        .select('id, title, title_en, source, published_at, summary_zh, summary_en, original_url, audio_url, audio_url_en, tags, slug');
 
     if (uuidRegex.test(id)) {
         query = query.eq('id', id);

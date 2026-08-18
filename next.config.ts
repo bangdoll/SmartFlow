@@ -3,8 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   async headers() {
-    const articleCache = 'public, max-age=0, s-maxage=900, stale-while-revalidate=3600';
-    const tagCache = 'public, max-age=0, s-maxage=600, stale-while-revalidate=3600';
+    const articleCache = 'public, max-age=0, s-maxage=3600, stale-while-revalidate=7200';
+    const tagCache = 'public, max-age=0, s-maxage=3600, stale-while-revalidate=7200';
 
     return [
       {

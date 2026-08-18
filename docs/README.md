@@ -37,6 +37,7 @@
 
 ## 近期重大更新
 
+- **Vercel 用量與 runtime 優化 (2026-08-19)**: 標籤頁與新聞詳情頁 ISR 快取調整為 1 小時，標籤頁避免重複抓取第一頁，文章頁改為精準欄位查詢以降低 Origin Transfer；`ytdownload`、`mna-form`、`moon-tv`、`v0-image-compressor` 四個 Vercel 專案已升級至 Node.js 24.x。
 - **全站安全性與部署穩定性強化 (2026-08-17)**: 完成全站 API 與資料庫巡檢，為聊天、翻譯、TTS、訂閱、OG 圖片與新聞點擊端點補上輸入驗證與限流；分離 Cron 與管理端點權限；強化 HTML、JSON-LD 與外部連結安全處理；加入爬蟲逾時、Supabase lazy client 與安全性標頭。程式碼已合併至 GitHub `main`，並完成 Vercel 生產環境部署與 Supabase migration/RLS 驗證。
 - **搜尋功能與 UI 修復 (2026-01-17)**: 修復首頁搜尋框按 Enter 無法觸發搜尋的問題（改用純原生 HTML 表單提交）；修正放大鏡圖示垂直對齊。
 - **Product Hunt 發布準備 (2026-01-04)**: 完成全套發布準備，包含 `product_hunt_kit` (戰略/文案/腳本/視覺素材) 與動態 Logo 生成，並更新 `growth_strategy.md` 制定 Q1 增長計畫。
