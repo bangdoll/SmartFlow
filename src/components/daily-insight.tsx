@@ -10,6 +10,7 @@ interface DailyInsightProps {
 
 import { useBatchTranslation } from '@/hooks/use-batch-translation';
 import { Skeleton } from './ui/skeleton';
+import { getNewsPath } from '@/lib/news-url';
 
 export function DailyInsight({ insightItem }: DailyInsightProps) {
     const { t, language } = useLanguage();
@@ -65,8 +66,7 @@ export function DailyInsight({ insightItem }: DailyInsightProps) {
                         <h3
                             className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3 leading-snug cursor-pointer hover:underline decoration-amber-500/30 underline-offset-4"
                             onClick={() => {
-                                const shortId = item.id.substring(0, 8);
-                                window.location.href = `/news/${shortId}`;
+                                window.location.href = getNewsPath(item.id);
                             }}
                             suppressHydrationWarning
                         >
@@ -81,8 +81,7 @@ export function DailyInsight({ insightItem }: DailyInsightProps) {
                             <button
                                 onClick={() => {
                                     // Hard Nav with Short ID
-                                    const shortId = item.id.substring(0, 8);
-                                    window.location.href = `/news/${shortId}`;
+                                    window.location.href = getNewsPath(item.id);
                                 }}
                                 className="inline-flex items-center gap-2 text-amber-700 dark:text-amber-400 font-bold hover:gap-3 transition-all group-hover:underline decoration-2 underline-offset-4"
                                 suppressHydrationWarning

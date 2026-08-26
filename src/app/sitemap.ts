@@ -1,5 +1,8 @@
 import { MetadataRoute } from 'next';
 import { SITE_URL } from '@/lib/site';
+import { getNewsPath } from '@/lib/news-url';
+
+export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const { createClient } = await import('@supabase/supabase-js');
@@ -21,24 +24,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .limit(100);
 
     const newsUrls = (news || []).map((item) => ({
-        url: `${baseUrl}/news/${item.id}`,
+        url: `${baseUrl}${getNewsPath(item.id)}`,
         lastModified: new Date(item.published_at || item.created_at),
         changeFrequency: 'weekly' as const,
         priority: 0.8,
     }));
 
     // Extract unique tags
-    const tags = new Set<string>();
+    const tagLastModified = new Map<string, Date>();
     (news || []).forEach(item => {
         if (item.tags && Array.isArray(item.tags)) {
-            item.tags.forEach(tag => tags.add(tag));
+            const lastModified = new Date(item.published_at || item.created_at);
+            item.tags.forEach(tag => {
+                const previous = tagLastModified.get(tag);
+                if (!previous || lastModified > previous) {
+                    tagLastModified.set(tag, lastModified);
+                }
+            });
         }
     });
 
-    const tagUrls = Array.from(tags).map(tag => ({
+    const tagUrls = Array.from(tagLastModified.entries()).map(([tag, lastModified]) => ({
         url: `${baseUrl}/tags/${encodeURIComponent(tag)}`,
-        lastModified: new Date(),
-        changeFrequency: 'daily' as const,
+        lastModified,
+        changeFrequency: 'weekly' as const,
         priority: 0.7,
     }));
 

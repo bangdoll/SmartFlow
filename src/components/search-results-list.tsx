@@ -12,6 +12,7 @@ interface SearchResultsListProps {
 
 import { useBatchTranslation } from '@/hooks/use-batch-translation';
 import { preprocessMarkdown } from '@/lib/markdown';
+import { getNewsPath } from '@/lib/news-url';
 
 export function SearchResultsList({ items: initialItems, query }: SearchResultsListProps) {
     const { t, language } = useLanguage();
@@ -88,7 +89,7 @@ export function SearchResultsList({ items: initialItems, query }: SearchResultsL
                                 </div>
 
                                 <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
-                                    <Link href={`/news/${item.id}`} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                                    <Link href={getNewsPath(item.id)} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                                         {displayTitle}
                                     </Link>
                                 </h2>

@@ -1,16 +1,17 @@
 import { supabase } from '@/lib/supabase';
 import { cache } from 'react';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { Metadata } from 'next';
 import { NewsContent } from '@/components/news-content';
 import { SITE_URL } from '@/lib/site';
 import { serializeJsonLd } from '@/lib/json-ld';
+import { getCanonicalNewsId, getNewsPath, isFullNewsId } from '@/lib/news-url';
 
 // News changes through the scheduled scraper, so ISR avoids regenerating the
 // same article for every crawler and visitor. Articles are immutable after
-// publication in normal operation, so a one-hour window avoids unnecessary
+// publication in normal operation, so a one-day window avoids unnecessary
 // function invocations and ISR writes while keeping new pages discoverable.
-export const revalidate = 3600;
+export const revalidate = 86400;
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -79,6 +80,17 @@ async function getAdjacentNews(currentDate: string) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { id } = await params;
+
+    // UUID links from older sitemaps can be canonicalized without a database
+    // lookup. This keeps legacy crawler traffic away from Supabase entirely.
+    if (isFullNewsId(id)) {
+        return {
+            alternates: {
+                canonical: `${SITE_URL}${getNewsPath(id)}`,
+            },
+        };
+    }
+
     const item = await getNewsItem(id);
 
     if (!item) {
@@ -113,7 +125,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             images: [ogUrl.toString()],
         },
         alternates: {
-            canonical: `${SITE_URL}/news/${id}`,
+            canonical: `${SITE_URL}${getNewsPath(item.id)}`,
         },
     };
 }
@@ -171,10 +183,25 @@ function preprocessMarkdown(content: string | null): string {
 
 export default async function NewsDetailPage({ params }: Props) {
     const { id } = await params;
+
+    // Full UUIDs are legacy aliases. Redirect before any Supabase query so an
+    // old sitemap or crawler cannot spend a database/ISR render for a second
+    // cache key.
+    if (isFullNewsId(id)) {
+        permanentRedirect(getNewsPath(id));
+    }
+
     const item = await getNewsItem(id);
 
     if (!item) {
         notFound();
+    }
+
+    // Avoid rendering the same article under UUID, slug, and short-ID cache
+    // keys. Old links continue to work, but only the short URL renders HTML.
+    const canonicalId = getCanonicalNewsId(item.id);
+    if (id !== canonicalId) {
+        permanentRedirect(getNewsPath(item.id));
     }
 
 

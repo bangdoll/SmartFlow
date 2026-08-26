@@ -5,6 +5,7 @@ import { Calendar, Tag, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useLanguage } from './language-context';
 import { preprocessMarkdown } from '@/lib/markdown';
+import { getNewsPath } from '@/lib/news-url';
 
 interface BookmarkCardProps {
     item: BookmarkItem;
@@ -22,7 +23,7 @@ export function BookmarkCard({ item }: BookmarkCardProps) {
 
     const displayTitle = (language === 'en' && item.title_en) ? item.title_en : item.title;
     const displaySummary = (language === 'en' && item.summary_en) ? item.summary_en : item.summary;
-    const linkHref = `/news/${item.slug || item.id}`;
+    const linkHref = getNewsPath(item.id);
 
     return (
         <div className="relative group">

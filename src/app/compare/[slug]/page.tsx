@@ -124,7 +124,7 @@ export async function generateStaticParams() {
     }));
 }
 
-export const revalidate = 300; // 5 分鐘重新驗證
+export const revalidate = 3600; // 每小時重新驗證，避免無必要的 ISR 寫入
 
 export default async function ComparePage({ params }: Props) {
     const { slug } = await params;

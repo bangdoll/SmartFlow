@@ -5,6 +5,7 @@ import { useLanguage } from '@/components/language-context';
 import { Calendar, TrendingUp, AlertTriangle, Users, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { preprocessMarkdown } from '@/lib/markdown';
+import { getNewsPath } from '@/lib/news-url';
 
 interface WeeklyTrendsData {
     title: string;
@@ -152,7 +153,7 @@ export function WeeklyView({ newsItems, trendsData }: WeeklyViewProps) {
                             return (
                                 <Link
                                     key={item.id}
-                                    href={`/news/${item.slug || item.id}`}
+                                    href={getNewsPath(item.id)}
                                     className="block bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm border border-gray-200 dark:border-gray-800 rounded-xl p-4 hover:shadow-lg hover:scale-[1.01] transition-all duration-300"
                                 >
                                     <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">

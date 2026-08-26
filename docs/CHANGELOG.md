@@ -4,6 +4,19 @@
 
 ---
 
+## [2026-08-26]
+
+### 修復/優化 (Fixed / Changed)
+- **Vercel 重複 ISR 快取鍵**: sitemap、搜尋、週報、月報、精選與比較頁原本可能使用完整 UUID 或 slug，與短網址形成同一篇新聞的多份公開快取；現在統一使用 8 碼短 ID，舊網址會以 308 導向唯一 canonical URL。
+- **Sitemap 爬蟲觸發優化**: 新聞 sitemap 改用短網址，標籤 `lastModified` 改採實際最新新聞時間，不再每次以目前時間標記全部標籤，降低爬蟲重抓與 ISR 寫入。
+- **ISR/CDN 用量優化**: 文章頁快取延長至 24 小時、標籤頁延長至 6 小時；首頁、封存、週報、月報、精選與比較頁由 5 分鐘調整為 1 小時，降低 Function、ISR Writes 與 Fast Origin Transfer。
+- **匿名流量 middleware 優化**: 沒有 Supabase auth cookie 的公開請求不再呼叫 `auth.getUser()`；登入中的請求仍保留 session refresh，降低爬蟲與匿名訪客造成的額外 Edge/Compute 與 Supabase 呼叫。
+
+### 驗證 (Validation)
+- 正式站修正前已重現：同一篇文章短網址為 `HIT`，完整 UUID 為另一個 `MISS`。
+- 新增 Playwright canonical 回歸測試，確認 UUID/slug 會導向短網址且 sitemap 不再輸出完整 UUID。
+- TypeScript、ESLint 與 Next.js production build 通過；既有 2 個 `<img>` 效能警告仍為非阻塞提醒。
+
 ## [2026-08-19]
 
 ### 優化/變更 (Changed)
