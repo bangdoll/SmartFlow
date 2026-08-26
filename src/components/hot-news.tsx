@@ -13,6 +13,7 @@ interface HotNewsProps {
 import { useState, useEffect } from 'react';
 import { Skeleton } from './ui/skeleton';
 import { BookmarkButton } from './bookmark-button';
+import { getNewsPath } from '@/lib/news-url';
 
 export function HotNewsSection({ items: initialItems }: HotNewsProps) {
     const { t, language } = useLanguage();
@@ -172,7 +173,7 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
                                     className="block mt-auto group/summary cursor-pointer"
                                     onClick={() => {
                                         if (isTranslating) return;
-                                        window.location.href = `/news/${item.id.substring(0, 8)}`;
+                                        window.location.href = getNewsPath(item.id);
                                     }}
                                 >
                                     {isTranslating ? (
@@ -192,7 +193,7 @@ export function HotNewsSection({ items: initialItems }: HotNewsProps) {
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             handleNewsClick(item.id);
-                                            router.push(`/news/${item.id}`);
+                                            router.push(getNewsPath(item.id));
                                         }}
                                         className="p-2 rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 group-hover:bg-orange-100 dark:group-hover:bg-orange-900/40 transition-colors hover:scale-110 active:scale-95 cursor-pointer"
                                     >

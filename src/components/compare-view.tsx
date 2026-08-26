@@ -3,6 +3,7 @@
 import { useLanguage } from '@/components/language-context';
 import { TrendingUp, Calendar, BarChart2 } from 'lucide-react';
 import Link from 'next/link';
+import { getNewsPath } from '@/lib/news-url';
 
 interface TopicData {
     name: string;
@@ -138,7 +139,7 @@ export function CompareView({ data }: CompareViewProps) {
                             topic1.latestNews.map(news => (
                                 <Link
                                     key={news.id}
-                                    href={`/news/${news.slug || news.id}`}
+                                    href={getNewsPath(news.id)}
                                     className="block p-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg hover:shadow-md transition-shadow"
                                 >
                                     <div className="text-xs text-gray-500 mb-1 flex items-center gap-1">
@@ -169,7 +170,7 @@ export function CompareView({ data }: CompareViewProps) {
                             topic2.latestNews.map(news => (
                                 <Link
                                     key={news.id}
-                                    href={`/news/${news.slug || news.id}`}
+                                    href={getNewsPath(news.id)}
                                     className="block p-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg hover:shadow-md transition-shadow"
                                 >
                                     <div className="text-xs text-gray-500 mb-1 flex items-center gap-1">

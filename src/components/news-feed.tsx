@@ -11,6 +11,7 @@ import { preprocessMarkdown } from '@/lib/markdown';
 import { FeedSubscribeCard } from './feed-subscribe-card';
 import { useBatchTranslation } from '@/hooks/use-batch-translation';
 import { Skeleton } from './ui/skeleton';
+import { getNewsPath } from '@/lib/news-url';
 
 interface NewsFeedProps {
     initialItems?: NewsItem[];
@@ -295,7 +296,7 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
     };
 
     const handleShare = (item: NewsItem, platform: 'copy' | 'twitter' | 'facebook') => {
-        const shareUrl = `${window.location.origin}/news/${item.id.substring(0, 8)}`; // Use Short ID
+        const shareUrl = `${window.location.origin}${getNewsPath(item.id)}`;
         const text = `[新趨勢] ${item.title}`;
 
         if (platform === 'copy') {
@@ -313,8 +314,7 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
     const handleCardClick = (item: NewsItem) => {
         handleNewsClick(item.id);
         // FORCE BROWSER NAVIGATION: Use Short ID (8 chars) per user request
-        const shortId = item.id.substring(0, 8);
-        window.location.href = `/news/${shortId}`;
+        window.location.href = getNewsPath(item.id);
     };
 
     return (
@@ -514,10 +514,9 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
                                                     className="mb-4 cursor-pointer"
                                                     onClick={() => {
                                                         // Hard Navigation to bypass any Router/State issues
-                                                        const shortId = item.id.substring(0, 8);
                                                         // If in focus mode, we might want to pass 'is last' context in query?
                                                         // For now, standard nav.
-                                                        window.location.href = `/news/${shortId}`;
+                                                        window.location.href = getNewsPath(item.id);
                                                     }}
                                                     suppressHydrationWarning
                                                 >
@@ -566,7 +565,7 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
                                                             e.stopPropagation();
                                                             handleNewsClick(item.id);
                                                             // Short ID Hard Nav
-                                                            window.location.href = `/news/${item.id.substring(0, 8)}`;
+                                                            window.location.href = getNewsPath(item.id);
                                                         }}
                                                         className="flex items-center gap-1 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors z-10 relative cursor-pointer whitespace-nowrap"
                                                         suppressHydrationWarning
@@ -582,7 +581,7 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
                                                                 e.stopPropagation();
                                                                 handleNewsClick(item.id);
                                                                 // Short ID Hard Nav
-                                                                window.location.href = `/news/${item.id.substring(0, 8)}`;
+                                                                window.location.href = getNewsPath(item.id);
                                                             }}
                                                             suppressHydrationWarning
                                                         >

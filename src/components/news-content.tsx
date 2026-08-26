@@ -12,6 +12,7 @@ import { preprocessMarkdown } from '@/lib/markdown';
 import { Skeleton } from './ui/skeleton';
 import { BookmarkButton } from './bookmark-button';
 import { SocialPostCopy } from './social-post-copy';
+import { getNewsPath } from '@/lib/news-url';
 
 interface NewsItem {
     id: string;
@@ -211,7 +212,7 @@ export function NewsContent({ item, prev, next }: NewsContentProps) {
                     </span>
                     <button
                         onClick={() => {
-                            const shareUrl = `${window.location.origin}/news/${item.slug || item.id.substring(0, 8)}`;
+                            const shareUrl = `${window.location.origin}${getNewsPath(item.id)}`;
                             const text = `[新趨勢] ${displayTitle}`;
                             navigator.clipboard.writeText(`${text} ${shareUrl}`);
                             alert(language === 'en' ? 'Link copied!' : '連結已複製！');
@@ -223,7 +224,7 @@ export function NewsContent({ item, prev, next }: NewsContentProps) {
                     </button>
                     <button
                         onClick={() => {
-                            const shareUrl = `${window.location.origin}/news/${item.slug || item.id.substring(0, 8)}`;
+                            const shareUrl = `${window.location.origin}${getNewsPath(item.id)}`;
                             const text = `[新趨勢] ${displayTitle}`;
                             window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
                         }}
@@ -236,7 +237,7 @@ export function NewsContent({ item, prev, next }: NewsContentProps) {
                     </button>
                     <button
                         onClick={() => {
-                            const shareUrl = `${window.location.origin}/news/${item.slug || item.id.substring(0, 8)}`;
+                            const shareUrl = `${window.location.origin}${getNewsPath(item.id)}`;
                             window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
                         }}
                         className="p-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-blue-600 dark:hover:bg-blue-600 rounded-full text-gray-600 dark:text-gray-300 hover:text-white transition-colors"
@@ -260,7 +261,7 @@ export function NewsContent({ item, prev, next }: NewsContentProps) {
                                 👇 {language === 'en' ? 'Next step - No thinking needed' : '下一步不用想'}
                             </h3>
                             <Link
-                                href={`/news/${next.slug || next.id}`}
+                                href={getNewsPath(next.id)}
                                 className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-lg shadow-lg shadow-blue-500/20 transition-all active:scale-95"
                             >
                                 {t('article.action.next')} <ArrowRight className="w-5 h-5 ml-2" />
@@ -317,7 +318,7 @@ export function NewsContent({ item, prev, next }: NewsContentProps) {
                     <div className="grid grid-cols-2 gap-4 mt-2">
                         {prev ? (
                             <Link
-                                href={`/news/${prev.slug || prev.id}`}
+                                href={getNewsPath(prev.id)}
                                 className="flex flex-col items-start p-4 rounded-xl border border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group text-left"
                             >
                                 <span className="flex items-center gap-1 text-xs font-medium text-gray-400 mb-1 group-hover:text-blue-500 transition-colors">
@@ -334,7 +335,7 @@ export function NewsContent({ item, prev, next }: NewsContentProps) {
 
                         {next ? (
                             <Link
-                                href={`/news/${next.slug || next.id}`}
+                                href={getNewsPath(next.id)}
                                 className="flex flex-col items-end p-4 rounded-xl border border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group text-right"
                             >
                                 <span className="flex items-center gap-1 text-xs font-medium text-gray-400 mb-1 group-hover:text-blue-500 transition-colors">

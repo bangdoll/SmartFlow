@@ -5,8 +5,8 @@ import { NewsItem } from '@/types';
 import { WelcomeSection } from '@/components/welcome-section';
 import { PinnedGuideCard } from '@/components/pinned-guide-card';
 
-// 使用 ISR (增量靜態再生)，每 5 分鐘更新一次
-export const revalidate = 300;
+// 使用 ISR (增量靜態再生)，每小時更新一次
+export const revalidate = 3600;
 
 const FALLBACK_NEWS: NewsItem[] = [
   {

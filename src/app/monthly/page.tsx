@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase';
 import { MonthlyView } from '@/components/monthly-view';
 import { NewsItem } from '@/types';
 
-export const revalidate = 300; // 5 分鐘重新驗證
+export const revalidate = 3600; // 每小時重新驗證，避免無必要的 ISR 寫入
 
 // 獲取過去 30 天的新聞
 async function getMonthlyNews(): Promise<NewsItem[]> {

@@ -4,6 +4,7 @@ import { NewsItem } from '@/types';
 import { useLanguage } from '@/components/language-context';
 import { BookOpen, Star, Lightbulb, ArrowRight, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import { getNewsPath } from '@/lib/news-url';
 
 interface EssentialsViewProps {
     items: NewsItem[];
@@ -130,7 +131,7 @@ export function EssentialsView({ items }: EssentialsViewProps) {
                             return (
                                 <Link
                                     key={item.id}
-                                    href={`/news/${item.slug || item.id}`}
+                                    href={getNewsPath(item.id)}
                                     className="group bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm border border-gray-200 dark:border-gray-800 rounded-xl p-5 hover:shadow-lg hover:scale-[1.01] transition-all duration-300"
                                 >
                                     <div className="flex items-start gap-4">

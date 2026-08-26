@@ -8,6 +8,18 @@ export async function updateSession(request: NextRequest) {
         },
     })
 
+    // Public pages are the majority of traffic, especially crawler requests.
+    // Anonymous requests have no session to refresh, so avoid a Supabase auth
+    // round-trip for every page view. Logged-in requests still get the normal
+    // token refresh and cookie handling below.
+    const hasAuthCookie = request.cookies.getAll().some(({ name }) =>
+        name.startsWith('sb-') && name.includes('-auth-token')
+    )
+
+    if (!hasAuthCookie) {
+        return response
+    }
+
     const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,

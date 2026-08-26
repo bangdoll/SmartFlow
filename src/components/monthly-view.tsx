@@ -5,6 +5,7 @@ import { useLanguage } from '@/components/language-context';
 import { Calendar, Clock, ChevronDown, ChevronUp, BarChart2 } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
+import { getNewsPath } from '@/lib/news-url';
 
 interface TrendItem {
     topic: string;
@@ -160,7 +161,7 @@ export function MonthlyView({ newsItems, trends, weeklyGroups }: MonthlyViewProp
                                         return (
                                             <Link
                                                 key={item.id}
-                                                href={`/news/${item.slug || item.id}`}
+                                                href={getNewsPath(item.id)}
                                                 className="block p-4 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors"
                                             >
                                                 <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">

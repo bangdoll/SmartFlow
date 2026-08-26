@@ -7,6 +7,7 @@ import { useLanguage } from './language-context';
 import { preprocessMarkdown } from '@/lib/markdown';
 import { BookmarkButton } from './bookmark-button';
 import { Skeleton } from './ui/skeleton';
+import { getNewsPath } from '@/lib/news-url';
 
 interface NewsCardProps {
     news: NewsItem;
@@ -57,7 +58,7 @@ export function NewsCard({ news }: NewsCardProps) {
             </div>
 
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3 leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                <Link href={`/news/${news.slug || news.id}`} className="flex items-center gap-2 w-full">
+                <Link href={getNewsPath(news.id)} className="flex items-center gap-2 w-full">
                     {isTranslating ? (
                         <Skeleton className="h-7 w-3/4" />
                     ) : (

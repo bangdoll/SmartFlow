@@ -6,8 +6,8 @@ import { SITE_URL } from '@/lib/site';
 import { serializeJsonLd } from '@/lib/json-ld';
 
 // Tags change with the scheduled feed refresh, but do not need to rebuild for
-// every crawler visit. A one-hour ISR window reduces repeated function work.
-export const revalidate = 3600;
+// every crawler visit. A six-hour ISR window reduces repeated function work.
+export const revalidate = 21600;
 
 interface Props {
     params: Promise<{ tag: string }>;
