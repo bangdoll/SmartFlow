@@ -6,6 +6,11 @@ import { translatePendingItems } from '@/lib/translation-service';
 import { autoFixNewsContent } from '@/lib/auto-fix-service';
 import { hasMaintenanceAuth } from '@/lib/api-auth';
 
+// This repository is currently connected to more than one Vercel project.
+// Keep the built-in daily cron single-owner so a duplicate project cannot
+// run the same scrape/AI/newsletter workflow a second time.
+const PRIMARY_CRON_PROJECT_ID = 'prj_e2pjXpqaz3Y6eLXhKZ72mCmrgsiE';
+
 // 設定最大執行時間 (Vercel Hobby 10s/60s，合併後更需注意)
 // 爬蟲限制了處理數量，電子報應該也很快
 export const maxDuration = 60;
@@ -14,6 +19,17 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: NextRequest) {
     if (!hasMaintenanceAuth(req)) {
         return new NextResponse('Unauthorized', { status: 401 });
+    }
+
+    if (process.env.VERCEL === '1' && process.env.VERCEL_PROJECT_ID !== PRIMARY_CRON_PROJECT_ID) {
+        console.warn(
+            `[Daily Cron] Skipped on non-primary Vercel project: ${process.env.VERCEL_PROJECT_ID || 'unknown'}`,
+        );
+        return NextResponse.json({
+            success: true,
+            skipped: true,
+            reason: 'Daily cron is owned by the Smart Flow primary project.',
+        });
     }
 
     try {
