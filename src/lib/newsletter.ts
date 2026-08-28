@@ -11,6 +11,23 @@ export async function sendDailyNewsletter() {
     console.warn('RESEND_API_KEY is missing');
     return { success: false, message: 'RESEND_API_KEY is missing' };
   }
+
+  // Resend only permits onboarding@resend.dev to send test emails to the
+  // account owner's address. Do not invoke Resend once for every subscriber
+  // while the production sender domain is still unverified: that creates a
+  // predictable stream of 403s and spends function time without delivering
+  // the newsletter.
+  if (emailFrom.toLowerCase().includes('onboarding@resend.dev')) {
+    console.warn(
+      'Newsletter skipped: EMAIL_FROM uses onboarding@resend.dev. Verify a production domain in Resend and set EMAIL_FROM before enabling subscriber delivery.',
+    );
+    return {
+      success: false,
+      skipped: true,
+      message: 'Sender domain is not verified; newsletter delivery is paused.',
+    };
+  }
+
   const resend = new Resend(resendApiKey);
 
   console.log('Starting daily newsletter job...');

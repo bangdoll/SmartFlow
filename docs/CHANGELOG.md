@@ -4,6 +4,16 @@
 
 ---
 
+## [2026-08-29]
+
+### 修復/止血 (Fixed / Mitigated)
+- **Resend 未驗證寄件網域保護**: 當 `EMAIL_FROM` 仍使用 `onboarding@resend.dev` 時，每日電子報會在第一次呼叫 Resend 前安全跳過，不再對所有訂閱者逐一發送必然失敗的請求，避免持續產生 403 錯誤與不必要的 Function 執行。
+- **寄件恢復條件明確化**: 完成 Resend 自訂網域驗證並將 Vercel 的 `EMAIL_FROM` 更新為該網域地址後，才會恢復訂閱者寄送。
+
+### 驗證 (Validation)
+- ESLint 通過，維持 0 errors；既有 2 個 `<img>` 效能提醒仍為非阻塞警告。
+- TypeScript 型別檢查通過。
+
 ## [2026-08-26]
 
 ### 修復/優化 (Fixed / Changed)
