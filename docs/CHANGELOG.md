@@ -4,6 +4,18 @@
 
 ---
 
+## [2026-09-01]
+
+### 修復/止血 (Fixed / Mitigated)
+- **OG 圖片移除遠端中文字型依賴**: 遇到中文或其他非拉丁字元時，改用穩定的英文字樣產生預覽，不再讓 `@vercel/og` 呼叫 `fonts.googleapis.com`，避免字型連線逾時造成函式失敗與重算。
+- **摘要排程逾時保護**: AI 摘要請求加入 35 秒主動截止與單次零重試，為資料庫更新和 HTTP 回應保留緩衝，避免 `/api/cron/summarize` 再撞上 Vercel 60 秒平台逾時。
+
+### 驗證 (Validation)
+- 本機 TypeScript、ESLint 與 Next.js production build 的編譯／型別階段通過；完整靜態產生仍需 Vercel 的 Supabase 環境變數。
+- 正式環境需確認 `/api/og` 在中文參數下不再觸發 `fonts.googleapis.com` 錯誤，摘要排程未再出現平台逾時。
+
+---
+
 ## [2026-08-29]
 
 ### 修復/止血 (Fixed / Mitigated)

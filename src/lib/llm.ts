@@ -11,7 +11,11 @@ const SummarySchema = z.object({
     tags: z.array(z.string()).describe('List of relevant tags (e.g., LLM, Generative AI, Robotics).'),
 });
 
-export async function generateSummary(title: string, content: string) {
+export async function generateSummary(
+    title: string,
+    content: string,
+    options: { abortSignal?: AbortSignal; maxRetries?: number } = {},
+) {
     try {
         const prompt = `
       You are an expert tech news editor. 
@@ -92,6 +96,9 @@ export async function generateSummary(title: string, content: string) {
             model: openai('gpt-4o'), // 或 gpt-3.5-turbo
             schema: SummarySchema,
             prompt: prompt,
+            abortSignal: options.abortSignal,
+            // 避免排程函式在平台逾時前反覆重試同一個昂貴請求。
+            maxRetries: options.maxRetries ?? 1,
         });
 
         return object;

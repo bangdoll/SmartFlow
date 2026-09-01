@@ -2,6 +2,16 @@ import { ImageResponse } from 'next/og';
 import { publicCacheHeaders } from '@/lib/cache-control';
 import { rateLimit } from '@/lib/rate-limit';
 
+const OG_TITLE_FALLBACK = 'AI Trends Daily';
+const OG_SOURCE_FALLBACK = 'Smart Flow';
+
+// @vercel/og 只有內建拉丁字型；遇到中文時會嘗試連線到 Google Fonts。
+// OG 圖片是快取資產，不能讓一次外部字型連線失敗拖慢整個函式或產生重試。
+function normalizeOgText(value: string | null | undefined, fallback: string): string {
+    const text = value?.trim() || '';
+    return /^[\x20-\x7E]*$/u.test(text) && text.length > 0 ? text : fallback;
+}
+
 
 
 export async function GET(request: Request) {
@@ -12,8 +22,8 @@ export async function GET(request: Request) {
         const { searchParams } = new URL(request.url);
 
         // ?title=<title>&source=<source>
-        const title = searchParams.get('title')?.slice(0, 100) || 'AI Trends Daily';
-        const source = searchParams.get('source')?.slice(0, 80) || 'Smart Flow';
+        const title = normalizeOgText(searchParams.get('title')?.slice(0, 100), OG_TITLE_FALLBACK);
+        const source = normalizeOgText(searchParams.get('source')?.slice(0, 80), OG_SOURCE_FALLBACK);
 
         return new ImageResponse(
             (

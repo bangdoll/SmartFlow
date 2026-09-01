@@ -12,6 +12,7 @@ export const dynamic = 'force-dynamic';
 // 每次只處理 1 則，確保在 30 秒內完成（外部 cron 服務限制）
 const MAX_PROCESS_PER_RUN = 1;
 const FETCH_TIMEOUT_MS = 5000; // 5 秒超時（原本 10 秒）
+const LLM_TIMEOUT_MS = 35_000; // 留出資料庫更新與回應時間，不能撞上 Vercel 60 秒上限
 
 // 抓取網頁文章內容（優化版）
 async function fetchArticleContent(url: string): Promise<string> {
@@ -116,8 +117,18 @@ export async function GET(req: NextRequest) {
             const contentForLLM = articleContent || item.title;
             console.log(`Content length: ${contentForLLM.length} chars, elapsed: ${Date.now() - startTime}ms`);
 
-            // 生成摘要
-            const summary = await generateSummary(item.title, contentForLLM);
+            // 生成摘要：單次排程不重試，並在平台逾時前主動中止。
+            const summaryController = new AbortController();
+            const summaryTimeoutId = setTimeout(() => summaryController.abort(), LLM_TIMEOUT_MS);
+            let summary;
+            try {
+                summary = await generateSummary(item.title, contentForLLM, {
+                    abortSignal: summaryController.signal,
+                    maxRetries: 0,
+                });
+            } finally {
+                clearTimeout(summaryTimeoutId);
+            }
             console.log(`Summary generated, elapsed: ${Date.now() - startTime}ms`);
 
             if (summary) {
