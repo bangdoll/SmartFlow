@@ -37,6 +37,7 @@
 
 ## 近期重大更新
 
+- **雙語修復循環與無環境變數建置修正 (2026-09-02)**: 修正混合技術詞中文標題被重複判定為英文的問題（共用語言判斷器改以至少 2 個中文字辨識），並驗證 AI 回傳內容後才寫回；RSS、資料頁與登入 provider 在本機／CI 缺少 Supabase 設定時安全 fallback，避免 production build 中斷。部署後首頁、RSS、OG 圖片與舊 UUID 導向均已驗收。
 - **Vercel ISR 重複快取修復 (2026-08-26)**: 統一新聞公開網址為 8 碼短 ID，完整 UUID/slug 舊連結改為 308 canonical redirect；sitemap 不再產生重複 UUID 網址，並延長內容頁 ISR/CDN 快取窗口，降低爬蟲造成的 Function、ISR Writes 與 Origin Transfer。
 - **Vercel 用量與 runtime 優化 (2026-08-19)**: 標籤頁與新聞詳情頁 ISR 快取調整為 1 小時，標籤頁避免重複抓取第一頁，文章頁改為精準欄位查詢以降低 Origin Transfer；`ytdownload`、`mna-form`、`moon-tv`、`v0-image-compressor` 四個 Vercel 專案已升級至 Node.js 24.x。
 - **全站安全性與部署穩定性強化 (2026-08-17)**: 完成全站 API 與資料庫巡檢，為聊天、翻譯、TTS、訂閱、OG 圖片與新聞點擊端點補上輸入驗證與限流；分離 Cron 與管理端點權限；強化 HTML、JSON-LD 與外部連結安全處理；加入爬蟲逾時、Supabase lazy client 與安全性標頭。程式碼已合併至 GitHub `main`，並完成 Vercel 生產環境部署與 Supabase migration/RLS 驗證。
