@@ -1,6 +1,6 @@
 import { NewsFeed } from '@/components/news-feed';
 import { SubscribeForm } from '@/components/subscribe-form';
-import { supabase } from '@/lib/supabase';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { NewsItem } from '@/types';
 import { WelcomeSection } from '@/components/welcome-section';
 import { PinnedGuideCard } from '@/components/pinned-guide-card';
@@ -72,18 +72,25 @@ const FALLBACK_NEWS: NewsItem[] = [
 ];
 
 async function getLatestNews(): Promise<NewsItem[]> {
-  const { data: items } = await supabase
-    .from('news_items')
-    .select('id, title, original_url, summary_zh, summary_en, title_en, slug, published_at, source, tags, created_at')
-    .order('published_at', { ascending: false })
-    .limit(50);
+  if (!isSupabaseConfigured()) return FALLBACK_NEWS;
 
-  if (!items || items.length === 0) {
-    console.log('DB Connection failed or Empty. Using Fallback Data.');
+  try {
+    const { data: items } = await supabase
+      .from('news_items')
+      .select('id, title, original_url, summary_zh, summary_en, title_en, slug, published_at, source, tags, created_at')
+      .order('published_at', { ascending: false })
+      .limit(50);
+
+    if (!items || items.length === 0) {
+      console.log('DB Connection failed or Empty. Using Fallback Data.');
+      return FALLBACK_NEWS;
+    }
+
+    return items;
+  } catch (error) {
+    console.warn('Supabase unavailable. Using fallback news:', error);
     return FALLBACK_NEWS;
   }
-
-  return items;
 }
 
 export default async function Home() {

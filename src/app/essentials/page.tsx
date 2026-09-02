@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { EssentialsView } from '@/components/essentials-view';
 import { NewsItem } from '@/types';
 
@@ -6,26 +6,33 @@ export const revalidate = 3600; // 每小時重新驗證，避免無必要的 IS
 
 // 獲取精選新聞（按點擊數或手動標記）
 async function getEssentialNews(): Promise<NewsItem[]> {
+    if (!isSupabaseConfigured()) return [];
+
     // 獲取過去 90 天內最重要的新聞
     const ninetyDaysAgo = new Date();
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
 
-    const { data, error } = await supabase
-        .from('news_items')
-        .select('*')
-        .gte('published_at', ninetyDaysAgo.toISOString())
-        .not('summary_zh', 'is', null)
-        .order('published_at', { ascending: false })
-        .limit(500);
+    try {
+        const { data, error } = await supabase
+            .from('news_items')
+            .select('*')
+            .gte('published_at', ninetyDaysAgo.toISOString())
+            .not('summary_zh', 'is', null)
+            .order('published_at', { ascending: false })
+            .limit(500);
 
-    if (error) {
-        console.error('Error fetching essential news:', error);
+        if (error) {
+            console.error('Error fetching essential news:', error);
+            return [];
+        }
+
+        // 按分類分組並選出代表性文章
+        const categories = categorizeNews(data as NewsItem[]);
+        return categories;
+    } catch (error) {
+        console.warn('Essential news unavailable without Supabase:', error);
         return [];
     }
-
-    // 按分類分組並選出代表性文章
-    const categories = categorizeNews(data as NewsItem[]);
-    return categories;
 }
 
 // 將新聞分類為不同主題

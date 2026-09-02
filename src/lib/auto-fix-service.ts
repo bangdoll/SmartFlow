@@ -7,33 +7,12 @@
 
 import OpenAI from 'openai';
 import { supabaseAdmin as supabase } from '@/lib/supabase';
+import { isEnglishText } from '@/lib/text-language';
 
 function getOpenAI() {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) throw new Error('OPENAI_API_KEY is not configured');
     return new OpenAI({ apiKey });
-}
-
-// 檢查文字是否主要為英文
-// 改進邏輯：
-// 1. 如果有 3 個以上的中文字符，視為中文標題（即使包含技術英文詞彙）
-// 2. 如果只有 0-2 個中文字符，且英文比例 > 40%，視為英文
-// 3. 這樣可以避免 "Claude Code 獲得原生 LSP 支援" 這類中文標題被誤判
-function isEnglishText(text: string): boolean {
-    if (!text || text.length < 5) return false;
-
-    // 計算特定字符數量
-    const englishChars = text.match(/[a-zA-Z]/g)?.length || 0;
-    const chineseChars = text.match(/[\u4e00-\u9fff]/g)?.length || 0;
-
-    // 核心改進：如果有 3 個以上中文字符，不論英文有多少，都視為中文標題
-    // 這樣可以正確處理 "蘋果M2 MacBook Air上的Asahi Linux搭配Sway" 這類標題
-    if (chineseChars >= 3) {
-        return false; // 這是中文標題
-    }
-
-    // 如果只有 0-2 個中文字符，則用英文比例判斷
-    return englishChars / text.length > 0.4;
 }
 
 // 英→中翻譯
@@ -141,12 +120,16 @@ export async function autoFixChineseContent(daysBack = 7, limit = 20): Promise<n
             const updateData: Record<string, string> = {};
 
             // 只有當標題被檢測為英文時才更新，避免過度翻譯
-            if (isEnglishText(item.title || '')) {
+            if (isEnglishText(item.title || '') && result.title_zh && !isEnglishText(result.title_zh)) {
                 updateData.title = result.title_zh;
             }
 
             // 總是更新摘要（因為如果進入這裡，摘要不是缺失就是英文）
-            if (result.summary_zh && result.summary_zh.length > 20) {
+            if (
+                result.summary_zh &&
+                result.summary_zh.length > 20 &&
+                !isEnglishText(result.summary_zh)
+            ) {
                 updateData.summary_zh = result.summary_zh;
             }
 

@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { CompareList } from '@/components/compare-list';
-import { supabase } from '@/lib/supabase';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { ilikePattern } from '@/lib/search-query';
 
 export const metadata: Metadata = {
@@ -25,14 +25,21 @@ const COMPARISONS = [
 
 // 檢查主題是否有新聞
 async function getTopicNewsCount(topic: string): Promise<number> {
-    const { count, error } = await supabase
-        .from('news_items')
-        .select('id', { count: 'exact', head: true })
-        .or(`title.ilike.${ilikePattern(topic)},summary_zh.ilike.${ilikePattern(topic)}`)
-        .limit(1);
+    if (!isSupabaseConfigured()) return 0;
 
-    if (error) return 0;
-    return count || 0;
+    try {
+        const { count, error } = await supabase
+            .from('news_items')
+            .select('id', { count: 'exact', head: true })
+            .or(`title.ilike.${ilikePattern(topic)},summary_zh.ilike.${ilikePattern(topic)}`)
+            .limit(1);
+
+        if (error) return 0;
+        return count || 0;
+    } catch (error) {
+        console.warn(`Comparison count unavailable without Supabase for ${topic}:`, error);
+        return 0;
+    }
 }
 
 // 過濾有資料的比較組合

@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/client';
 import { useLanguage } from './language-context';
 import { X } from 'lucide-react';
+import Image from 'next/image';
 
 interface AuthModalProps {
     isOpen: boolean;
@@ -11,12 +12,11 @@ interface AuthModalProps {
 
 export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     const { language } = useLanguage();
-    const supabase = createClient();
-
     if (!isOpen) return null;
 
     const handleLogin = async (provider: 'google' | 'facebook') => {
         try {
+            const supabase = createClient();
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: provider,
                 options: {
@@ -56,7 +56,13 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                         onClick={() => handleLogin('google')}
                         className="w-full h-12 flex items-center justify-center gap-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 text-gray-900 dark:text-white rounded-xl font-medium transition-all hover:scale-[1.02] active:scale-[0.98]"
                     >
-                        <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
+                        <Image
+                            src="https://www.google.com/favicon.ico"
+                            alt="Google"
+                            width={20}
+                            height={20}
+                            unoptimized
+                        />
                         {language === 'en' ? 'Continue with Google' : '使用 Google 帳號登入'}
                     </button>
 

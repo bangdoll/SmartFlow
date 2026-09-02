@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { cache } from 'react';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { Metadata } from 'next';
@@ -19,6 +19,8 @@ interface Props {
 
 // Helper to get news item with caching
 const getNewsItem = cache(async (id: string) => {
+    if (!isSupabaseConfigured()) return null;
+
     // Check if valid UUID
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     // Check if Short UUID (8 chars)

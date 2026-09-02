@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { MonthlyView } from '@/components/monthly-view';
 import { NewsItem } from '@/types';
 
@@ -6,22 +6,29 @@ export const revalidate = 3600; // 每小時重新驗證，避免無必要的 IS
 
 // 獲取過去 30 天的新聞
 async function getMonthlyNews(): Promise<NewsItem[]> {
+    if (!isSupabaseConfigured()) return [];
+
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const { data, error } = await supabase
-        .from('news_items')
-        .select('*')
-        .gte('published_at', thirtyDaysAgo.toISOString())
-        .order('published_at', { ascending: false })
-        .limit(200);
+    try {
+        const { data, error } = await supabase
+            .from('news_items')
+            .select('*')
+            .gte('published_at', thirtyDaysAgo.toISOString())
+            .order('published_at', { ascending: false })
+            .limit(200);
 
-    if (error) {
-        console.error('Error fetching monthly news:', error);
+        if (error) {
+            console.error('Error fetching monthly news:', error);
+            return [];
+        }
+
+        return data as NewsItem[];
+    } catch (error) {
+        console.warn('Monthly news unavailable without Supabase:', error);
         return [];
     }
-
-    return data as NewsItem[];
 }
 
 // 計算月度熱門標籤

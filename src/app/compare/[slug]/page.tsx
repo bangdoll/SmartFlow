@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { CompareView } from '@/components/compare-view';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
@@ -32,6 +32,8 @@ function parseSlug(slug: string) {
 
 // 獲取主題相關新聞
 async function getTopicNews(topic: string, limit = 20) {
+    if (!isSupabaseConfigured()) return [];
+
     // 建立搜尋變體（例如 GPT-4 → gpt-4, gpt 4, gpt4）
     const normalizedTopic = topic.toLowerCase();
     const variants = [
@@ -47,19 +49,24 @@ async function getTopicNews(topic: string, limit = 20) {
         `summary_zh.ilike.${ilikePattern(v)}`,
     ]).join(',');
 
-    const { data, error } = await supabase
-        .from('news_items')
-        .select('id, title, title_en, summary_zh, published_at, source, slug, tags')
-        .or(orConditions)
-        .order('published_at', { ascending: false })
-        .limit(limit);
+    try {
+        const { data, error } = await supabase
+            .from('news_items')
+            .select('id, title, title_en, summary_zh, published_at, source, slug, tags')
+            .or(orConditions)
+            .order('published_at', { ascending: false })
+            .limit(limit);
 
-    if (error) {
-        console.error(`Error fetching news for ${topic}:`, error);
+        if (error) {
+            console.error(`Error fetching news for ${topic}:`, error);
+            return [];
+        }
+
+        return data || [];
+    } catch (error) {
+        console.warn(`Comparison data unavailable without Supabase for ${topic}:`, error);
         return [];
     }
-
-    return data || [];
 }
 
 // 生成比較資料

@@ -1,5 +1,5 @@
 import { NewsFeed } from '@/components/news-feed';
-import { supabase } from '@/lib/supabase';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { NewsItem } from '@/types';
 import { Metadata } from 'next';
 import { SITE_URL } from '@/lib/site';
@@ -14,16 +14,23 @@ interface Props {
 }
 
 async function getNewsByTag(tag: string): Promise<NewsItem[]> {
-    const { data: items } = await supabase
-        .from('news_items')
-        .select('id, original_url, title, title_en, source, published_at, summary_en, summary_zh, tags, click_count, slug')
-        .contains('tags', [tag])
-        .order('published_at', { ascending: false })
-        // NewsFeed loads the next page on demand, so keep the initial HTML
-        // payload small and avoid serializing 50 complete cards per request.
-        .limit(10);
+    if (!isSupabaseConfigured()) return [];
 
-    return items || [];
+    try {
+        const { data: items } = await supabase
+            .from('news_items')
+            .select('id, original_url, title, title_en, source, published_at, summary_en, summary_zh, tags, click_count, slug')
+            .contains('tags', [tag])
+            .order('published_at', { ascending: false })
+            // NewsFeed loads the next page on demand, so keep the initial HTML
+            // payload small and avoid serializing 50 complete cards per request.
+            .limit(10);
+
+        return items || [];
+    } catch (error) {
+        console.warn('Tag data unavailable without Supabase:', error);
+        return [];
+    }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

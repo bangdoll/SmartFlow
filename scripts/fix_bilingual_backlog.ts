@@ -3,6 +3,7 @@ import OpenAI from 'openai';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import { isEnglishText } from '../src/lib/text-language';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
@@ -15,18 +16,6 @@ const supabase = createClient(
 );
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-function isEnglishText(text: string): boolean {
-    if (!text || text.length < 5) return false;
-    const englishChars = text.match(/[a-zA-Z]/g)?.length || 0;
-    const chineseChars = text.match(/[\u4e00-\u9fff]/g)?.length || 0;
-    // Core improvement: If there are 3 or more Chinese characters, consider it Chinese
-    if (chineseChars >= 3) {
-        return false; // This is a Chinese title
-    }
-    // If there are only 0-2 Chinese characters, use the English ratio to decide
-    return englishChars / text.length > 0.4;
-}
 
 async function translateToChineseWithSummary(title: string, url: string, existingSummary: string | null = null): Promise<{ title_zh: string; summary_zh: string }> {
     const prompt = `請為以下英文新聞進行繁體中文本地化：

@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import { isEnglishText } from '../src/lib/text-language';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
@@ -10,21 +11,6 @@ const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
-
-function isEnglishText(text: string): boolean {
-    if (!text || text.length < 5) return false;
-    // Count specific character types
-    const englishChars = text.match(/[a-zA-Z]/g)?.length || 0;
-    const chineseChars = text.match(/[\u4e00-\u9fff]/g)?.length || 0;
-
-    // Core improvement: If there are 3 or more Chinese characters, consider it Chinese
-    if (chineseChars >= 3) {
-        return false; // This is a Chinese title
-    }
-
-    // If there are only 0-2 Chinese characters, use the English ratio to decide
-    return englishChars / text.length > 0.4;
-}
 
 async function auditBilingualContent() {
     console.log('🔍 Starting Strict Bilingual Audit (Last 14 Days)...\n');

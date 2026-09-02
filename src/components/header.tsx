@@ -9,6 +9,7 @@ import { useLanguage } from '@/components/language-context';
 import { useUser } from '@/components/user-provider';
 import { AuthModal } from '@/components/auth-modal';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export function Header() {
     const { t, language } = useLanguage();
@@ -79,11 +80,20 @@ export function Header() {
                             <div className="relative group z-[102]">
                                 <button className="flex items-center gap-2 pl-2">
                                     <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 p-[2px]">
-                                        <img
-                                            src={user.user_metadata.avatar_url || `https://ui-avatars.com/api/?name=${user.email || 'User'}`}
-                                            alt="User"
-                                            className="w-full h-full rounded-full border-2 border-white dark:border-black object-cover"
-                                        />
+                                        {typeof user.user_metadata.avatar_url === 'string' && user.user_metadata.avatar_url ? (
+                                            <Image
+                                                src={user.user_metadata.avatar_url}
+                                                alt="User"
+                                                width={32}
+                                                height={32}
+                                                unoptimized
+                                                className="w-full h-full rounded-full border-2 border-white dark:border-black object-cover"
+                                            />
+                                        ) : (
+                                            <span className="flex w-full h-full items-center justify-center rounded-full border-2 border-white dark:border-black bg-gray-100 dark:bg-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-200">
+                                                {(user.user_metadata.full_name || user.email || 'U').trim().charAt(0).toUpperCase()}
+                                            </span>
+                                        )}
                                     </div>
                                 </button>
                                 {/* Dropdown */}

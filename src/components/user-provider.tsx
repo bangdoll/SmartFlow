@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback, useMemo } from 'react';
 import { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
@@ -20,10 +20,21 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const [session, setSession] = useState<Session | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
-    const supabase = createClient();
+    const supabase = useMemo(() => {
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+            return null;
+        }
+
+        return createClient();
+    }, []);
 
     const refreshSession = useCallback(async () => {
         setIsLoading(true);
+        if (!supabase) {
+            setIsLoading(false);
+            return;
+        }
+
         try {
             const { data: { user }, error } = await supabase.auth.getUser();
             if (error) {
@@ -54,6 +65,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }, [supabase]);
 
     useEffect(() => {
+        if (!supabase) {
+            setIsLoading(false);
+            return;
+        }
+
         // Initial load
         refreshSession();
 
@@ -90,6 +106,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     };
 
     const signOut = async () => {
+        if (!supabase) return;
         await supabase.auth.signOut();
         // State update handled by onAuthStateChange
     };

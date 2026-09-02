@@ -19,6 +19,17 @@ function getClientConfig(mode: ClientMode) {
 }
 
 /**
+ * Lets server-rendered pages skip optional data loading during local/CI
+ * builds where production Supabase credentials are intentionally absent.
+ */
+export function isSupabaseConfigured(): boolean {
+  return Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
+  );
+}
+
+/**
  * Delay client construction until a request actually uses Supabase. This
  * keeps route bundles import-safe during static analysis/build collection,
  * while still failing clearly when a runtime request lacks configuration.

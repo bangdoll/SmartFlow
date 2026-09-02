@@ -4,6 +4,10 @@ import { SITE_URL } from '@/lib/site';
 import { publicCacheHeaders } from '@/lib/cache-control';
 
 export const revalidate = 3600;
+// The feed depends on runtime Supabase credentials. Keep it out of the
+// build-time prerender pass so local/CI builds can run without production
+// environment variables; CDN caching is configured on the response below.
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
     const feed = new RSS({
@@ -16,11 +20,27 @@ export async function GET() {
         copyright: `All rights reserved ${new Date().getFullYear()}, AI Trends Daily`,
     });
 
-    const { data: items } = await supabase
-        .from('news_items')
-        .select('id, title, summary_zh, summary_en, original_url, published_at, tags')
-        .order('published_at', { ascending: false })
-        .limit(20);
+    let items: Array<{
+        id: string;
+        title: string;
+        summary_zh: string | null;
+        summary_en: string | null;
+        original_url: string;
+        published_at: string;
+        tags: string[] | null;
+    }> = [];
+
+    try {
+        const { data } = await supabase
+            .from('news_items')
+            .select('id, title, summary_zh, summary_en, original_url, published_at, tags')
+            .order('published_at', { ascending: false })
+            .limit(20);
+
+        items = data || [];
+    } catch (error) {
+        console.warn('RSS feed unavailable without Supabase configuration:', error);
+    }
 
     items?.forEach((item) => {
         feed.item({

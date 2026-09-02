@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
+import { useState, useEffect, useMemo, createContext, useContext, ReactNode } from 'react';
 import { useUser } from '@/components/user-provider';
 import { createClient } from '@/utils/supabase/client';
 
@@ -50,13 +50,21 @@ export function BookmarksProvider({ children }: { children: ReactNode }) {
     const { user, isLoading: isUserLoading } = useUser();
     const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const supabase = createClient();
+    const supabase = useMemo(() => {
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+            return null;
+        }
+
+        return createClient();
+    }, []);
 
     // 1. Fetch Logic
     const fetchBookmarks = async () => {
         setIsLoading(true);
         try {
             if (user) {
+                if (!supabase) return;
+
                 // Fetch from Supabase
                 const { data, error } = await supabase
                     .from('user_bookmarks')
@@ -116,6 +124,11 @@ export function BookmarksProvider({ children }: { children: ReactNode }) {
                 return;
             }
 
+            if (!supabase) {
+                fetchBookmarks();
+                return;
+            }
+
             // Perform Sync: Insert local items into DB
             const bookmarksToInsert = localItems.map(item => ({
                 user_id: user.id,
@@ -150,6 +163,8 @@ export function BookmarksProvider({ children }: { children: ReactNode }) {
 
         try {
             if (user) {
+                if (!supabase) throw new Error('Supabase is not configured');
+
                 const { error } = await supabase.from('user_bookmarks').insert({
                     user_id: user.id,
                     news_id: item.id,
@@ -172,6 +187,8 @@ export function BookmarksProvider({ children }: { children: ReactNode }) {
 
         try {
             if (user) {
+                if (!supabase) throw new Error('Supabase is not configured');
+
                 const { error } = await supabase
                     .from('user_bookmarks')
                     .delete()

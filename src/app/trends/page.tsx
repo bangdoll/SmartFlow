@@ -1,30 +1,37 @@
-import { supabase } from '@/lib/supabase';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { TrendsView } from '@/components/trends-view';
 
 export const revalidate = 3600;
 
 // Helper to get latest trends from DB
 async function getLatestWeeklyTrends() {
-    const { data, error } = await supabase
-        .from('weekly_trends')
-        .select('*')
-        .order('week_start_date', { ascending: false })
-        .limit(1)
-        .single();
+    if (!isSupabaseConfigured()) return null;
 
-    if (error || !data) {
+    try {
+        const { data, error } = await supabase
+            .from('weekly_trends')
+            .select('*')
+            .order('week_start_date', { ascending: false })
+            .limit(1)
+            .single();
+
+        if (error || !data) {
+            return null;
+        }
+
+        return {
+            title: data.title,
+            titleEn: data.title_en,
+            core_message: data.core_message,
+            coreMessageEn: data.core_message_en,
+            trends: data.trends,
+            persona_advice: data.persona_advice,
+            personaAdviceEn: data.persona_advice_en
+        };
+    } catch (error) {
+        console.warn('Weekly trends unavailable without Supabase:', error);
         return null;
     }
-
-    return {
-        title: data.title,
-        titleEn: data.title_en,
-        core_message: data.core_message,
-        coreMessageEn: data.core_message_en,
-        trends: data.trends,
-        persona_advice: data.persona_advice,
-        personaAdviceEn: data.persona_advice_en
-    };
 }
 
 export default async function TrendsPage() {
