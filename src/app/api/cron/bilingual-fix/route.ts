@@ -4,15 +4,15 @@ import { hasMaintenanceAuth } from '@/lib/api-auth';
 
 /**
  * 雙語內容修復 Cron Job
- * 每日三次執行（台灣時間 00:00, 08:00, 16:00）
+ * 由外部排程定期執行，未完成的項目留待下次處理
  * 
  * 功能：
  * 1. 檢查所有中文版頁面，將英文標題/摘要修正為中文
  * 2. 檢查所有英文版頁面，將中文標題/摘要修正為英文
  */
-// 優化版：每次只處理少量項目，確保在 30 秒內完成
-// cron-job.org 免費方案 timeout 是 30 秒
-export const maxDuration = 60;
+// cron-job.org waits at most 30s; leave 5s for startup and the HTTP response.
+// maxDuration alone does not limit work or extend the scheduler's timeout.
+export const maxDuration = 30;
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
@@ -25,9 +25,11 @@ export async function GET(req: NextRequest) {
         console.log('--- Starting Bilingual Fix Cron Job ---');
         console.log(`Taiwan Time: ${new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' })}`);
 
-        // 優化：每次只處理 5 則，7 天內，確保 30 秒內完成
-        // cron job 會定期執行，最終會處理完所有項目
-        const fixResult = await autoFixNewsContent(7, 5);
+        // At most 2 Chinese + 2 English repairs, with cancellable I/O and no retries.
+        const fixResult = await autoFixNewsContent(7, 2, {
+            timeBudgetMs: 25_000,
+            requestTimeoutMs: 8_000,
+        });
 
         const duration = ((Date.now() - startTime) / 1000).toFixed(2);
         console.log(`[Bilingual Fix Cron] Completed in ${duration}s`);

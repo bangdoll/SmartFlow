@@ -6,7 +6,8 @@
     "dev": "node node_modules/next/dist/bin/next dev",
     "build": "node node_modules/next/dist/bin/next build",
     "start": "node node_modules/next/dist/bin/next start",
-    "lint": "node node_modules/eslint/bin/eslint.js src e2e"
+    "lint": "node node_modules/eslint/bin/eslint.js src e2e tests",
+    "test:unit": "node --test tests/*.test.mjs"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.74",

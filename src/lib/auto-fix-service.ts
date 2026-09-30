@@ -9,6 +9,40 @@ import OpenAI from 'openai';
 import { supabaseAdmin as supabase } from '@/lib/supabase';
 import { isEnglishText } from '@/lib/text-language';
 
+export interface AutoFixOptions {
+    /** Total wall-clock budget, including reads, translations, writes and pauses. */
+    timeBudgetMs: number;
+    requestTimeoutMs?: number;
+}
+
+interface AutoFixExecution {
+    deadline: number;
+    signal: AbortSignal;
+    requestTimeoutMs: number;
+}
+
+function hasTimeRemaining(execution?: AutoFixExecution): boolean {
+    return !execution || (!execution.signal.aborted && Date.now() < execution.deadline);
+}
+
+function translationOptions(execution?: AutoFixExecution) {
+    if (!execution) return undefined;
+
+    const timeout = Math.max(1, Math.min(execution.requestTimeoutMs, execution.deadline - Date.now()));
+    return {
+        // The SDK timeout ends at response headers; also bound reading the body.
+        signal: AbortSignal.any([execution.signal, AbortSignal.timeout(timeout)]),
+        timeout,
+        // Let the next scheduled run retry instead of extending this short request.
+        maxRetries: 0,
+    };
+}
+
+async function rateLimitPause(execution?: AutoFixExecution) {
+    const delay = execution ? Math.min(500, execution.deadline - Date.now()) : 500;
+    if (delay > 0) await new Promise(resolve => setTimeout(resolve, delay));
+}
+
 function getOpenAI() {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) throw new Error('OPENAI_API_KEY is not configured');
@@ -16,7 +50,7 @@ function getOpenAI() {
 }
 
 // 英→中翻譯
-async function translateToChineseWithSummary(title: string, url: string, existingSummary: string | null = null): Promise<{ title_zh: string; summary_zh: string }> {
+async function translateToChineseWithSummary(title: string, url: string, existingSummary: string | null = null, execution?: AutoFixExecution): Promise<{ title_zh: string; summary_zh: string }> {
     const prompt = `請為以下英文新聞進行繁體中文本地化：
 
 標題：${title}
@@ -37,14 +71,14 @@ ${existingSummary ? `現有摘要 (可能是英文)：${existingSummary}` : `網
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 800,
         response_format: { type: 'json_object' },
-    });
+    }, translationOptions(execution));
 
     const content = response.choices[0]?.message?.content || '{}';
     return JSON.parse(content);
 }
 
 // 中→英翻譯
-async function translateToEnglish(title: string, summaryZh: string | null): Promise<{ title_en: string; summary_en: string }> {
+async function translateToEnglish(title: string, summaryZh: string | null, execution?: AutoFixExecution): Promise<{ title_en: string; summary_en: string }> {
     const prompt = `Translate the following Traditional Chinese news to English:
 
 Title: ${title}
@@ -62,7 +96,7 @@ Output JSON format:
         max_tokens: 500,
         response_format: { type: 'json_object' },
         temperature: 0.3,
-    });
+    }, translationOptions(execution));
 
     const content = response.choices[0]?.message?.content || '{}';
     return JSON.parse(content);
@@ -75,17 +109,21 @@ Output JSON format:
  * 2. Summary 缺失
  * 3. Summary 是英文
  */
-export async function autoFixChineseContent(daysBack = 7, limit = 20): Promise<number> {
+export async function autoFixChineseContent(daysBack = 7, limit = 20, execution?: AutoFixExecution): Promise<number> {
+    if (!hasTimeRemaining(execution)) return 0;
     console.log(`[AutoFix-ZH] Checking Chinese content from last ${daysBack} days...`);
 
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - daysBack);
 
-    const { data: items, error } = await supabase
+    let query = supabase
         .from('news_items')
         .select('id, title, summary_zh, original_url')
         .gte('published_at', cutoffDate.toISOString())
         .order('published_at', { ascending: false });
+
+    if (execution) query = query.abortSignal(execution.signal);
+    const { data: items, error } = await query;
 
     if (error) {
         console.error('[AutoFix-ZH] Error fetching news:', error);
@@ -110,13 +148,16 @@ export async function autoFixChineseContent(daysBack = 7, limit = 20): Promise<n
     let fixedCount = 0;
 
     for (const item of needsFix) {
+        if (!hasTimeRemaining(execution)) break;
         try {
             const result = await translateToChineseWithSummary(
                 item.title,
                 item.original_url || '',
-                item.summary_zh
+                item.summary_zh,
+                execution
             );
 
+            if (!hasTimeRemaining(execution)) break;
             const updateData: Record<string, string> = {};
 
             // 只有當標題被檢測為英文時才更新，避免過度翻譯
@@ -134,10 +175,13 @@ export async function autoFixChineseContent(daysBack = 7, limit = 20): Promise<n
             }
 
             if (Object.keys(updateData).length > 0) {
-                const { error: updateError } = await supabase
+                let update = supabase
                     .from('news_items')
                     .update(updateData)
                     .eq('id', item.id);
+
+                if (execution) update = update.abortSignal(execution.signal);
+                const { error: updateError } = await update;
 
                 if (!updateError) {
                     fixedCount++;
@@ -146,12 +190,13 @@ export async function autoFixChineseContent(daysBack = 7, limit = 20): Promise<n
                 }
             }
 
-            await new Promise(r => setTimeout(r, 500)); // Rate limit protection
+            await rateLimitPause(execution);
         } catch (e: unknown) {
             console.error(`[AutoFix-ZH] Error:`, (e as Error).message);
         }
     }
 
+    if (!hasTimeRemaining(execution)) console.log('[AutoFix-ZH] Time budget reached; unfinished items will be retried next run.');
     console.log(`[AutoFix-ZH] Completed. Fixed ${fixedCount} items.`);
     return fixedCount;
 }
@@ -164,17 +209,21 @@ export async function autoFixChineseContent(daysBack = 7, limit = 20): Promise<n
  * 3. Summary_EN 缺失
  * 4. Summary_EN 是中文 (非英文)
  */
-export async function autoFixEnglishContent(daysBack = 7, limit = 20): Promise<number> {
+export async function autoFixEnglishContent(daysBack = 7, limit = 20, execution?: AutoFixExecution): Promise<number> {
+    if (!hasTimeRemaining(execution)) return 0;
     console.log(`[AutoFix-EN] Checking English content from last ${daysBack} days...`);
 
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - daysBack);
 
-    const { data: items, error } = await supabase
+    let query = supabase
         .from('news_items')
         .select('id, title, summary_zh, title_en, summary_en')
         .gte('published_at', cutoffDate.toISOString())
         .order('published_at', { ascending: false });
+
+    if (execution) query = query.abortSignal(execution.signal);
+    const { data: items, error } = await query;
 
     if (error) {
         console.error('[AutoFix-EN] Error fetching news:', error);
@@ -201,12 +250,15 @@ export async function autoFixEnglishContent(daysBack = 7, limit = 20): Promise<n
     let fixedCount = 0;
 
     for (const item of needsFix) {
+        if (!hasTimeRemaining(execution)) break;
         try {
             // 如果需要修復英文，我們依賴中文內容作為來源
             const sourceTitle = item.summary_zh ? item.title : (item.title_en || item.title); // Prefer title if valid
             const sourceSummary = item.summary_zh || item.summary_en || '';
 
-            const result = await translateToEnglish(sourceTitle, sourceSummary);
+            const result = await translateToEnglish(sourceTitle, sourceSummary, execution);
+
+            if (!hasTimeRemaining(execution)) break;
 
             if (result.title_en) {
                 const updateData: Record<string, string> = {};
@@ -222,10 +274,13 @@ export async function autoFixEnglishContent(daysBack = 7, limit = 20): Promise<n
                 }
 
                 if (Object.keys(updateData).length > 0) {
-                    const { error: updateError } = await supabase
+                    let update = supabase
                         .from('news_items')
                         .update(updateData)
                         .eq('id', item.id);
+
+                    if (execution) update = update.abortSignal(execution.signal);
+                    const { error: updateError } = await update;
 
                     if (!updateError) {
                         fixedCount++;
@@ -234,12 +289,13 @@ export async function autoFixEnglishContent(daysBack = 7, limit = 20): Promise<n
                 }
             }
 
-            await new Promise(r => setTimeout(r, 500));
+            await rateLimitPause(execution);
         } catch (e: unknown) {
             console.error(`[AutoFix-EN] Error:`, (e as Error).message);
         }
     }
 
+    if (!hasTimeRemaining(execution)) console.log('[AutoFix-EN] Time budget reached; unfinished items will be retried next run.');
     console.log(`[AutoFix-EN] Completed. Fixed ${fixedCount} items.`);
     return fixedCount;
 }
@@ -248,14 +304,30 @@ export async function autoFixEnglishContent(daysBack = 7, limit = 20): Promise<n
  * 雙向自動修復（中文+英文）
  * 每日 Cron 呼叫此函數
  */
-export async function autoFixNewsContent(daysBack = 7, limit = 20): Promise<{ chinese: number; english: number }> {
+export async function autoFixNewsContent(daysBack = 7, limit = 20, options?: AutoFixOptions): Promise<{ chinese: number; english: number }> {
     console.log(`[AutoFix] Starting bilingual content check...`);
 
+    const startTime = Date.now();
+    const requestTimeoutMs = options?.requestTimeoutMs ?? 8_000;
+    if (options && (!Number.isFinite(options.timeBudgetMs) || options.timeBudgetMs <= 0 ||
+        !Number.isFinite(requestTimeoutMs) || requestTimeoutMs <= 0)) {
+        throw new Error('Auto-fix time budgets must be positive finite numbers');
+    }
+    const executionFor = (deadline: number): AutoFixExecution => ({
+        deadline,
+        signal: AbortSignal.timeout(Math.max(0, Math.floor(deadline - Date.now()))),
+        requestTimeoutMs,
+    });
+
     // 1. 修復中文內容（英→中）
-    const chineseFixed = await autoFixChineseContent(daysBack, limit);
+    // Reserve at least half the budget for English, even if Chinese requests stall.
+    const chineseFixed = await autoFixChineseContent(daysBack, limit, options
+        ? executionFor(startTime + Math.floor(options.timeBudgetMs / 2)) : undefined);
 
     // 2. 修復英文內容（中→英）
-    const englishFixed = await autoFixEnglishContent(daysBack, limit);
+    // Chinese completes first so English can use the repaired source content.
+    const englishFixed = await autoFixEnglishContent(daysBack, limit, options
+        ? executionFor(startTime + options.timeBudgetMs) : undefined);
 
     console.log(`[AutoFix] Total fixed: ${chineseFixed} Chinese, ${englishFixed} English`);
 
