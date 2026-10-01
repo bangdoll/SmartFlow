@@ -4,34 +4,34 @@ import { NewsItem } from '@/types';
 import { Metadata } from 'next';
 import { SITE_URL } from '@/lib/site';
 import { serializeJsonLd } from '@/lib/json-ld';
+import { unstable_cache } from 'next/cache';
 
-// Tags change with the scheduled feed refresh, but do not need to rebuild for
-// every crawler visit. A six-hour ISR window reduces repeated function work.
-export const revalidate = 21600;
+// Share public query results across origin requests for one hour. This does
+// not cache authentication, bookmarks, or any other visitor-specific state.
 
 interface Props {
     params: Promise<{ tag: string }>;
 }
 
-async function getNewsByTag(tag: string): Promise<NewsItem[]> {
+const getNewsByTag = unstable_cache(async (tag: string): Promise<NewsItem[]> => {
     if (!isSupabaseConfigured()) return [];
 
-    try {
-        const { data: items } = await supabase
-            .from('news_items')
-            .select('id, original_url, title, title_en, source, published_at, summary_en, summary_zh, tags, click_count, slug')
-            .contains('tags', [tag])
-            .order('published_at', { ascending: false })
-            // NewsFeed loads the next page on demand, so keep the initial HTML
-            // payload small and avoid serializing 50 complete cards per request.
-            .limit(10);
+    const { data: items, error } = await supabase
+        .from('news_items')
+        .select('id, original_url, title, title_en, source, published_at, summary_en, summary_zh, tags, click_count, slug')
+        .contains('tags', [tag])
+        .order('published_at', { ascending: false })
+        // NewsFeed loads the next page on demand, so keep the initial HTML
+        // payload small and avoid serializing 50 complete cards per request.
+        .limit(10);
 
-        return items || [];
-    } catch (error) {
-        console.warn('Tag data unavailable without Supabase:', error);
-        return [];
+    // Do not replace a good cached tag page with an empty list during an outage.
+    if (error) {
+        throw new Error('Unable to load news by tag', { cause: error });
     }
-}
+
+    return items || [];
+}, ['public-news-tag-v1'], { revalidate: 3600 });
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { tag } = await params;

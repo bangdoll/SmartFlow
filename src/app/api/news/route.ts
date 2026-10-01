@@ -44,7 +44,9 @@ export async function GET(request: Request) {
         }
 
         return NextResponse.json(data || [], {
-            headers: publicCacheHeaders(60, 300),
+            // Public lists are shared across visitors; keep updates within
+            // roughly 15 minutes instead of re-reading every minute per edge.
+            headers: publicCacheHeaders(900, 60),
         });
     } catch (error) {
         console.error('API Error:', error);

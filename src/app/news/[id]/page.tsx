@@ -1,5 +1,6 @@
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { cache } from 'react';
+import { unstable_cache } from 'next/cache';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { Metadata } from 'next';
 import { NewsContent } from '@/components/news-content';
@@ -7,18 +8,16 @@ import { SITE_URL } from '@/lib/site';
 import { serializeJsonLd } from '@/lib/json-ld';
 import { getCanonicalNewsId, getNewsPath, isFullNewsId } from '@/lib/news-url';
 
-// News changes through the scheduled scraper, so ISR avoids regenerating the
-// same article for every crawler and visitor. Articles are immutable after
-// publication in normal operation, so a one-day window avoids unnecessary
-// function invocations and ISR writes while keeping new pages discoverable.
-export const revalidate = 86400;
+// Keep aliases dynamically rendered so their permanent redirects remain intact.
+// Cache only public database results below; React cache still deduplicates the
+// metadata and page lookup within a render. No user/session data is cached.
 
 interface Props {
     params: Promise<{ id: string }>;
 }
 
 // Helper to get news item with caching
-const getNewsItem = cache(async (id: string) => {
+const getNewsItem = cache(unstable_cache(async (id: string) => {
     if (!isSupabaseConfigured()) return null;
 
     // Check if valid UUID
@@ -48,12 +47,17 @@ const getNewsItem = cache(async (id: string) => {
         query = query.eq('slug', id);
     }
 
-    const { data: item, error } = await query.single();
-    if (error || !item) return null;
+    const { data: item, error } = await query.maybeSingle();
+    // Only a genuine missing row should become a cached 404. A transient
+    // database failure must fail revalidation and preserve the last good result.
+    if (error) {
+        throw new Error('Unable to load news item', { cause: error });
+    }
+    if (!item) return null;
     return item;
-});
+}, ['public-news-detail-v1'], { revalidate: 3600 }));
 
-async function getAdjacentNews(currentDate: string) {
+const getAdjacentNews = unstable_cache(async (currentDate: string) => {
     const [prev, next] = await Promise.all([
         // Previous news (older)
         supabase
@@ -62,7 +66,7 @@ async function getAdjacentNews(currentDate: string) {
             .lt('published_at', currentDate)
             .order('published_at', { ascending: false })
             .limit(1)
-            .single(),
+            .maybeSingle(),
 
         // Next news (newer)
         supabase
@@ -71,14 +75,20 @@ async function getAdjacentNews(currentDate: string) {
             .gt('published_at', currentDate)
             .order('published_at', { ascending: true })
             .limit(1)
-            .single()
+            .maybeSingle()
     ]);
+
+    for (const result of [prev, next]) {
+        if (result.error) {
+            throw new Error('Unable to load adjacent news', { cause: result.error });
+        }
+    }
 
     return {
         prev: prev.data,
         next: next.data
     };
-}
+}, ['public-news-adjacent-v1'], { revalidate: 3600 });
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { id } = await params;
