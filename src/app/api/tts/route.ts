@@ -4,6 +4,7 @@ import OpenAI from 'openai';
 import { z } from 'zod';
 import { rateLimit } from '@/lib/rate-limit';
 import { supabaseAdmin as supabase } from '@/lib/supabase';
+import { generateNewsNarration } from '@/lib/news-narration';
 
 function getOpenAI() {
     const apiKey = process.env.OPENAI_API_KEY;
@@ -218,13 +219,7 @@ export async function POST(req: NextRequest) {
         // Limit text length
         const truncatedText = textToSpeak.slice(0, 4000);
 
-        const mp3 = await getOpenAI().audio.speech.create({
-            model: "tts-1",
-            voice: "alloy",
-            input: truncatedText,
-        });
-
-        const buffer = Buffer.from(await mp3.arrayBuffer());
+        const buffer = await generateNewsNarration(getOpenAI(), truncatedText, lang);
 
         // 3. Upload to Supabase Storage
         // Use unique filename with lang suffix
