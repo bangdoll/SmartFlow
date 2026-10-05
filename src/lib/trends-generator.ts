@@ -36,6 +36,17 @@ function getRandomModels(count: number) {
     return shuffled.slice(0, count);
 }
 
+// Keep the UTF-16 budget without cutting an astral character in half.
+function truncateSummary(summary: string, maxLength: number) {
+    let end = Math.min(summary.length, maxLength);
+    const before = summary.charCodeAt(end - 1);
+    const after = summary.charCodeAt(end);
+    if (before >= 0xD800 && before <= 0xDBFF && after >= 0xDC00 && after <= 0xDFFF) {
+        end--;
+    }
+    return summary.slice(0, end);
+}
+
 export async function generateWeeklyTrends() {
     // 1. Fetch news from the last 7 days
     const sevenDaysAgo = new Date();
@@ -57,7 +68,7 @@ export async function generateWeeklyTrends() {
     const newsContext = newsItems.map(item => `
         Title: ${item.title}
         Tags: ${item.tags?.join(', ')}
-        Summary: ${item.summary_zh?.slice(0, 200)}...
+        Summary: ${item.summary_zh == null ? undefined : truncateSummary(item.summary_zh, 200)}...
     `).join('\n---\n');
 
     // Select 3 random mental models to frame the analysis
