@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   async headers() {
     const articleCache = 'public, max-age=0, s-maxage=86400, stale-while-revalidate=604800';
-    const tagCache = 'public, max-age=0, s-maxage=21600, stale-while-revalidate=86400';
+    const tagCache = 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400';
 
     return [
       {

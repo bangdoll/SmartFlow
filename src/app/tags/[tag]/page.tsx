@@ -6,8 +6,14 @@ import { SITE_URL } from '@/lib/site';
 import { serializeJsonLd } from '@/lib/json-ld';
 import { unstable_cache } from 'next/cache';
 
-// Share public query results across origin requests for one hour. This does
-// not cache authentication, bookmarks, or any other visitor-specific state.
+// Cache the public HTML/RSC response as well as the database query. Without
+// generateStaticParams this dynamic segment renders on every origin request,
+// even when unstable_cache avoids a second database read.
+export const revalidate = 3600;
+
+export function generateStaticParams() {
+    return [];
+}
 
 interface Props {
     params: Promise<{ tag: string }>;

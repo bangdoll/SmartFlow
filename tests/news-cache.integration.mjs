@@ -56,7 +56,7 @@ try {
   assert.equal((await once(build, 'exit'))[0], 0, 'production build succeeds');
   const manifest = JSON.parse(await readFile(`${root}/.next/prerender-manifest.json`, 'utf8'));
   assert.ok(!manifest.dynamicRoutes['/news/[id]'], 'aliases retain dynamic redirect behavior');
-  assert.ok(!manifest.dynamicRoutes['/tags/[tag]'], 'tag data is cached independently of route rendering');
+  assert.ok(manifest.dynamicRoutes['/tags/[tag]'], 'tag pages use on-demand static generation');
   app = run(['node_modules/next/dist/bin/next', 'start', '-p', '3128', '-H', '127.0.0.1']);
   const base = 'http://127.0.0.1:3128';
   for (let attempts = 0; ; attempts++) {
@@ -78,10 +78,33 @@ try {
       assert.ok(counts[0].reads > 0, 'first request loads data');
       assert.equal(counts[1].reads, 0, 'repeat request must not read Supabase');
       assert.equal(counts[2].reads, 0, 'third request must not read Supabase');
-      const maxAge = path.startsWith('/news/') ? 86400 : 21600;
-      assert.ok(counts[1].policy.includes(`s-maxage=${maxAge}`), 'existing edge TTL is preserved');
+      if (path.startsWith('/tags/')) {
+        assert.equal(counts[1].cache, 'HIT', 'repeat crawler visits must hit the full tag page cache');
+        assert.equal(counts[2].cache, 'HIT', 'third crawler visit must avoid another tag page render');
+      }
+      const maxAge = path.startsWith('/news/') ? 86400 : 3600;
+      assert.ok(counts[1].policy.includes(`s-maxage=${maxAge}`), 'edge TTL matches the public page cache policy');
     }
   }
+  // Crawlers and client-side navigation must reuse the same public route
+  // cache, including concurrent visits and the RSC payload.
+  const beforeCrawlerBurst = requests.length;
+  const crawlerResponses = await Promise.all(Array.from({ length: 10 }, async () => {
+    const response = await fetch(`${base}/tags/AI`, {
+      headers: { 'user-agent': 'Mozilla/5.0 (compatible; GPTBot/1.2; +https://openai.com/gptbot)' },
+    });
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('x-nextjs-cache'), 'HIT');
+    assert.ok((await response.text()).includes('人工智慧最新消息'));
+  }));
+  assert.equal(crawlerResponses.length, 10);
+  const rsc = await fetch(`${base}/tags/AI`, { headers: { RSC: '1' } });
+  assert.equal(rsc.status, 200);
+  assert.equal(rsc.headers.get('x-nextjs-cache'), 'HIT');
+  assert.ok(rsc.headers.get('content-type').includes('text/x-component'));
+  assert.ok((await rsc.text()).includes('人工智慧最新消息'));
+  assert.equal(requests.length, beforeCrawlerBurst, 'cached bot/RSC visits do not read the database');
+  console.log('TAG ROUTE CACHE: 10 concurrent crawler visits and RSC navigation HIT');
   const beforeRedirect = requests.length;
   const redirect = await fetch(`${base}/news/${news[0].id}`, { redirect: 'manual' });
   await redirect.text();
