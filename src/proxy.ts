@@ -2,7 +2,13 @@ import { type NextRequest } from 'next/server'
 import { updateSession } from '@/utils/supabase/middleware'
 
 export async function proxy(request: NextRequest) {
-    return await updateSession(request)
+    const match = /^\/news\/([^/]+)\/?$/.exec(request.nextUrl.pathname)
+    let rewrite: URL | undefined
+    if (match && !/^[0-9a-f]{8}$/i.test(match[1])) {
+        rewrite = request.nextUrl.clone()
+        rewrite.pathname = `/api/internal/news-alias/${match[1]}`
+    }
+    return await updateSession(request, rewrite)
 }
 
 export const config = {
