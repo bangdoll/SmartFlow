@@ -166,6 +166,18 @@ try {
   const encodedRedirect = await fetch(`${base}/news/${encodeURIComponent(encodedAlias)}`, { redirect: 'manual' });
   await encodedRedirect.text(); assert.equal(encodedRedirect.status, 308);
   assert.equal(encodedRedirect.headers.get('location'), '/news/87654321');
+  news[1].slug = 'old-story.png';
+  const assetLikeAlias = await fetch(`${base}/news/old-story.png`, { redirect: 'manual' });
+  await assetLikeAlias.text(); assert.equal(assetLikeAlias.status, 308);
+  assert.equal(assetLikeAlias.headers.get('location'), '/news/87654321');
+  for (const alias of [news[0].id, news[0].slug]) {
+    const rscAlias = await fetch(`${base}/news/${alias}`, { redirect: 'manual', headers: { RSC: '1', 'next-router-prefetch': '1' } });
+    await rscAlias.text(); assert.equal(rscAlias.status, 308);
+    assert.equal(rscAlias.headers.get('location'), '/news/12345678');
+    const headAlias = await fetch(`${base}/news/${alias}`, { method: 'HEAD', redirect: 'manual' });
+    assert.equal(headAlias.status, 308); assert.equal(headAlias.headers.get('location'), '/news/12345678');
+    assert.equal(await headAlias.text(), '');
+  }
   const missing = await fetch(`${base}/news/00000000`);
   await missing.text();
   assert.equal(missing.status, 404);

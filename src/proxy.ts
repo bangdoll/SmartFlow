@@ -13,6 +13,8 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
     matcher: [
+        // Legacy news slugs can resemble image filenames and still need 308.
+        '/news/:path*',
         /*
          * Match all request paths except for the ones starting with:
          * - _next/static (static files)

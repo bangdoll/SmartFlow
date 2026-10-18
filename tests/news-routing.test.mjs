@@ -19,15 +19,16 @@ function load(file, dependencies) {
 
 test('proxy keeps canonical/RSC paths and rewrites only single-segment legacy aliases', async () => {
     const calls = [];
-    const { proxy } = load('src/proxy.ts', { '@/utils/supabase/middleware': {
+    const { proxy, config } = load('src/proxy.ts', { '@/utils/supabase/middleware': {
         updateSession: (request, destination) => { calls.push({ request, destination }); return 'session-response'; },
     } });
+    assert.ok(config.matcher.includes('/news/:path*'), 'asset-like news aliases bypass the general image exclusion');
     for (const path of ['/news/12345678?_rsc=test', '/news/ABCDEF12', '/tags/AI', '/news/test/extra']) {
         const request = new NextRequest('https://example.com' + path);
         assert.equal(await proxy(request), 'session-response');
         assert.equal(calls.at(-1).destination, undefined);
     }
-    for (const id of ['12345678-1234-4234-9234-123456789abc', 'old-story', '%E8%88%8A%E6%96%B0%E8%81%9E']) {
+    for (const id of ['12345678-1234-4234-9234-123456789abc', 'old-story', 'old-story.png', '%E8%88%8A%E6%96%B0%E8%81%9E']) {
         await proxy(new NextRequest('https://example.com/news/' + id + '?from=legacy'));
         assert.equal(calls.at(-1).destination.pathname, '/api/internal/news-alias/' + id);
         assert.equal(calls.at(-1).destination.search, '?from=legacy');

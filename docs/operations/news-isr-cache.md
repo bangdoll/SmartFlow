@@ -51,7 +51,7 @@ Content-Type: application/json
 
 - lint 通過；71 項單元測試通過。套件的 baseline-browser-mapping 資料日期提示不影響檢查，未因此升級依賴。
 - 真正 `next build --webpack`／`next start`、隔離 HTTP fixture，新聞和標籤頁均 MISS → HIT → HIT；各 10 次並行 bot 與 RSC 預取維持 HIT，獨立 render counter 證明暖新聞未再執行 page，也沒有 DB 讀取。
-- UUID 無 DB 的單一 308、重複 slug 解析只讀一次、中文 slug、缺資料 404、新增後短 ID 與 slug 負快取恢復、slug 改名後舊解析失效，全部通過。
+- UUID 無 DB 的單一 308、重複 slug 解析只讀一次、中文／圖片副檔名 slug、HEAD／RSC 轉址、缺資料 404、新增後短 ID 與 slug 負快取恢復、slug 改名後舊解析失效，全部通過。
 - 真正呼叫帶測試憑證的維護端點，驗證標題、metadata、英文摘要、音訊網址更新；未授權為 401，非法批次為 400。單元測試另驗證成功／失敗寫入與失效關聯、插入時僅查緊鄰項目、登入 cookie 刷新不丟失 rewrite。
 - 時間到期背景重建失敗仍保留暖頁；DB 恢復後可重建。冷新聞／標籤頁 DB 失敗為 500，恢復後為 200。
 - 快速到期測試只將隔離副本的 600 秒縮短為 5 秒；生產來源仍為 600 秒。副本只複製明確的來源清單，不讀 `.env`，環境變數僅允許 PATH 與 fixture 測試金鑰；測試不連正式 DB、不執行付費 API。
