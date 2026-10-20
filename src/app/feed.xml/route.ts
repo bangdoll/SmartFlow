@@ -31,15 +31,19 @@ export async function GET() {
     }> = [];
 
     try {
-        const { data } = await supabase
+        const { data, error } = await supabase
             .from('news_items')
             .select('id, title, summary_zh, summary_en, original_url, published_at, tags')
             .order('published_at', { ascending: false })
             .limit(20);
 
+        if (error) throw error;
         items = data || [];
     } catch (error) {
-        console.warn('RSS feed unavailable without Supabase configuration:', error);
+        console.warn('RSS feed temporarily unavailable:', error);
+        return new Response('RSS feed temporarily unavailable', {
+            status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'private, no-store' },
+        });
     }
 
     items?.forEach((item) => {

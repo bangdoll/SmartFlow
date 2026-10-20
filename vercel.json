@@ -1,4 +1,9 @@
 {
+    "git": {
+        "deploymentEnabled": {
+            "codex/news-isr-cache": false
+        }
+    },
     "crons": [
         {
             "path": "/api/cron/daily",

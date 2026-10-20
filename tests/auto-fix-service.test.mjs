@@ -40,6 +40,7 @@ function makeHarness({ count = 5, translationMs = 3_000, readMs = 100, writeMs =
     const calls = [];
     const databaseCalls = [];
     const updates = [];
+    const invalidations = [];
     const items = Array.from({ length: count }, (_, id) => ({
         id, title: `Latest English news ${id}`, summary_zh: null,
         title_en: null, summary_en: null, original_url: 'https://example.com/news',
@@ -101,6 +102,7 @@ function makeHarness({ count = 5, translationMs = 3_000, readMs = 100, writeMs =
         openai: FakeOpenAI,
         '@/lib/supabase': { supabaseAdmin: supabase },
         '@/lib/text-language': language,
+        '@/lib/news-cache': { invalidateNewsItem: id => invalidations.push(id) },
     }, {
         Date: FakeDate,
         AbortSignal: {
@@ -111,7 +113,7 @@ function makeHarness({ count = 5, translationMs = 3_000, readMs = 100, writeMs =
         process: { env: { OPENAI_API_KEY: 'test-only' } },
         console: silentConsole,
     });
-    return { service, calls, databaseCalls, updates, items, now: () => now };
+    return { service, invalidations, calls, databaseCalls, updates, items, now: () => now };
 }
 
 const budget = { timeBudgetMs: 25_000, requestTimeoutMs: 8_000 };
@@ -222,6 +224,7 @@ test('real OpenAI SDK cancels stalled fetches with no hidden retries or detached
             return builder;
         } } },
         '@/lib/text-language': language,
+        '@/lib/news-cache': { invalidateNewsItem: id => invalidations.push(id) },
     }, { process: { env: { OPENAI_API_KEY: 'test-only' } }, console: silentConsole });
     const start = performance.now();
     assert.deepEqual(await service.autoFixNewsContent(7, 2, { timeBudgetMs: 240, requestTimeoutMs: 80 }), { chinese: 0, english: 0 });
@@ -273,4 +276,13 @@ test('cron retains authentication, returns repair counts and passes the 25s/2-pe
     const json = await response.json();
     assert.equal(json.success, true);
     assert.deepEqual(json.fixed, { chinese: 2, english: 1, total: 3 });
+});
+
+test('bilingual repair invalidates every successful write and no failed writes', async () => {
+    const success = makeHarness();
+    await success.service.autoFixNewsContent(7, 2, budget);
+    assert.equal(success.invalidations.length, success.updates.length);
+    const failed = makeHarness({ failingWrites: true });
+    await failed.service.autoFixNewsContent(7, 2, budget);
+    assert.deepEqual(failed.invalidations, []);
 });

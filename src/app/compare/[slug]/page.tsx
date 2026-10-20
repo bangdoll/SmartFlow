@@ -25,8 +25,8 @@ function parseSlug(slug: string) {
     const parts = slug.split('-vs-');
     if (parts.length !== 2) return null;
     return {
-        topic1: decodeURIComponent(parts[0]).replace(/-/g, ' '),
-        topic2: decodeURIComponent(parts[1]).replace(/-/g, ' '),
+        topic1: parts[0].replace(/-/g, ' '),
+        topic2: parts[1].replace(/-/g, ' '),
     };
 }
 
@@ -49,24 +49,16 @@ async function getTopicNews(topic: string, limit = 20) {
         `summary_zh.ilike.${ilikePattern(v)}`,
     ]).join(',');
 
-    try {
-        const { data, error } = await supabase
-            .from('news_items')
-            .select('id, title, title_en, summary_zh, published_at, source, slug, tags')
-            .or(orConditions)
-            .order('published_at', { ascending: false })
-            .limit(limit);
+    const { data, error } = await supabase
+        .from('news_items')
+        .select('id, original_url, title, title_en, source, published_at, summary_zh, summary_en, tags, click_count, slug, created_at')
+        .or(orConditions)
+        .order('published_at', { ascending: false })
+        .limit(limit);
 
-        if (error) {
-            console.error(`Error fetching news for ${topic}:`, error);
-            return [];
-        }
+    if (error) throw new Error('Unable to load public news', { cause: error });
 
-        return data || [];
-    } catch (error) {
-        console.warn(`Comparison data unavailable without Supabase for ${topic}:`, error);
-        return [];
-    }
+    return data || [];
 }
 
 // 生成比較資料

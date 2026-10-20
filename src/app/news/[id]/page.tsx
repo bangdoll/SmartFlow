@@ -1,53 +1,34 @@
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { cache } from 'react';
-import { unstable_cache } from 'next/cache';
-import { notFound, permanentRedirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { NewsContent } from '@/components/news-content';
 import { SITE_URL } from '@/lib/site';
 import { serializeJsonLd } from '@/lib/json-ld';
-import { getCanonicalNewsId, getNewsPath, isFullNewsId } from '@/lib/news-url';
+import { getNewsPath } from '@/lib/news-url';
 
-// Keep aliases dynamically rendered so their permanent redirects remain intact.
-// Cache only public database results below; React cache still deduplicates the
-// metadata and page lookup within a render. No user/session data is cached.
+// Cache public HTML/RSC together. New short IDs are generated on demand.
+// UUID/slug aliases use a separate dynamic resolver that returns HTTP 308.
+export const revalidate = 600;
+export async function generateStaticParams() { return []; }
 
 interface Props {
     params: Promise<{ id: string }>;
 }
 
 // Helper to get news item with caching
-const getNewsItem = cache(unstable_cache(async (id: string) => {
+const getNewsItem = cache(async (id: string) => {
     if (!isSupabaseConfigured()) return null;
 
-    // Check if valid UUID
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    // Check if Short UUID (8 chars)
-    const shortUuidRegex = /^[0-9a-f]{8}$/i;
+    if (!/^[0-9a-f]{8}$/i.test(id)) return null;
 
-    // Keep the server-rendered payload limited to fields used by the detail
-    // view. Selecting `*` also serializes maintenance columns into the ISR
-    // response and increases origin transfer for every article visit.
-    let query = supabase
-        .from('news_items')
-        .select('id, title, title_en, source, published_at, summary_zh, summary_en, original_url, audio_url, audio_url_en, tags, slug');
-
-    if (uuidRegex.test(id)) {
-        query = query.eq('id', id);
-    } else if (shortUuidRegex.test(id)) {
-        // Handle 8-char Short ID logic using Range Query (UUID type safe)
-        // Prefix is the first 8 chars group of UUID (e.g. 12345678-...)
-        // We construct the Min and Max possible UUIDs for this prefix.
-        const minUUID = `${id}-0000-0000-0000-000000000000`;
-        const maxUUID = `${id}-ffff-ffff-ffff-ffffffffffff`;
-
-        query = query.gte('id', minUUID).lte('id', maxUUID);
-    } else {
-        // Assume slug
-        query = query.eq('slug', id);
-    }
-
-    const { data: item, error } = await query.maybeSingle();
+    // Canonical pages only. Proxy sends UUID/slug aliases to a dynamic resolver
+    // so Next's ISR redirect serialization cannot duplicate Location headers.
+    const { data: item, error } = await supabase.from('news_items')
+        .select('id, title, title_en, source, published_at, summary_zh, summary_en, original_url, audio_url, audio_url_en, tags, slug')
+        .gte('id', `${id}-0000-0000-0000-000000000000`)
+        .lte('id', `${id}-ffff-ffff-ffff-ffffffffffff`)
+        .maybeSingle();
     // Only a genuine missing row should become a cached 404. A transient
     // database failure must fail revalidation and preserve the last good result.
     if (error) {
@@ -55,9 +36,9 @@ const getNewsItem = cache(unstable_cache(async (id: string) => {
     }
     if (!item) return null;
     return item;
-}, ['public-news-detail-v1'], { revalidate: 3600 }));
+});
 
-const getAdjacentNews = unstable_cache(async (currentDate: string) => {
+const getAdjacentNews = cache(async (currentDate: string) => {
     const [prev, next] = await Promise.all([
         // Previous news (older)
         supabase
@@ -88,20 +69,10 @@ const getAdjacentNews = unstable_cache(async (currentDate: string) => {
         prev: prev.data,
         next: next.data
     };
-}, ['public-news-adjacent-v1'], { revalidate: 3600 });
+});
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { id } = await params;
-
-    // UUID links from older sitemaps can be canonicalized without a database
-    // lookup. This keeps legacy crawler traffic away from Supabase entirely.
-    if (isFullNewsId(id)) {
-        return {
-            alternates: {
-                canonical: `${SITE_URL}${getNewsPath(id)}`,
-            },
-        };
-    }
 
     const item = await getNewsItem(id);
 
@@ -196,26 +167,11 @@ function preprocessMarkdown(content: string | null): string {
 export default async function NewsDetailPage({ params }: Props) {
     const { id } = await params;
 
-    // Full UUIDs are legacy aliases. Redirect before any Supabase query so an
-    // old sitemap or crawler cannot spend a database/ISR render for a second
-    // cache key.
-    if (isFullNewsId(id)) {
-        permanentRedirect(getNewsPath(id));
-    }
-
     const item = await getNewsItem(id);
 
     if (!item) {
         notFound();
     }
-
-    // Avoid rendering the same article under UUID, slug, and short-ID cache
-    // keys. Old links continue to work, but only the short URL renders HTML.
-    const canonicalId = getCanonicalNewsId(item.id);
-    if (id !== canonicalId) {
-        permanentRedirect(getNewsPath(item.id));
-    }
-
 
     // Fetch adjacent news
     const { prev, next } = await getAdjacentNews(item.published_at);
@@ -246,7 +202,7 @@ export default async function NewsDetailPage({ params }: Props) {
                 dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
             />
             {/* Header handled by layout */}
-            <NewsContent item={item} prev={prev} next={next} />
+            <NewsContent key={item.id} item={item} prev={prev} next={next} />
         </main>
     );
 }

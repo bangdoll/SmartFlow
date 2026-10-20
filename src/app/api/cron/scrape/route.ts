@@ -1,3 +1,4 @@
+import { invalidateInsertedNews } from '@/lib/news-cache';
 import { NextRequest, NextResponse } from 'next/server';
 import { scrapeAllSources } from '@/lib/scraper';
 import { supabaseAdmin as supabase } from '@/lib/supabase';
@@ -35,7 +36,7 @@ export async function GET(req: NextRequest) {
                 .single();
 
             if (!existing) {
-                const { error } = await supabase
+                const { data: inserted, error } = await supabase
                     .from('news_items')
                     .insert({
                         original_url: item.original_url,
@@ -44,11 +45,12 @@ export async function GET(req: NextRequest) {
                         published_at: item.published_at,
                         slug: nanoid(8),
                         // summary_zh 和 summary_en 留空，等 Phase 2 處理
-                    });
+                    }).select('id, slug, published_at').single();
 
-                if (!error) {
+                if (!error && inserted) {
+                    await invalidateInsertedNews(inserted);
                     insertedCount++;
-                } else {
+                } else if (error) {
                     console.error(`Failed to insert ${item.title}:`, error.message);
                 }
             }

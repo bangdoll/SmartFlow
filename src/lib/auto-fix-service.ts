@@ -1,3 +1,4 @@
+import { invalidateNewsItem } from '@/lib/news-cache';
 /**
  * 自動修復服務
  * 雙向檢查並修復：
@@ -184,6 +185,7 @@ export async function autoFixChineseContent(daysBack = 7, limit = 20, execution?
                 const { error: updateError } = await update;
 
                 if (!updateError) {
+                    invalidateNewsItem(item.id);
                     fixedCount++;
                     const action = updateData.title ? 'Title+Summary' : 'Summary';
                     console.log(`[AutoFix-ZH] Fixed (${action}): ${item.title?.substring(0, 30)}...`);
@@ -283,6 +285,7 @@ export async function autoFixEnglishContent(daysBack = 7, limit = 20, execution?
                     const { error: updateError } = await update;
 
                     if (!updateError) {
+                        invalidateNewsItem(item.id);
                         fixedCount++;
                         console.log(`[AutoFix-EN] Fixed: ${result.title_en.substring(0, 30)}...`);
                     }

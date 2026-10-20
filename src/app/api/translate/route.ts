@@ -1,3 +1,4 @@
+import { invalidateNewsItem } from '@/lib/news-cache';
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { z } from 'zod';
@@ -87,13 +88,15 @@ export async function POST(req: NextRequest) {
 
         // 4. Update DB if needed
         if (needsUpdate) {
-            await supabase
+            const { error: updateError } = await supabase
                 .from('news_items')
                 .update({
                     title_en: titleEn,
                     summary_en: summaryEn
                 })
                 .eq('id', newsId);
+            if (updateError) throw updateError;
+            invalidateNewsItem(newsId);
         }
 
         return NextResponse.json({

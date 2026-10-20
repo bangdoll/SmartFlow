@@ -53,6 +53,7 @@ function makeHarness(options = {}) {
     const news = { ...sampleNews, ...options.news };
     const reads = [], writes = [], uploads = [], speechCalls = [], speechOptions = [], chatCalls = [];
     let clients = 0;
+    const invalidations = [];
     const supabase = {
         from(table) {
             assert.equal(table, 'news_items');
@@ -113,13 +114,14 @@ function makeHarness(options = {}) {
             ? NextResponse.json({ error: 'Too many requests' }, { status: 429 }) : null },
         '@/lib/supabase': { supabaseAdmin: supabase },
         '@/lib/news-narration': narration,
+        '@/lib/news-cache': { invalidateNewsItem: id => invalidations.push(id) },
     };
     const route = loadTS('src/app/api/tts/route.ts', dependencies, {
         process: { env: options.noKey ? {} : { OPENAI_API_KEY: 'test-only' } },
         console: { log() {}, error() {} },
     });
     return {
-        reads, writes, uploads, speechCalls, speechOptions, chatCalls, clients: () => clients,
+        invalidations, reads, writes, uploads, speechCalls, speechOptions, chatCalls, clients: () => clients,
         async post(body = { newsId, lang: 'zh-TW' }) {
             const request = new NextRequest('http://localhost/api/tts', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -364,4 +366,19 @@ test('installed SDK does not retry a rejected narration request or silently try 
     } });
     await assert.rejects(narration.generateNewsNarration(client, 'Test narration.', 'en'));
     assert.deepEqual(models, ['gpt-audio-1.5']);
+});
+
+test('successful audio writes invalidate the article; failed writes do not', async () => {
+    const success = makeHarness();
+    assert.equal((await success.post()).status, 200);
+    assert.deepEqual(success.invalidations, [newsId]);
+    const failed = makeHarness({ writeError: { message: 'fixture write failure' } });
+    await failed.post();
+    assert.deepEqual(failed.invalidations, []);
+});
+
+test('English text writes invalidate even when later audio generation fails', async () => {
+    const h = makeHarness({ news: { title_en: null, summary_en: null }, speechError: new Error('fixture speech failure') });
+    assert.equal((await h.post({ newsId, lang: 'en' })).status, 503);
+    assert.deepEqual(h.invalidations, [newsId, newsId]);
 });
