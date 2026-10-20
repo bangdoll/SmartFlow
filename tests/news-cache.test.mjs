@@ -104,3 +104,12 @@ test('maintenance rejects malformed, oversized and wildcard purge inputs', async
         const h = maintenanceRoute(true); assert.equal((await h.post(body)).status, 400); assert.deepEqual(h.calls, []);
     }
 });
+
+test('uppercase UUID invalidates the lowercase canonical news URL', async () => {
+    const h = maintenanceRoute(true);
+    const response = await h.post({ items: [{ id: 'BEEFCAFE-1234-4234-9234-123456789ABC' }] });
+    assert.equal(response.status, 200);
+    const c = harness();
+    c.cache.invalidateNewsItem(h.calls[0][0]);
+    assert.deepEqual(c.paths, [['/news/beefcafe']]);
+});

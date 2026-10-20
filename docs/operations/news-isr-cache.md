@@ -6,7 +6,7 @@
 
 - `/news/<8 碼 ID>`：`generateStaticParams() => []`、`revalidate = 600`，首次按需產生公開 HTML／RSC。metadata 與正文共用同次 React cache；取消原先持續 3600 秒的正文與相鄰新聞資料快取，避免 ISR 重建仍讀到舊資料。僅讀取既有公開欄位。
 - 移除 `/news/:id` 外加的一天 CDN TTL／七天 SWR，交由 Next.js ISR 管理；一般安全標頭及其他頁面策略維持原設定。
-- UUID／slug 舊網址經既有 proxy 改寫到唯讀動態 `/api/internal/news-alias/[id]`，回傳單一 `Location` 的 HTTP 308，導向短網址；UUID 完全不查 DB，slug 僅查 ID，解析資料快取 600 秒。轉址回應本身為 `private, no-store`，不把別名快取成正文。
+- UUID／slug 舊網址經既有 proxy 改寫到唯讀動態 `/api/internal/news-alias/[id]`，回傳單一 `Location` 的 HTTP 308，導向短網址；UUID 與大寫 8 碼 ID 先正規化為小寫且完全不查 DB，slug 僅查 ID，解析資料快取 600 秒。轉址回應本身為 `private, no-store`，不把別名快取成正文。
 - 必須分開解析與正文：本機正式模式測試發現，在同一個 ISR page 內 `permanentRedirect()` 會使 Next.js 16.0.7 回傳重複 `Location`；在該分支呼叫 `connection()` 則導致 static-to-dynamic 500。現行替代設計保留真正的 HTTP 308，沒有改為瀏覽器跳轉。
 - 內部解析端點可直接存取，處理同樣的公開別名資料，無寫入、無外站轉址。它及每次舊連結轉址仍可能計入函式呼叫；ISR 主要避免暖正文重新渲染，不能推論所有請求都不計費。
 - proxy 保留登入檢查與 token cookie 更新，刷新 cookie 時同時保留 rewrite；匿名請求維持原先不查驗 session 的行為。共享正文不包含登入資料，收藏、語言與登入狀態仍由既有前端元件處理。
@@ -49,10 +49,10 @@ Content-Type: application/json
 
 執行 `npm run lint`、`npm run test:unit`、`npm run test:cache`，亦由現有必要合併檢查 **Public cache regression** 執行同一組命令。
 
-- lint 通過；71 項單元測試通過。套件的 baseline-browser-mapping 資料日期提示不影響檢查，未因此升級依賴。
+- lint、全部單元回歸及正式模式快取整合測試均須通過，對應 CI 亦執行同組檢查。套件的 baseline-browser-mapping 資料日期提示不影響檢查，未因此升級依賴。
 - 真正 `next build --webpack`／`next start`、隔離 HTTP fixture，新聞和標籤頁均 MISS → HIT → HIT；各 10 次並行 bot 與 RSC 預取維持 HIT，獨立 render counter 證明暖新聞未再執行 page，也沒有 DB 讀取。
 - UUID 無 DB 的單一 308、重複 slug 解析只讀一次、中文／圖片副檔名 slug、HEAD／RSC 轉址、缺資料 404、新增後短 ID 與 slug 負快取恢復、slug 改名後舊解析失效，全部通過。
-- 真正呼叫帶測試憑證的維護端點，驗證標題、metadata、英文摘要、音訊網址更新；未授權為 401，非法批次為 400。單元測試另驗證成功／失敗寫入與失效關聯、插入時僅查緊鄰項目、登入 cookie 刷新不丟失 rewrite。
+- 真正呼叫帶測試憑證的維護端點，驗證標題、metadata、英文摘要、音訊網址更新，並額外以大寫 UUID 失效已暖的小寫 canonical HTML／metadata／RSC；未授權為 401，非法批次為 400。單元測試另驗證成功／失敗寫入與失效關聯、插入時僅查緊鄰項目、登入 cookie 刷新不丟失 rewrite。
 - 時間到期背景重建失敗仍保留暖頁；DB 恢復後可重建。冷新聞／標籤頁 DB 失敗為 500，恢復後為 200。
 - 快速到期測試只將隔離副本的 600 秒縮短為 5 秒；生產來源仍為 600 秒。副本只複製明確的來源清單，不讀 `.env`，環境變數僅允許 PATH 與 fixture 測試金鑰；測試不連正式 DB、不執行付費 API。
 
@@ -61,3 +61,5 @@ Content-Type: application/json
 `vercel.json` 僅對審查分支 `codex/news-isr-cache` 設定 `git.deploymentEnabled: false`，避免推送／開 PR 觸發 Preview；其他分支及 Cron 保留。參考 [Vercel Git configuration](https://vercel.com/docs/project-configuration/git-configuration)。本 PR 不合併、不部署，不變更 Firewall、限流、封鎖或停站設定。
 
 尚需另行授權部署後，才能驗證 Vercel 平台的 X-Vercel-Cache／Age、實際多區與 HTML／RSC 變體、真實登入瀏覽器導覽／刷新及 cookies、已存在 CDN 回應是否更新，以及相同長度、路由、環境的 Function Invocations 變化。本機 HIT 不是正式站命中率；低重用、各網址只看一次的爬蟲仍會產生冷頁呼叫，不能預先宣稱用量下降比例。
+
+2026-10-21 延伸修復：搜尋／百分比參數、服務失敗處理、收藏帳號隔離與失敗重試，見 [網站問題修復與驗收](site-health-fixes.md)。正式 Data API 額度受限時，勿把既有已暖頁的 HTTP 200 當成服務恢復；先處理上游可用性，再安排經授權的正式建置與部署。

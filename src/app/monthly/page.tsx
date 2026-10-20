@@ -11,24 +11,16 @@ async function getMonthlyNews(): Promise<NewsItem[]> {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    try {
-        const { data, error } = await supabase
-            .from('news_items')
-            .select('*')
-            .gte('published_at', thirtyDaysAgo.toISOString())
-            .order('published_at', { ascending: false })
-            .limit(200);
+    const { data, error } = await supabase
+        .from('news_items')
+        .select('id, original_url, title, title_en, source, published_at, summary_zh, summary_en, tags, click_count, slug, created_at')
+        .gte('published_at', thirtyDaysAgo.toISOString())
+        .order('published_at', { ascending: false })
+        .limit(200);
 
-        if (error) {
-            console.error('Error fetching monthly news:', error);
-            return [];
-        }
+    if (error) throw new Error('Unable to load public news', { cause: error });
 
-        return data as NewsItem[];
-    } catch (error) {
-        console.warn('Monthly news unavailable without Supabase:', error);
-        return [];
-    }
+    return (data || []) as NewsItem[];
 }
 
 // 計算月度熱門標籤

@@ -204,6 +204,65 @@ try {
   assert.ok(!changedHtml.includes(`<title>${oldTitle}`));
   assert.equal(changed.headers.get('set-cookie'), null, 'public ISR never stores session cookies');
 
+  // Legal uppercase UUID input must invalidate the existing lowercase public URL.
+  const caseItem = { ...news[0], id: 'beefcafe-1234-4234-9234-123456789abc', slug: 'case-sensitive-check', title: 'UUID case baseline', published_at: '2026-07-01T00:00:00.000Z' };
+  news.push(caseItem);
+  const casePath = '/news/beefcafe';
+  await (await fetch(base + casePath)).text();
+  const caseWarm = await fetch(base + casePath); await caseWarm.text();
+  assert.equal(caseWarm.headers.get('x-nextjs-cache'), 'HIT');
+  caseItem.title = 'Uppercase UUID refresh succeeds';
+  assert.equal((await invalidate([{ id: caseItem.id.toUpperCase() }])).status, 200);
+  const caseUpdated = await fetch(base + casePath);
+  const caseHtml = await caseUpdated.text();
+  assert.equal(caseUpdated.status, 200);
+  assert.ok(caseHtml.includes(`<title>${caseItem.title}`), 'uppercase UUID must refresh lowercase canonical metadata immediately');
+  const caseRsc = await fetch(base + casePath, { headers: { RSC: '1', 'next-router-prefetch': '1' } });
+  assert.ok((await caseRsc.text()).includes(caseItem.title), 'updated RSC uses the same canonical content');
+  console.log('UPPERCASE UUID: canonical HTML, metadata and RSC refreshed');
+  for (const alias of [caseItem.id.toUpperCase(), 'BEEFCAFE', 'BeEfCaFe']) {
+    const beforeAliasReads = requests.length;
+    for (const options of [{}, { method: 'HEAD' }, { headers: { RSC: '1', 'next-router-prefetch': '1' } }]) {
+      const response = await fetch(`${base}/news/${alias}`, { ...options, redirect: 'manual' });
+      await response.text();
+      assert.equal(response.status, 308);
+      assert.equal(response.headers.get('location'), casePath);
+    }
+    assert.equal(requests.length, beforeAliasReads, 'uppercase aliases canonicalize before database reads');
+  }
+  for (const tag of ['100%', 'literal%20tag', '中文%Tag.png']) {
+    news[0].tags.push(tag);
+    const response = await fetch(`${base}/tags/${encodeURIComponent(tag)}`);
+    const html = await response.text();
+    assert.equal(response.status, 200, 'valid literal percent tags must not throw\n' + appLog);
+    assert.ok(html.includes(news[0].title), 'tag lookup uses the decoded literal exactly once');
+    const beforeWarmReads = requests.length;
+    const warm = await fetch(`${base}/tags/${encodeURIComponent(tag)}`);
+    await warm.text();
+    assert.equal(warm.headers.get('x-nextjs-cache'), 'HIT', 'percent tags retain full-page ISR');
+    const warmRsc = await fetch(`${base}/tags/${encodeURIComponent(tag)}`, { headers: { RSC: '1', 'next-router-prefetch': '1' } });
+    await warmRsc.text();
+    assert.equal(warmRsc.status, 200);
+    assert.equal(warmRsc.headers.get('x-nextjs-cache'), 'HIT');
+    assert.equal(requests.length, beforeWarmReads, 'warm percent tag HTML/RSC skip DB reads');
+  }
+  const percentComparison = await fetch(`${base}/compare/100%25-vs-AI`);
+  const percentComparisonHtml = await percentComparison.text();
+  assert.equal(percentComparison.status, 200, 'percent comparison avoids framework double-decode');
+  assert.ok(percentComparisonHtml.includes('100% vs AI'));
+  const repeatedQuery = await fetch(`${base}/search?q=AI&q=Apple`);
+  assert.equal(repeatedQuery.status, 200); await repeatedQuery.text();
+  failReads = true;
+  const feedOutage = await fetch(`${base}/feed.xml`);
+  assert.equal(feedOutage.status, 503);
+  assert.match(feedOutage.headers.get('cache-control'), /no-store/);
+  await feedOutage.text();
+  failReads = false;
+  const feedRecovery = await fetch(`${base}/feed.xml`);
+  assert.equal(feedRecovery.status, 200); assert.ok((await feedRecovery.text()).includes('<item>'));
+  console.log('PUBLIC ROUTING: uppercase 308, literal-percent tags, repeated search and RSS outage/recovery passed');
+
+
   // A cached missing ID must recover immediately after its row is inserted.
   const newItem = { ...news[0], id: '00000000-1234-4234-9234-123456789abc', slug: 'late-story', title: '建置後新增的新聞', published_at: '2026-10-01T00:00:00.000Z' };
   news.push(newItem);

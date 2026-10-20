@@ -18,61 +18,47 @@ async function getWeeklyNews(): Promise<NewsItem[]> {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    try {
-        const { data, error } = await supabase
-            .from('news_items')
-            .select('*')
-            .gte('published_at', sevenDaysAgo.toISOString())
-            .order('published_at', { ascending: false })
-            .limit(50);
+    const { data, error } = await supabase
+        .from('news_items')
+        .select('id, original_url, title, title_en, source, published_at, summary_zh, summary_en, tags, click_count, slug, created_at')
+        .gte('published_at', sevenDaysAgo.toISOString())
+        .order('published_at', { ascending: false })
+        .limit(50);
 
-        if (error) {
-            console.error('Error fetching weekly news:', error);
-            return [];
-        }
+    if (error) throw new Error('Unable to load public news', { cause: error });
 
-        return data as NewsItem[];
-    } catch (error) {
-        console.warn('Weekly news unavailable without Supabase:', error);
-        return [];
-    }
+    return (data || []) as NewsItem[];
 }
 
 // 獲取最新週報分析
 async function getLatestWeeklyTrends() {
     if (!isSupabaseConfigured()) return null;
 
-    try {
-        const { data, error } = await supabase
-            .from('weekly_trends')
-            .select('*')
-            .order('week_start_date', { ascending: false })
-            .limit(1)
-            .single();
+    const { data, error } = await supabase
+        .from('weekly_trends')
+        .select('title, title_en, core_message, core_message_en, trends, persona_advice, persona_advice_en, week_start_date, week_end_date')
+        .order('week_start_date', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-        if (error || !data) {
-            return null;
-        }
+    if (error) throw new Error('Unable to load weekly trends', { cause: error });
+    if (!data) return null;
 
-        return {
-            title: data.title,
-            titleEn: data.title_en,
-            core_message: data.core_message,
-            coreMessageEn: data.core_message_en,
-            trends: Array.isArray(data.trends) ? data.trends.map((trend: WeeklyTrendRecord) => ({
-                topic: typeof trend.topic === 'string' ? trend.topic : typeof trend.tag === 'string' ? trend.tag : 'Unknown',
-                count: typeof trend.count === 'number' ? trend.count : 0,
-                sentiment: typeof trend.sentiment === 'string' ? trend.sentiment : undefined
-            })) : [],
-            persona_advice: data.persona_advice,
-            personaAdviceEn: data.persona_advice_en,
-            week_start_date: data.week_start_date,
-            week_end_date: data.week_end_date
-        };
-    } catch (error) {
-        console.warn('Weekly trends unavailable without Supabase:', error);
-        return null;
-    }
+    return {
+        title: data.title,
+        titleEn: data.title_en,
+        core_message: data.core_message,
+        coreMessageEn: data.core_message_en,
+        trends: Array.isArray(data.trends) ? data.trends.map((trend: WeeklyTrendRecord) => ({
+            topic: typeof trend.topic === 'string' ? trend.topic : typeof trend.tag === 'string' ? trend.tag : 'Unknown',
+            count: typeof trend.count === 'number' ? trend.count : 0,
+            sentiment: typeof trend.sentiment === 'string' ? trend.sentiment : undefined
+        })) : [],
+        persona_advice: data.persona_advice,
+        personaAdviceEn: data.persona_advice_en,
+        week_start_date: data.week_start_date,
+        week_end_date: data.week_end_date
+    };
 }
 
 export default async function WeeklyPage() {

@@ -5,21 +5,23 @@ import { useLanguage } from '@/components/language-context';
 export function useBatchTranslation(items: NewsItem[]) {
     const { language } = useLanguage();
     const [translations, setTranslations] = useState<Record<string, { title_en?: string; summary_en?: string }>>({});
-    const translatingIds = useRef(new Set<string>());
+    // A failed or empty result is still an attempt. Keep it for this mount so
+    // rerenders and language switches cannot repeatedly call the provider.
+    const attemptedIds = useRef(new Set<string>());
 
     useEffect(() => {
         if (language !== 'en') return;
 
         const itemsToTranslate = items.filter(item => {
             const hasEn = item.title_en || translations[item.id]?.title_en;
-            return !hasEn && !translatingIds.current.has(item.id);
+            return !hasEn && !attemptedIds.current.has(item.id);
         });
 
         if (itemsToTranslate.length === 0) return;
 
         const ids = itemsToTranslate.map(i => i.id);
 
-        ids.forEach(id => translatingIds.current.add(id));
+        ids.forEach(id => attemptedIds.current.add(id));
 
         // Fetch translations
         void fetch('/api/translate/batch', {
@@ -47,8 +49,7 @@ export function useBatchTranslation(items: NewsItem[]) {
                     });
                 }
             })
-            .catch(err => console.error('Batch translation error:', err))
-            .finally(() => ids.forEach(id => translatingIds.current.delete(id)));
+            .catch(err => console.error('Batch translation error:', err));
 
     }, [language, items, translations]);
 

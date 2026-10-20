@@ -35,6 +35,7 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
     const [loadedItems, setLoadedItems] = useState<NewsItem[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
+    const [loadError, setLoadError] = useState(false);
     const [sortBy, setSortBy] = useState<'latest' | 'popular'>('latest');
 
 
@@ -59,22 +60,21 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
             // behind the protected maintenance endpoint instead of being
             // triggerable by every visitor.
             const res = await fetch('/api/news?limit=3&offset=0');
-            if (res.ok) {
-                const newItems: NewsItem[] = await res.json();
+            if (!res.ok) throw new Error('Failed to refresh news');
+            const newItems: NewsItem[] = await res.json();
 
-                setFeedItems(prev => {
-                    const existingIds = new Set(prev.map(i => i.id));
-                    const uniqueNewItems = newItems.filter(i => !existingIds.has(i.id));
+            setFeedItems(prev => {
+                const existingIds = new Set(prev.map(i => i.id));
+                const uniqueNewItems = newItems.filter(i => !existingIds.has(i.id));
 
-                    if (uniqueNewItems.length > 0) {
-                        setToast({ message: t('feed.toast.updated').replace('{count}', uniqueNewItems.length.toString()), type: 'success' });
-                        return [...uniqueNewItems, ...prev];
-                    }
+                if (uniqueNewItems.length > 0) {
+                    setToast({ message: t('feed.toast.updated').replace('{count}', uniqueNewItems.length.toString()), type: 'success' });
+                    return [...uniqueNewItems, ...prev];
+                }
 
-                    setToast({ message: t('feed.toast.latest'), type: 'info' });
-                    return prev;
-                });
-            }
+                setToast({ message: t('feed.toast.latest'), type: 'info' });
+                return prev;
+            });
         } catch (error) {
             console.error('Refresh failed:', error);
             setToast({ message: t('feed.toast.error'), type: 'info' });
@@ -182,32 +182,42 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
         return result;
     }, [translatedCombined, selectedTag, sortBy, mode]);
 
+    // Each filter/order transition owns its requests, even A -> B -> A.
+    const requestScope = useMemo(() => ({ selectedTag, sortBy, mode }), [selectedTag, sortBy, mode]);
     const loadMoreStateRef = useRef({
+        scope: requestScope,
         isLoading: false,
+        failed: false,
+        retryReset: false,
         selectedTag: null as string | null,
         displayCount: 0,
     });
     loadMoreStateRef.current = {
         ...loadMoreStateRef.current,
+        ...(loadMoreStateRef.current.scope !== requestScope
+            ? { scope: requestScope, isLoading: false, failed: false, retryReset: false }
+            : {}),
         selectedTag,
         displayCount: displayItems.length,
     };
 
-    const loadMore = useCallback(async (reset = false) => {
+    const loadMore = useCallback(async (reset = false, retry = false) => {
         const state = loadMoreStateRef.current;
-        if (state.isLoading) return;
-        loadMoreStateRef.current = { ...state, isLoading: true };
+        const isCurrent = () => loadMoreStateRef.current.scope === state.scope;
+        if (state.isLoading || (state.failed && !reset && !retry)) return;
+        loadMoreStateRef.current = { ...state, isLoading: true, failed: false, retryReset: reset };
+        setLoadError(false);
         setIsLoading(true);
 
         try {
-            const currentCount = reset ? 0 : loadMoreStateRef.current.displayCount;
+            const currentCount = reset ? 0 : state.displayCount;
             const params = new URLSearchParams({
                 offset: currentCount.toString(),
                 limit: '10',
             });
 
-            if (loadMoreStateRef.current.selectedTag) {
-                params.append('tag', loadMoreStateRef.current.selectedTag);
+            if (state.selectedTag) {
+                params.append('tag', state.selectedTag);
             }
             // if (sortBy === 'popular') {
             //     params.append('sort', 'popular');
@@ -217,6 +227,7 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
             if (!res.ok) throw new Error('Failed to load news');
 
             const newItems: NewsItem[] = await res.json();
+            if (!isCurrent()) return;
 
             if (newItems.length < 10) {
                 setHasMore(false);
@@ -231,10 +242,17 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
                 setLoadedItems(prev => [...prev, ...newItems]);
             }
         } catch (error) {
+            if (!isCurrent()) return;
             console.error('Error loading news:', error);
+            // Reattaching an intersecting sentinel is not permission to retry
+            // an unavailable API. Only a user retry or a new filter clears it.
+            loadMoreStateRef.current = { ...loadMoreStateRef.current, failed: true };
+            setLoadError(true);
         } finally {
-            loadMoreStateRef.current = { ...loadMoreStateRef.current, isLoading: false };
-            setIsLoading(false);
+            if (isCurrent()) {
+                loadMoreStateRef.current = { ...loadMoreStateRef.current, isLoading: false };
+                setIsLoading(false);
+            }
         }
     }, []);
 
@@ -243,6 +261,9 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
         if (mode === 'focus') return; // No sorting in focus mode
         setLoadedItems([]);
         setHasMore(true);
+        setLoadError(false);
+        setIsLoading(false);
+        loadMoreStateRef.current = { ...loadMoreStateRef.current, failed: false };
         // Reload for a new sort order, or when a tag has no server-rendered
         // initial page. Tag pages already include the first 10 items, so
         // fetching offset 0 here would duplicate the same request on mount.
@@ -409,14 +430,24 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
             </div>
 
             {/* 新聞列表 */}
+            {loadError && (
+                <div role="alert" className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-100">
+                    <p>{language === 'en' ? 'Unable to load news. Please try again.' : '暫時無法載入新聞，請稍後重試。'}</p>
+                    <button
+                        type="button"
+                        onClick={() => { void loadMore(loadMoreStateRef.current.retryReset, true); }}
+                        className="mt-2 rounded-lg border border-current px-3 py-1.5 font-medium"
+                    >
+                        {language === 'en' ? 'Retry' : '重試'}
+                    </button>
+                </div>
+            )}
             {
                 displayItems.length > 0 ? (
                     <>
                         <div className="space-y-6">
                             {displayItems.map((item, index) => {
-                                // Direct Language (No 'en' fallback, avoids flash but requires suppression)
                                 const showEn = language === 'en';
-                                const hasEn = !!item.title_en;
 
                                 // Hydration Mismatch Specifics:
                                 // Server renders 'en' format. Client (zh) renders 'zh' format.
@@ -433,26 +464,17 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
 
                                 const isRead = item.id ? readItems.has(item.id) : false;
 
-                                // Display Logic: Handle 'Translating' state via Text, not Structure to avoid Hydration Mismatch
-                                let displayTitle = item.title;
-                                let displaySummary = item.summary_zh;
-                                let isTranslating = false;
-
-                                if (showEn) {
-                                    if (hasEn) {
-                                        displayTitle = item.title_en!;
-                                        displaySummary = item.summary_en;
-                                    } else {
-                                        isTranslating = true;
-                                    }
-                                }
+                                // Background translation can fail. Keep the
+                                // original readable instead of a lasting loader.
+                                const displayTitle = showEn ? item.title_en || item.title : item.title;
+                                const displaySummary = showEn ? item.summary_en || item.summary_zh : item.summary_zh;
 
                                 // Render strictly same structure to allow suppressHydrationWarning to work
                                 return (
                                     <div key={item.id || item.original_url}>
                                         <article
                                             onClick={() => handleCardClick(item)}
-                                            className={`relative backdrop-blur-sm border rounded-xl p-6 transition-all duration-300 shadow-sm group cursor-pointer ${isTranslating ? 'animate-pulse' : ''} ${isRead
+                                            className={`relative backdrop-blur-sm border rounded-xl p-6 transition-all duration-300 shadow-sm group cursor-pointer ${isRead
                                                 ? 'bg-gray-50/40 dark:bg-gray-900/40 border-gray-200/50 dark:border-gray-800/30 opacity-80 hover:opacity-100'
                                                 : 'bg-white/60 dark:bg-gray-900/60 border-white/50 dark:border-gray-800/50 hover:shadow-lg hover:scale-[1.01]'
                                                 }`}
@@ -481,35 +503,25 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
 
                                             {/* Title - EXTERNAL LINK (Stops Propagation) */}
                                             <h2 className={`text-xl font-bold mb-3 leading-tight transition-colors ${isRead ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-white'}`}>
-                                                {isTranslating ? (
-                                                    <Skeleton className="h-7 w-3/4 my-1" />
-                                                ) : (
-                                                    <a
-                                                        href={item.original_url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation(); // CRITICAL: Stop bubble so card click doesn't trigger
-                                                            handleNewsClick(item.id);
-                                                        }}
-                                                        className="hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center gap-2 group-hover:underline decoration-blue-500/30 underline-offset-4 cursor-pointer"
-                                                        suppressHydrationWarning
-                                                    >
-                                                        {displayTitle}
-                                                        <ExternalLink className="w-4 h-4 text-gray-400 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                    </a>
-                                                )}
+                                                <a
+                                                    href={item.original_url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation(); // CRITICAL: Stop bubble so card click doesn't trigger
+                                                        handleNewsClick(item.id);
+                                                    }}
+                                                    className="hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center gap-2 group-hover:underline decoration-blue-500/30 underline-offset-4 cursor-pointer"
+                                                    suppressHydrationWarning
+                                                >
+                                                    {displayTitle}
+                                                    <ExternalLink className="w-4 h-4 text-gray-400 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                </a>
                                             </h2>
 
                                             {/* Summary - Regular Div (Clicks bubble to Card) */}
                                             {/* Summary - Regular Div with Hard Navigation */}
-                                            {isTranslating ? (
-                                                <div className="space-y-2 mb-4">
-                                                    <Skeleton className="h-4 w-full" />
-                                                    <Skeleton className="h-4 w-5/6" />
-                                                    <Skeleton className="h-4 w-4/6" />
-                                                </div>
-                                            ) : displaySummary ? (
+                                            {displaySummary ? (
                                                 <div
                                                     className="mb-4 cursor-pointer"
                                                     onClick={() => {
@@ -631,7 +643,7 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
                                 ref={(node) => {
                                     observerRef.current?.disconnect();
                                     observerRef.current = null;
-                                    if (!node || isLoading || !hasMore) return;
+                                    if (!node || isLoading || !hasMore || loadError) return;
 
                                     observerRef.current = new IntersectionObserver((entries) => {
                                         if (entries[0]?.isIntersecting) {
@@ -663,7 +675,7 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
                                             <span className="text-sm font-medium">{t('home.loading')}...</span>
                                         </div>
                                     </div>
-                                ) : hasMore ? (
+                                ) : loadError ? null : hasMore ? (
                                     <span className="text-gray-400 text-sm">{t('feed.pullToLoad')}</span>
                                 ) : (
                                     <p className="text-gray-500 dark:text-gray-400 text-sm">
@@ -673,7 +685,7 @@ export function NewsFeed({ initialItems = [], mode = 'default', initialTag }: Ne
                             </div>
                         )}
                     </>
-                ) : (
+                ) : loadError ? null : (
                     <div className="text-center py-12 text-gray-500 bg-white/30 dark:bg-gray-900/30 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
                         {isLoading ? (
                             t('home.loading')
