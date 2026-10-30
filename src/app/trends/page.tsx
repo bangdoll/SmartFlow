@@ -7,31 +7,25 @@ export const revalidate = 3600;
 async function getLatestWeeklyTrends() {
     if (!isSupabaseConfigured()) return null;
 
-    try {
-        const { data, error } = await supabase
-            .from('weekly_trends')
-            .select('*')
-            .order('week_start_date', { ascending: false })
-            .limit(1)
-            .single();
+    const { data, error } = await supabase
+        .from('weekly_trends')
+        .select('title, title_en, core_message, core_message_en, trends, persona_advice, persona_advice_en, week_start_date, week_end_date')
+        .order('week_start_date', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-        if (error || !data) {
-            return null;
-        }
+    if (error) throw new Error('Unable to load weekly trends', { cause: error });
+    if (!data) return null;
 
-        return {
-            title: data.title,
-            titleEn: data.title_en,
-            core_message: data.core_message,
-            coreMessageEn: data.core_message_en,
-            trends: data.trends,
-            persona_advice: data.persona_advice,
-            personaAdviceEn: data.persona_advice_en
-        };
-    } catch (error) {
-        console.warn('Weekly trends unavailable without Supabase:', error);
-        return null;
-    }
+    return {
+        title: data.title,
+        titleEn: data.title_en,
+        core_message: data.core_message,
+        coreMessageEn: data.core_message_en,
+        trends: data.trends,
+        persona_advice: data.persona_advice,
+        personaAdviceEn: data.persona_advice_en
+    };
 }
 
 export default async function TrendsPage() {

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Share2, ArrowLeft, Calendar, ExternalLink, Tag, ChevronLeft, ChevronRight, ArrowRight, Mail } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import remarkGfm from 'remark-gfm';
 import { AudioPlayer } from '@/components/audio-player';
 import { ChatBox } from '@/components/chat-box';
@@ -51,15 +51,19 @@ export function NewsContent({ item, prev, next }: NewsContentProps) {
     const [localTitleEn, setLocalTitleEn] = useState(item.title_en || null);
     const [localSummaryEn, setLocalSummaryEn] = useState(item.summary_en || null);
     const [isTranslating, setIsTranslating] = useState(false);
+    // A failed/empty translation must not restart the effect indefinitely.
+    // A fresh page visit can try again; language toggles do not create retries.
+    const attemptedTranslations = useRef(new Set<string>());
 
     // Effect: Trigger translation if needed
     useEffect(() => {
         if (language === 'en') {
-            const missingTitle = !localTitleEn && item.title;
+            const missingTitle = !(item.title_en || localTitleEn) && item.title;
             // Note: Summary might be missing if not yet generated.
-            const missingSummary = !localSummaryEn && item.summary_zh;
+            const missingSummary = !(item.summary_en || localSummaryEn) && item.summary_zh;
 
-            if ((missingTitle || missingSummary) && !isTranslating) {
+            if ((missingTitle || missingSummary) && !isTranslating && !attemptedTranslations.current.has(item.id)) {
+                attemptedTranslations.current.add(item.id);
                 const translate = async () => {
                     setIsTranslating(true);
                     try {
@@ -68,6 +72,7 @@ export function NewsContent({ item, prev, next }: NewsContentProps) {
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ newsId: item.id }),
                         });
+                        if (!res.ok) throw new Error('Translation request failed');
                         const data = await res.json();
                         if (data.title_en) setLocalTitleEn(data.title_en);
                         if (data.summary_en) setLocalSummaryEn(data.summary_en);
@@ -80,7 +85,7 @@ export function NewsContent({ item, prev, next }: NewsContentProps) {
                 translate();
             }
         }
-    }, [language, item.id, localTitleEn, localSummaryEn, item.title, item.summary_zh, isTranslating]);
+    }, [language, item.id, localTitleEn, localSummaryEn, item.title, item.title_en, item.summary_zh, item.summary_en, isTranslating]);
 
     const date = new Date(item.published_at).toLocaleDateString(language === 'en' ? 'en-US' : 'zh-TW', {
         year: 'numeric',
@@ -92,8 +97,8 @@ export function NewsContent({ item, prev, next }: NewsContentProps) {
     });
 
     // Determine content based on language
-    const currentTitleEn = localTitleEn || item.title_en || undefined;
-    const currentSummaryEn = localSummaryEn || item.summary_en || undefined;
+    const currentTitleEn = item.title_en || localTitleEn || undefined;
+    const currentSummaryEn = item.summary_en || localSummaryEn || undefined;
 
     // Language-based summary selection with fallback
     const displaySummary = language === 'en'

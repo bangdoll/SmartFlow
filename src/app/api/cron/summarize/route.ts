@@ -1,3 +1,4 @@
+import { invalidateNewsItem } from '@/lib/news-cache';
 import { NextRequest, NextResponse } from 'next/server';
 import { generateSummary } from '@/lib/llm';
 import { hasMaintenanceAuth } from '@/lib/api-auth';
@@ -145,6 +146,7 @@ export async function GET(req: NextRequest) {
                 if (updateError) {
                     console.error(`Failed to update ${item.id}:`, updateError.message);
                 } else {
+                    invalidateNewsItem(item.id);
                     processedCount++;
 
                     // 非同步發佈到社群媒體（完全非阻塞，不等待結果）

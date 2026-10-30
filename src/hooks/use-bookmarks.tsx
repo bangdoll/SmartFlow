@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, createContext, useContext, ReactNode } from 'react';
+import { useState, useEffect, useMemo, useRef, createContext, useContext, ReactNode } from 'react';
 import { useUser } from '@/components/user-provider';
 import { createClient } from '@/utils/supabase/client';
 
@@ -46,171 +46,144 @@ const BookmarksContext = createContext<BookmarksContextType | undefined>(undefin
 
 const STORAGE_KEY = 'sf_bookmarks';
 
+// Local storage is untrusted and can be left by an older or interrupted client.
+function readLocalBookmarks(saved: string | null): BookmarkItem[] {
+    if (!saved) return [];
+    try {
+        const parsed: unknown = JSON.parse(saved);
+        if (!Array.isArray(parsed)) return [];
+        return parsed.filter((value): value is BookmarkItem => {
+            if (!value || typeof value !== 'object') return false;
+            const item = value as Record<string, unknown>;
+            return ['id', 'title', 'summary', 'slug', 'published_at', 'original_url', 'source']
+                .every(key => typeof item[key] === 'string') &&
+                ['title_en', 'summary_en'].every(key => item[key] == null || typeof item[key] === 'string') &&
+                (item.tags === undefined || (Array.isArray(item.tags) && item.tags.every(tag => typeof tag === 'string')));
+        });
+    } catch (error) {
+        console.error('Unable to read local bookmarks:', error);
+        return [];
+    }
+}
+
 export function BookmarksProvider({ children }: { children: ReactNode }) {
     const { user, isLoading: isUserLoading } = useUser();
-    const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const userId = user?.id ?? null;
+    // A new token distinguishes A -> B -> A from the original A request.
+    const owner = useMemo(() => ({ id: userId, authLoading: isUserLoading }), [userId, isUserLoading]);
+    const activeOwner = useRef<typeof owner | null>(null);
+    // Invalidate old continuations as soon as the owner renders. Waiting for
+    // passive cleanup leaves a window where a completed sync can erase the
+    // anonymous bookmarks that the signed-out/new account is about to load.
+    activeOwner.current = owner;
+    const [state, setState] = useState<{ owner: typeof owner | null; items: BookmarkItem[]; loading: boolean }>({
+        owner: null, items: [], loading: true,
+    });
     const supabase = useMemo(() => {
-        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-            return null;
-        }
-
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) return null;
         return createClient();
     }, []);
 
-    // 1. Fetch Logic
-    const fetchBookmarks = async () => {
-        setIsLoading(true);
-        try {
-            if (user) {
+    // Mask a previous account during render, before effects can clear its data.
+    const bookmarks = !isUserLoading && state.owner === owner ? state.items : [];
+    const isLoading = isUserLoading || state.owner !== owner || state.loading;
+
+    useEffect(() => {
+        let cancelled = false;
+        activeOwner.current = owner;
+        const isCurrent = () => !cancelled && activeOwner.current === owner;
+        setState({ owner, items: [], loading: true });
+
+        const load = async () => {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                const localItems = readLocalBookmarks(saved);
+                if (!owner.id) {
+                    if (isCurrent()) setState({ owner, items: localItems, loading: false });
+                    return;
+                }
                 if (!supabase) return;
 
-                // Fetch from Supabase
-                const { data, error } = await supabase
-                    .from('user_bookmarks')
+                if (localItems.length > 0) {
+                    const { error } = await supabase.from('user_bookmarks').upsert(localItems.map(item => ({
+                        user_id: owner.id, news_id: item.id, slug: item.slug,
+                    })), { onConflict: 'user_id, news_id' });
+                    if (!isCurrent()) return;
+                    if (error) console.error('Failed to sync bookmarks:', error);
+                    // Never delete anonymous additions made while a sync waited.
+                    else if (localStorage.getItem(STORAGE_KEY) === saved) localStorage.removeItem(STORAGE_KEY);
+                }
+
+                const { data, error } = await supabase.from('user_bookmarks')
                     .select('news_id, news_items (*)')
+                    .eq('user_id', owner.id)
                     .order('created_at', { ascending: false });
-
+                if (!isCurrent()) return;
                 if (error) throw error;
-
-                // Transform to BookmarkItem
-                const items = ((data || []) as unknown as BookmarkRow[]).map((row) => {
+                const items = ((data || []) as unknown as BookmarkRow[]).map((row): BookmarkItem | null => {
                     const news = Array.isArray(row.news_items) ? row.news_items[0] : row.news_items;
                     if (!news) return null;
-
                     return {
-                        id: news.id,
-                        title: news.title,
-                        title_en: news.title_en,
-                        summary: news.summary_zh || '',
-                        summary_en: news.summary_en,
-                        slug: news.slug || news.id,
-                        published_at: news.published_at,
-                        original_url: news.original_url,
-                        source: news.source,
-                        tags: news.tags || []
-                    } as BookmarkItem;
+                        id: news.id, title: news.title, title_en: news.title_en,
+                        summary: news.summary_zh || '', summary_en: news.summary_en,
+                        slug: news.slug || news.id, published_at: news.published_at,
+                        original_url: news.original_url, source: news.source, tags: news.tags || [],
+                    };
                 }).filter((item): item is BookmarkItem => item !== null);
-
-                setBookmarks(items);
-            } else {
-                // Anonymous: Load from localStorage
-                const saved = localStorage.getItem(STORAGE_KEY);
-                if (saved) {
-                    setBookmarks(JSON.parse(saved));
-                }
+                setState({ owner, items, loading: false });
+            } catch (error) {
+                console.error('Failed to load bookmarks:', error);
+            } finally {
+                if (isCurrent()) setState(previous => previous.owner === owner ? { ...previous, loading: false } : previous);
             }
-        } catch (e) {
-            console.error('Failed to load bookmarks', e);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    // 2. Sync Logic (Run once when user logs in)
-    useEffect(() => {
-        if (isUserLoading) return;
-
-        const syncLocalToCloud = async () => {
-            const savedLocal = localStorage.getItem(STORAGE_KEY);
-            if (!user || !savedLocal) {
-                fetchBookmarks();
-                return;
-            }
-
-            const localItems: BookmarkItem[] = JSON.parse(savedLocal);
-            if (localItems.length === 0) {
-                fetchBookmarks();
-                return;
-            }
-
-            if (!supabase) {
-                fetchBookmarks();
-                return;
-            }
-
-            // Perform Sync: Insert local items into DB
-            const bookmarksToInsert = localItems.map(item => ({
-                user_id: user.id,
-                news_id: item.id,
-                slug: item.slug
-            }));
-
-            // Using upsert
-            const { error } = await supabase
-                .from('user_bookmarks')
-                .upsert(bookmarksToInsert, { onConflict: 'user_id, news_id' });
-
-            if (!error) {
-                localStorage.removeItem(STORAGE_KEY);
-                console.log('Synced local bookmarks to cloud');
-            } else {
-                console.error('Failed to sync bookmarks', error);
-            }
-
-            // Re-fetch to get merged state
-            fetchBookmarks();
         };
-
-        syncLocalToCloud();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user, isUserLoading]);
+        if (!isUserLoading) void load();
+        return () => {
+            cancelled = true;
+            if (activeOwner.current === owner) activeOwner.current = null;
+        };
+    }, [owner, isUserLoading, supabase]);
 
     const addBookmark = async (item: BookmarkItem) => {
-        // Optimistic update
-        const prevBookmarks = bookmarks;
-        setBookmarks(prev => [item, ...prev]);
-
+        if (isUserLoading || activeOwner.current !== owner) return;
+        const previousItems = bookmarks;
+        const next = [item, ...previousItems.filter(saved => saved.id !== item.id)];
+        setState(previous => previous.owner === owner ? { ...previous, items: next } : previous);
         try {
-            if (user) {
+            if (owner.id) {
                 if (!supabase) throw new Error('Supabase is not configured');
-
                 const { error } = await supabase.from('user_bookmarks').insert({
-                    user_id: user.id,
-                    news_id: item.id,
-                    slug: item.slug
+                    user_id: owner.id, news_id: item.id, slug: item.slug,
                 });
                 if (error) throw error;
-            } else {
-                const next = [item, ...prevBookmarks];
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-            }
-        } catch (e) {
-            console.error('Failed to add bookmark', e);
-            setBookmarks(prevBookmarks); // Revert
+            } else localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        } catch (error) {
+            console.error('Failed to add bookmark:', error);
+            if (activeOwner.current === owner) setState(previous => previous.owner === owner ? { ...previous, items: previousItems } : previous);
         }
     };
 
     const removeBookmark = async (id: string) => {
-        const prevBookmarks = bookmarks;
-        setBookmarks(prev => prev.filter(b => b.id !== id));
-
+        if (isUserLoading || activeOwner.current !== owner) return;
+        const previousItems = bookmarks;
+        const next = previousItems.filter(item => item.id !== id);
+        setState(previous => previous.owner === owner ? { ...previous, items: next } : previous);
         try {
-            if (user) {
+            if (owner.id) {
                 if (!supabase) throw new Error('Supabase is not configured');
-
-                const { error } = await supabase
-                    .from('user_bookmarks')
-                    .delete()
-                    .eq('user_id', user.id)
-                    .eq('news_id', id);
+                const { error } = await supabase.from('user_bookmarks').delete()
+                    .eq('user_id', owner.id).eq('news_id', id);
                 if (error) throw error;
-            } else {
-                const next = prevBookmarks.filter(b => b.id !== id);
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-            }
-        } catch (e) {
-            console.error('Failed to remove bookmark', e);
-            setBookmarks(prevBookmarks); // Revert
+            } else localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        } catch (error) {
+            console.error('Failed to remove bookmark:', error);
+            if (activeOwner.current === owner) setState(previous => previous.owner === owner ? { ...previous, items: previousItems } : previous);
         }
     };
 
-    const isBookmarked = (id: string) => {
-        return bookmarks.some(b => b.id === id);
-    };
-
     return (
-        <BookmarksContext.Provider value={{ bookmarks, addBookmark, removeBookmark, isBookmarked, isLoading }}>
+        <BookmarksContext.Provider value={{ bookmarks, addBookmark, removeBookmark,
+            isBookmarked: id => bookmarks.some(item => item.id === id), isLoading }}>
             {children}
         </BookmarksContext.Provider>
     );

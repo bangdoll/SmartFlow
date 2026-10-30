@@ -1,3 +1,4 @@
+import { invalidateNewsItem } from '@/lib/news-cache';
 
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
@@ -165,6 +166,8 @@ export async function POST(req: NextRequest) {
                         .eq('id', newsId);
                     if (titleUpdateError) {
                         console.error('Title translation update error:', titleUpdateError);
+                    } else {
+                        invalidateNewsItem(newsId);
                     }
                 }
             }
@@ -196,10 +199,12 @@ export async function POST(req: NextRequest) {
                     // Helper: Optimization - Save this to DB so we don't translate again
                     // We doing this asynchronously effectively, or waiting?
                     // Let's wait to ensure consistency.
-                    await supabase
+                    const { error: summaryUpdateError } = await supabase
                         .from('news_items')
                         .update({ summary_en: sensitiveTranslation })
                         .eq('id', newsId);
+                    if (summaryUpdateError) console.error('Summary translation update error:', summaryUpdateError);
+                    else invalidateNewsItem(newsId);
                 }
             }
 
@@ -254,6 +259,8 @@ export async function POST(req: NextRequest) {
 
         if (updateError) {
             console.error('Update DB Error:', updateError);
+        } else {
+            invalidateNewsItem(newsId);
         }
 
         // Return URL with client-side cache buster

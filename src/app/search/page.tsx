@@ -1,11 +1,12 @@
 import { supabase } from '@/lib/supabase';
 import { SearchResultsList } from '@/components/search-results-list';
 import { ilikePattern, normalizeSearchTerm } from '@/lib/search-query';
+import type { NewsItem } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
 interface SearchPageProps {
-    searchParams: Promise<{ q?: string }>;
+    searchParams: Promise<{ q?: string | string[] }>;
 }
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
@@ -13,18 +14,18 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     const query = normalizeSearchTerm(params.q || '');
 
     // Simple search filtering using Supabase
-    let items = [];
+    let items: NewsItem[] = [];
     if (query) {
         const { data, error } = await supabase
             .from('news_items')
-            .select('*')
+            .select('id, original_url, title, title_en, source, published_at, summary_zh, summary_en, tags, click_count, slug, created_at')
             // Using 'or' with 'ilike' for multi-column search (title, summary_zh, summary_en, tags)
             .or(`title.ilike.${ilikePattern(query)},summary_zh.ilike.${ilikePattern(query)},summary_en.ilike.${ilikePattern(query)}`)
             .order('published_at', { ascending: false })
             .limit(20);
 
         if (error) {
-            console.error('Search error:', error);
+            throw new Error('Unable to search news', { cause: error });
         }
         if (data) items = data;
     }

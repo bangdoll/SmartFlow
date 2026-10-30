@@ -41,13 +41,13 @@ const getNewsByTag = unstable_cache(async (tag: string): Promise<NewsItem[]> => 
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { tag } = await params;
-    const decodedTag = decodeURIComponent(tag);
+    const decodedTag = tag;
 
     return {
         title: `${decodedTag} News & Trends - Smart Flow`,
         description: `Latest AI news and updates about ${decodedTag}. Stay ahead of the curve with our curated daily digest.`,
         alternates: {
-            canonical: `/tags/${tag}`,
+            canonical: `/tags/${encodeURIComponent(tag)}`,
         },
         openGraph: {
             title: `${decodedTag} News - Smart Flow`,
@@ -58,7 +58,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function TagPage({ params }: Props) {
     const { tag } = await params;
-    const decodedTag = decodeURIComponent(tag);
+    const decodedTag = tag;
     const items = await getNewsByTag(decodedTag);
 
     // Schema.org Breadcrumb

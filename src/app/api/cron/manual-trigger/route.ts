@@ -1,3 +1,4 @@
+import { invalidateInsertedNews, invalidateNewsItem } from '@/lib/news-cache';
 import { NextRequest, NextResponse } from 'next/server';
 import { scrapeAllSources } from '@/lib/scraper';
 import { generateSummary } from '@/lib/llm';
@@ -98,7 +99,7 @@ export async function POST(req: NextRequest) {
                 .single();
 
             if (!existing) {
-                const { error } = await supabase
+                const { data: inserted, error } = await supabase
                     .from('news_items')
                     .insert({
                         original_url: item.original_url,
@@ -106,9 +107,12 @@ export async function POST(req: NextRequest) {
                         source: item.source,
                         published_at: item.published_at,
                         slug: nanoid(8),
-                    });
+                    }).select('id, slug, published_at').single();
 
-                if (!error) insertedCount++;
+                if (!error && inserted) {
+                    await invalidateInsertedNews(inserted);
+                    insertedCount++;
+                }
             }
         }
 
@@ -131,7 +135,7 @@ export async function POST(req: NextRequest) {
 
                     const summary = await generateSummary(item.title, contentForLLM);
                     if (summary) {
-                        await supabase
+                        const { error: updateError } = await supabase
                             .from('news_items')
                             .update({
                                 title: summary.title_zh || item.title,
@@ -140,6 +144,8 @@ export async function POST(req: NextRequest) {
                                 tags: summary.tags,
                             })
                             .eq('id', item.id);
+                        if (updateError) throw updateError;
+                        invalidateNewsItem(item.id);
                         summarizedCount++;
                     }
                 } catch (e) {

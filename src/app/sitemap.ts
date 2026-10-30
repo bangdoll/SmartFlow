@@ -17,11 +17,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const baseUrl = SITE_URL;
 
     // Fetch latest news for sitemap
-    const { data: news } = await supabase
+    const { data: news, error } = await supabase
         .from('news_items')
         .select('id, published_at, created_at, tags')
         .order('published_at', { ascending: false })
         .limit(100);
+    if (error) throw new Error('Unable to load sitemap news', { cause: error });
 
     const newsUrls = (news || []).map((item) => ({
         url: `${baseUrl}${getNewsPath(item.id)}`,

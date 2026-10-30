@@ -8,89 +8,18 @@ import { PinnedGuideCard } from '@/components/pinned-guide-card';
 // 使用 ISR (增量靜態再生)，每小時更新一次
 export const revalidate = 3600;
 
-const FALLBACK_NEWS: NewsItem[] = [
-  {
-    id: 'fallback-1',
-    title: 'OpenAI 推出新模型，推理解決能力大幅提升 (System Fallback)',
-    title_en: 'OpenAI Launches New Model with Enhanced Reasoning Capabilities',
-    original_url: '#',
-    summary_zh: '由於系統正在維護中，目前顯示為備用內容。OpenAI 發布了新一代推理模型，專注於解決複雜的數學與程式設計問題，標誌著通用人工智慧的重要一步。',
-    summary_en: 'System is currently under maintenance. Displaying fallback content. OpenAI has released a new generation reasoning model focused on solving complex math and programming problems, marking a significant step towards AGI.',
-    source: 'System Recovery',
-    published_at: new Date().toISOString(),
-    tags: ['AI', 'OpenAI', 'Maintenance'],
-    slug: 'fallback-openai-new-model'
-  },
-  {
-    id: 'fallback-2',
-    title: 'Google DeepMind 宣佈生物學新突破 (System Fallback)',
-    title_en: 'Google DeepMind Announces New Biology Breakthrough',
-    original_url: '#',
-    summary_zh: '系統維護中。AlphaFold 最新版本成功預測了更複雜的蛋白質交互作用，將加速新藥開發流程。',
-    summary_en: 'System maintenance. The latest version of AlphaFold successfully predicts more complex protein interactions, accelerating drug discovery processes.',
-    source: 'System Recovery',
-    published_at: new Date(Date.now() - 86400000).toISOString(),
-    tags: ['BioTech', 'Google', 'AI'],
-    slug: 'fallback-deepmind-bio'
-  },
-  {
-    id: 'fallback-3',
-    title: '歐盟通過 AI 法案，全球監管進入新時代 (System Fallback)',
-    title_en: 'EU Passes AI Act, Global Regulation Enters New Era',
-    original_url: '#',
-    summary_zh: '系統維護中。歐盟正式通過人工智慧法案，對高風險 AI 應用實施嚴格規範，預計將影響全球科技巨頭的佈局。',
-    summary_en: 'System maintenance. The EU has officially passed the AI Act, implementing strict regulations on high-risk AI applications, expected to impact global tech giants.',
-    source: 'System Recovery',
-    published_at: new Date(Date.now() - 172800000).toISOString(),
-    tags: ['Regulation', 'EU', 'Policy'],
-    slug: 'fallback-eu-ai-act'
-  },
-  {
-    id: 'fallback-4',
-    title: 'NVIDIA 發布新一代 AI 晶片架構 (System Fallback)',
-    title_en: 'NVIDIA Unveils Next-Gen AI Chip Architecture',
-    original_url: '#',
-    summary_zh: '系統維護中。NVIDIA 推出代號為 Blackwell 的新架構，運算效能較前代提升數倍，將進一步推動 AI 模型訓練速度。',
-    summary_en: 'System maintenance. NVIDIA introduces the Blackwell architecture, offering significantly higher performance than its predecessor, further boosting AI model training speeds.',
-    source: 'System Recovery',
-    published_at: new Date(Date.now() - 259200000).toISOString(),
-    tags: ['Hardware', 'NVIDIA', 'Chips'],
-    slug: 'fallback-nvidia-blackwell'
-  },
-  {
-    id: 'fallback-5',
-    title: '微軟整合 AI Copilot 至 Windows 12 (System Fallback)',
-    title_en: 'Microsoft Integrates AI Copilot into Windows 12',
-    original_url: '#',
-    summary_zh: '系統維護中。傳聞 Windows 12 將深度整合 AI Copilot，改變使用者與作業系統的互動方式。',
-    summary_en: 'System maintenance. Rumors suggest Windows 12 will deeply integrate AI Copilot, transforming how users interact with the operating system.',
-    source: 'System Recovery',
-    published_at: new Date(Date.now() - 345600000).toISOString(),
-    tags: ['Microsoft', 'Windows', 'OS'],
-    slug: 'fallback-microsoft-windows'
-  }
-];
-
 async function getLatestNews(): Promise<NewsItem[]> {
-  if (!isSupabaseConfigured()) return FALLBACK_NEWS;
+  if (!isSupabaseConfigured()) return [];
 
-  try {
-    const { data: items } = await supabase
-      .from('news_items')
-      .select('id, title, original_url, summary_zh, summary_en, title_en, slug, published_at, source, tags, created_at')
-      .order('published_at', { ascending: false })
-      .limit(50);
-
-    if (!items || items.length === 0) {
-      console.log('DB Connection failed or Empty. Using Fallback Data.');
-      return FALLBACK_NEWS;
-    }
-
-    return items;
-  } catch (error) {
-    console.warn('Supabase unavailable. Using fallback news:', error);
-    return FALLBACK_NEWS;
-  }
+  const { data: items, error } = await supabase
+    .from('news_items')
+    .select('id, original_url, title, title_en, source, published_at, summary_zh, summary_en, tags, click_count, slug, created_at')
+    .order('published_at', { ascending: false })
+    .limit(50);
+  // A failed ISR render must preserve the last successful page, not replace it
+  // with fabricated articles or a successful empty response.
+  if (error) throw new Error('Unable to load latest news', { cause: error });
+  return items || [];
 }
 
 export default async function Home() {

@@ -1,3 +1,4 @@
+import { invalidateNewsItem } from '@/lib/news-cache';
 import OpenAI from 'openai';
 import { supabaseAdmin as supabase } from '@/lib/supabase';
 
@@ -100,13 +101,15 @@ export async function batchTranslate(ids: string[]): Promise<TranslatedItem[]> {
         // 4. Update Database
         const updatePromises = results.map(async (res) => {
             if (res.id && (typeof res.title_en === 'string' || typeof res.summary_en === 'string')) {
-                return supabase
+                const { error } = await supabase
                     .from('news_items')
                     .update({
                         ...(typeof res.title_en === 'string' ? { title_en: res.title_en } : {}),
                         ...(typeof res.summary_en === 'string' ? { summary_en: res.summary_en } : {}),
                     })
                     .eq('id', res.id);
+                if (error) throw error;
+                invalidateNewsItem(res.id);
             }
         });
 

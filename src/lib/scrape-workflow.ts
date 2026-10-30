@@ -1,3 +1,4 @@
+import { invalidateInsertedNews } from '@/lib/news-cache';
 import { scrapeAllSources } from '@/lib/scraper';
 import { generateSummary } from '@/lib/llm';
 import { supabaseAdmin as supabase } from '@/lib/supabase';
@@ -64,6 +65,7 @@ export async function runScrapeSortAndSummary() {
                 if (error) {
                     console.error(`Failed to insert item ${item.title}:`, error);
                 } else {
+                    await invalidateInsertedNews(data);
                     results.push(data);
                     processedCount++;
 

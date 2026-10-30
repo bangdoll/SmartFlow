@@ -12,27 +12,19 @@ async function getEssentialNews(): Promise<NewsItem[]> {
     const ninetyDaysAgo = new Date();
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
 
-    try {
-        const { data, error } = await supabase
-            .from('news_items')
-            .select('*')
-            .gte('published_at', ninetyDaysAgo.toISOString())
-            .not('summary_zh', 'is', null)
-            .order('published_at', { ascending: false })
-            .limit(500);
+    const { data, error } = await supabase
+        .from('news_items')
+        .select('id, original_url, title, title_en, source, published_at, summary_zh, summary_en, tags, click_count, slug, created_at')
+        .gte('published_at', ninetyDaysAgo.toISOString())
+        .not('summary_zh', 'is', null)
+        .order('published_at', { ascending: false })
+        .limit(500);
 
-        if (error) {
-            console.error('Error fetching essential news:', error);
-            return [];
-        }
+    if (error) throw new Error('Unable to load public news', { cause: error });
 
-        // 按分類分組並選出代表性文章
-        const categories = categorizeNews(data as NewsItem[]);
-        return categories;
-    } catch (error) {
-        console.warn('Essential news unavailable without Supabase:', error);
-        return [];
-    }
+    // 按分類分組並選出代表性文章
+    const categories = categorizeNews((data || []) as NewsItem[]);
+    return categories;
 }
 
 // 將新聞分類為不同主題

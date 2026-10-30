@@ -12,24 +12,16 @@ async function getAllNews(): Promise<NewsItem[]> {
     const oneDayAgo = new Date();
     oneDayAgo.setDate(oneDayAgo.getDate() - 1);
 
-    try {
-        const { data, error } = await supabase
-            .from('news_items')
-            .select('*')
-            .lt('published_at', oneDayAgo.toISOString()) // 只取 24 小時前的
-            .order('published_at', { ascending: false })
-            .limit(100);
+    const { data, error } = await supabase
+        .from('news_items')
+        .select('id, original_url, title, title_en, source, published_at, summary_zh, summary_en, tags, click_count, slug, created_at')
+        .lt('published_at', oneDayAgo.toISOString()) // 只取 24 小時前的
+        .order('published_at', { ascending: false })
+        .limit(100);
 
-        if (error) {
-            console.error('Error fetching news:', error);
-            return [];
-        }
+    if (error) throw new Error('Unable to load public news', { cause: error });
 
-        return data as NewsItem[];
-    } catch (error) {
-        console.warn('Archive data unavailable without Supabase:', error);
-        return [];
-    }
+    return (data || []) as NewsItem[];
 }
 
 export default async function ArchivePage() {

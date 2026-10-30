@@ -42,33 +42,6 @@ export function SearchResultsList({ items: initialItems, query }: SearchResultsL
                             timeZone: 'Asia/Taipei',
                         });
 
-                        const showEn = language === 'en';
-                        const hasEn = !!item.title_en;
-
-                        // Strict Mode Skeleton
-                        if (showEn && !hasEn) {
-                            return (
-                                <article
-                                    key={item.id}
-                                    className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-sm border border-white/50 dark:border-gray-800/50 rounded-xl p-6 animate-pulse"
-                                >
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <div className="h-4 w-24 bg-gray-200 dark:bg-gray-800 rounded"></div>
-                                        <div className="h-4 w-4 bg-gray-200 dark:bg-gray-800 rounded-full"></div>
-                                        <div className="h-4 w-32 bg-gray-200 dark:bg-gray-800 rounded"></div>
-                                    </div>
-                                    <div className="h-6 w-3/4 bg-gray-200 dark:bg-gray-800 rounded mb-4"></div>
-                                    <div className="space-y-2">
-                                        <div className="h-4 w-full bg-gray-200 dark:bg-gray-800 rounded"></div>
-                                        <div className="h-4 w-2/3 bg-gray-200 dark:bg-gray-800 rounded"></div>
-                                    </div>
-                                    <div className="mt-4 inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs rounded-full">
-                                        Translating...
-                                    </div>
-                                </article>
-                            );
-                        }
-
                         const displayTitle = (language === 'en' && item.title_en) ? item.title_en : item.title;
                         const displaySummary = (language === 'en' && item.summary_en) ? item.summary_en : (item.summary_zh || item.summary_en);
 

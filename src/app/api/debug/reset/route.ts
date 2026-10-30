@@ -1,3 +1,4 @@
+import { invalidateAllNews } from '@/lib/news-cache';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin as supabase } from '@/lib/supabase';
 import { hasAdminAuth } from '@/lib/api-auth';
@@ -17,6 +18,7 @@ export async function POST(request: NextRequest) {
             .neq('id', '00000000-0000-0000-0000-000000000000');
 
         if (error) throw error;
+        invalidateAllNews();
 
         return NextResponse.json({ success: true, message: 'All news items cleared.' });
     } catch (error: unknown) {

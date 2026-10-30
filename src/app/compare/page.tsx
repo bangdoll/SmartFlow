@@ -27,19 +27,14 @@ const COMPARISONS = [
 async function getTopicNewsCount(topic: string): Promise<number> {
     if (!isSupabaseConfigured()) return 0;
 
-    try {
-        const { count, error } = await supabase
-            .from('news_items')
-            .select('id', { count: 'exact', head: true })
-            .or(`title.ilike.${ilikePattern(topic)},summary_zh.ilike.${ilikePattern(topic)}`)
-            .limit(1);
+    const { count, error } = await supabase
+        .from('news_items')
+        .select('id', { count: 'exact', head: true })
+        .or(`title.ilike.${ilikePattern(topic)},summary_zh.ilike.${ilikePattern(topic)}`)
+        .limit(1);
 
-        if (error) return 0;
-        return count || 0;
-    } catch (error) {
-        console.warn(`Comparison count unavailable without Supabase for ${topic}:`, error);
-        return 0;
-    }
+    if (error) throw new Error('Unable to load comparison counts', { cause: error });
+    return count || 0;
 }
 
 // 過濾有資料的比較組合
