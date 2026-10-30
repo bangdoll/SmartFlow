@@ -34,7 +34,7 @@ const resultZH = { title_zh: '人工智慧最新消息', summary_zh: chineseSumm
 const resultEN = { title_en: 'Latest artificial intelligence news', summary_en: 'An English summary explaining the news and practical impact on everyday life.' };
 const silentConsole = { log() {}, error() {} };
 
-function makeHarness({ count = 5, translationMs = 3_000, readMs = 100, writeMs = 100, translationResult, failingWrites = false, malformed = false } = {}) {
+function makeHarness({ count = 5, translationMs = 3_000, readMs = 100, writeMs = 100, translationResult, translationError, OpenAIClient, failingWrites = false, malformed = false } = {}) {
     let now = 0;
     const signals = [];
     const calls = [];
@@ -67,6 +67,8 @@ function makeHarness({ count = 5, translationMs = 3_000, readMs = 100, writeMs =
             calls.push({ lang, options, started: now, prompt: body.messages[0].content });
             elapsed(typeof translationMs === 'function' ? translationMs(lang, calls.length) : translationMs,
                 options?.signal, options?.timeout);
+            const error = translationError?.(lang, calls.length);
+            if (error) throw error;
             const result = translationResult ? translationResult(lang) : (lang === 'chinese' ? resultZH : resultEN);
             return { choices: [{ message: { content: malformed ? 'invalid json' : JSON.stringify(result) } }] };
         } } };
@@ -99,7 +101,7 @@ function makeHarness({ count = 5, translationMs = 3_000, readMs = 100, writeMs =
         return builder;
     } };
     const service = loadTS('src/lib/auto-fix-service.ts', {
-        openai: FakeOpenAI,
+        openai: OpenAIClient || FakeOpenAI,
         '@/lib/supabase': { supabaseAdmin: supabase },
         '@/lib/text-language': language,
         '@/lib/news-cache': { invalidateNewsItem: id => invalidations.push(id) },
@@ -117,6 +119,86 @@ function makeHarness({ count = 5, translationMs = 3_000, readMs = 100, writeMs =
 }
 
 const budget = { timeBudgetMs: 25_000, requestTimeoutMs: 8_000 };
+
+test('quota exhaustion stops the whole bilingual run after one rejected request', async () => {
+    const h = makeHarness({ translationError: () => Object.assign(new Error('429 You have no credits remaining'), {
+        status: 429, code: 'insufficient_quota',
+    }) });
+    await assert.rejects(h.service.autoFixNewsContent(7, 2, budget), error => error.code === 'openai_quota_exhausted');
+    assert.equal(h.calls.length, 1);
+    assert.deepEqual(h.databaseCalls.map(call => call.lang), ['chinese']);
+    assert.deepEqual(h.updates, []);
+    assert.deepEqual(h.invalidations, []);
+});
+
+test('cron reports exhausted quota as an uncacheable failure instead of successful zero repairs', async () => {
+    const h = makeHarness({ translationError: () => Object.assign(new Error('429 You have no credits remaining; Bearer private-fixture-secret'), {
+        status: 429,
+    }) });
+    const route = loadTS('src/app/api/cron/bilingual-fix/route.ts', {
+        'next/server': { NextResponse: { json: Response.json } },
+        '@/lib/api-auth': { hasMaintenanceAuth: () => true },
+        '@/lib/auto-fix-service': h.service,
+    }, { console: silentConsole });
+    const response = await route.GET(new Request('https://example.com/api/cron/bilingual-fix'));
+    assert.equal(response.status, 503);
+    assert.match(response.headers.get('cache-control'), /no-store/);
+    const body = await response.json();
+    assert.equal(body.success, false);
+    assert.equal(body.code, 'openai_quota_exhausted');
+    assert.equal(body.retryable, false);
+    assert.deepEqual(body.fixed, { chinese: 0, english: 0, total: 0 });
+    assert.doesNotMatch(JSON.stringify(body), /private-fixture-secret|Bearer/);
+    assert.equal(h.calls.length, 1);
+});
+
+test('real SDK makes only one quota request even for daily callers without a time budget', async () => {
+    let requests = 0;
+    class QuotaOpenAI extends OpenAI {
+        constructor(options) {
+            super({ ...options, fetch: async () => {
+                requests++;
+                return new Response(JSON.stringify({ error: { code: 'insufficient_quota', type: 'insufficient_quota', message: 'You have no credits remaining' } }), {
+                    status: 429, headers: { 'content-type': 'application/json', 'retry-after-ms': '1' },
+                });
+            } });
+        }
+    }
+    const h = makeHarness({ OpenAIClient: { __esModule: true, default: QuotaOpenAI } });
+    await assert.rejects(h.service.autoFixNewsContent(7, 2), error => error.code === 'openai_quota_exhausted');
+    assert.equal(requests, 1, 'SDK must not retry an exhausted balance');
+    assert.deepEqual(h.updates, []);
+});
+
+test('a later English quota failure retains only successfully committed repair counts', async () => {
+    const h = makeHarness({ translationError: (lang, call) => lang === 'english' && call === 4
+        ? Object.assign(new Error('quota exhausted'), { status: 429, code: 'credit_balance_exhausted' }) : null });
+    await assert.rejects(h.service.autoFixNewsContent(7, 2, budget), error => {
+        assert.equal(error.code, 'openai_quota_exhausted');
+        assert.deepEqual(error.fixed, { chinese: 2, english: 1 });
+        return true;
+    });
+    assert.equal(h.calls.length, 4);
+    assert.equal(h.updates.length, 3);
+    assert.equal(h.invalidations.length, 3);
+});
+
+test('billing error codes stop untimed and standalone callers without raw provider details', async () => {
+    for (const code of ['insufficient_quota', 'credit_balance_exhausted', 'organization_spend_limit_exceeded', 'project_spend_limit_exceeded', 'organization_usage_limit_exceeded']) {
+        for (const method of ['autoFixChineseContent', 'autoFixEnglishContent']) {
+            const h = makeHarness({ translationError: () => Object.assign(new Error('Bearer private-fixture-secret'), { status: 429, code }) });
+            await assert.rejects(h.service[method](7, 2), error => {
+                assert.equal(error.code, 'openai_quota_exhausted');
+                assert.equal(error.retryable, false);
+                assert.equal(error.cause, undefined);
+                assert.doesNotMatch(error.message, /Bearer|private-fixture-secret/);
+                return true;
+            });
+            assert.equal(h.calls.length, 1);
+            assert.equal(h.updates.length, 0);
+        }
+    }
+});
 
 test('small bilingual batches finish under budget and English sees repaired Chinese', async () => {
     const h = makeHarness();
@@ -164,7 +246,7 @@ test('stalled database writes are awaited and aborted before returning', async (
     assert.equal(h.databaseCalls.filter(call => call.kind === 'write').length, 2);
 });
 
-test('untimed daily callers keep their original limits, sequential order and SDK defaults', async () => {
+test('untimed daily callers keep their original limits and sequential order', async () => {
     const h = makeHarness();
     assert.deepEqual(await h.service.autoFixNewsContent(14, 5), { chinese: 5, english: 5 });
     assert.ok(h.now() > 30_000);

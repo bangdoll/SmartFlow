@@ -22,6 +22,31 @@ interface AutoFixExecution {
     requestTimeoutMs: number;
 }
 
+/** No upstream message/cause: provider errors can contain private request data. */
+export class AutoFixDependencyError extends Error {
+    readonly code = 'openai_quota_exhausted';
+    readonly retryable = false;
+    readonly fixed = { chinese: 0, english: 0 };
+
+    constructor() {
+        super('OpenAI API quota or credits exhausted');
+        this.name = 'AutoFixDependencyError';
+    }
+}
+
+function dependencyError(error: unknown): AutoFixDependencyError | null {
+    if (error instanceof AutoFixDependencyError) return error;
+    if (!error || typeof error !== 'object') return null;
+    const upstream = error as { status?: number; code?: string; type?: string; message?: string };
+    const quotaCodes = ['insufficient_quota', 'credit_balance_exhausted', 'organization_spend_limit_exceeded',
+        'project_spend_limit_exceeded', 'organization_usage_limit_exceeded'];
+    if (upstream.status === 429 && (quotaCodes.includes(upstream.code || '') || upstream.type === 'insufficient_quota' ||
+        /no credits remaining|exceeded your current quota|billing quota|run out of credits|credit balance.*exhausted/i.test(upstream.message || ''))) {
+        return new AutoFixDependencyError();
+    }
+    return null;
+}
+
 function hasTimeRemaining(execution?: AutoFixExecution): boolean {
     return !execution || (!execution.signal.aborted && Date.now() < execution.deadline);
 }
@@ -47,7 +72,9 @@ async function rateLimitPause(execution?: AutoFixExecution) {
 function getOpenAI() {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) throw new Error('OPENAI_API_KEY is not configured');
-    return new OpenAI({ apiKey });
+    // Includes daily/standalone callers that do not pass translationOptions.
+    // Retrying billing failures cannot restore credits and multiplies rejected work.
+    return new OpenAI({ apiKey, maxRetries: 0 });
 }
 
 // 英→中翻譯
@@ -194,6 +221,11 @@ export async function autoFixChineseContent(daysBack = 7, limit = 20, execution?
 
             await rateLimitPause(execution);
         } catch (e: unknown) {
+            const failure = dependencyError(e);
+            if (failure) {
+                failure.fixed.chinese = fixedCount;
+                throw failure;
+            }
             console.error(`[AutoFix-ZH] Error:`, (e as Error).message);
         }
     }
@@ -294,6 +326,11 @@ export async function autoFixEnglishContent(daysBack = 7, limit = 20, execution?
 
             await rateLimitPause(execution);
         } catch (e: unknown) {
+            const failure = dependencyError(e);
+            if (failure) {
+                failure.fixed.english = fixedCount;
+                throw failure;
+            }
             console.error(`[AutoFix-EN] Error:`, (e as Error).message);
         }
     }
@@ -329,8 +366,14 @@ export async function autoFixNewsContent(daysBack = 7, limit = 20, options?: Aut
 
     // 2. 修復英文內容（中→英）
     // Chinese completes first so English can use the repaired source content.
-    const englishFixed = await autoFixEnglishContent(daysBack, limit, options
-        ? executionFor(startTime + options.timeBudgetMs) : undefined);
+    let englishFixed: number;
+    try {
+        englishFixed = await autoFixEnglishContent(daysBack, limit, options
+            ? executionFor(startTime + options.timeBudgetMs) : undefined);
+    } catch (error) {
+        if (error instanceof AutoFixDependencyError) error.fixed.chinese = chineseFixed;
+        throw error;
+    }
 
     console.log(`[AutoFix] Total fixed: ${chineseFixed} Chinese, ${englishFixed} English`);
 

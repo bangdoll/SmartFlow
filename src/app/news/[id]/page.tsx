@@ -6,6 +6,7 @@ import { NewsContent } from '@/components/news-content';
 import { SITE_URL } from '@/lib/site';
 import { serializeJsonLd } from '@/lib/json-ld';
 import { getNewsPath } from '@/lib/news-url';
+import { newsReadError, PUBLIC_NEWS_READ_TIMEOUT_MS } from '@/lib/news-read-error';
 
 // Cache public HTML/RSC together. New short IDs are generated on demand.
 // UUID/slug aliases use a separate dynamic resolver that returns HTTP 308.
@@ -24,15 +25,17 @@ const getNewsItem = cache(async (id: string) => {
 
     // Canonical pages only. Proxy sends UUID/slug aliases to a dynamic resolver
     // so Next's ISR redirect serialization cannot duplicate Location headers.
-    const { data: item, error } = await supabase.from('news_items')
+    const result = await supabase.from('news_items')
         .select('id, title, title_en, source, published_at, summary_zh, summary_en, original_url, audio_url, audio_url_en, tags, slug')
         .gte('id', `${id}-0000-0000-0000-000000000000`)
         .lte('id', `${id}-ffff-ffff-ffff-ffffffffffff`)
+        .abortSignal(AbortSignal.timeout(PUBLIC_NEWS_READ_TIMEOUT_MS))
         .maybeSingle();
+    const { data: item, error } = result;
     // Only a genuine missing row should become a cached 404. A transient
     // database failure must fail revalidation and preserve the last good result.
     if (error) {
-        throw new Error('Unable to load news item', { cause: error });
+        throw newsReadError('Unable to load news item', result);
     }
     if (!item) return null;
     return item;
@@ -47,6 +50,7 @@ const getAdjacentNews = cache(async (currentDate: string) => {
             .lt('published_at', currentDate)
             .order('published_at', { ascending: false })
             .limit(1)
+            .abortSignal(AbortSignal.timeout(PUBLIC_NEWS_READ_TIMEOUT_MS))
             .maybeSingle(),
 
         // Next news (newer)
@@ -56,12 +60,13 @@ const getAdjacentNews = cache(async (currentDate: string) => {
             .gt('published_at', currentDate)
             .order('published_at', { ascending: true })
             .limit(1)
+            .abortSignal(AbortSignal.timeout(PUBLIC_NEWS_READ_TIMEOUT_MS))
             .maybeSingle()
     ]);
 
     for (const result of [prev, next]) {
         if (result.error) {
-            throw new Error('Unable to load adjacent news', { cause: result.error });
+            throw newsReadError('Unable to load adjacent news', result);
         }
     }
 

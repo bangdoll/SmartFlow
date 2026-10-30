@@ -27,3 +27,12 @@
 2026-10-21 唯讀檢查：公開新聞 API 回 503，Vercel 執行紀錄明確回報 Supabase `exceed_egress_quota`。專案 `ACTIVE_HEALTHY` 不代表 Data API 可用。程式修復能避免錯誤掩蓋與重試放大，不能解除平台額度限制。
 
 Supabase 方案、付款、支出上限需要使用者另行決定，未自行處理。原始工作目錄的無關變更均保留；完整現場證據與紅／綠測試紀錄存於主工作目錄 `reports/2026-10-21-site-health-fixes/`。
+
+## 2026-10-31：新聞讀取與 OpenAI 額度錯誤處理
+
+- 新聞本文與前後篇查詢各設 8 秒取消訊號，不新增重試。真正空結果維持 404；資料庫或連線失敗仍拋錯，讓 ISR 保留最後成功的暖頁。紀錄只包含受限格式的 HTTP status、錯誤 code 與分類，不保存供應商原始訊息、cause、網址或正文。這能改善逾時與診斷，不能據此確定歷史快取故障的精確根因。
+- 雙語修復遇到明確額度／餘額／支出限制類 429 時，立即中止本次呼叫，不繼續後續新聞或另一語言階段。這個服務的 SDK client 設定 `maxRetries: 0`，包含沒有時間預算的 daily／standalone 呼叫；也會停用此 client 其他錯誤的 SDK 自動重試，其他 OpenAI client 不受影響。
+- `bilingual-fix` 對額度耗盡回 HTTP 503、`success: false`、`code: openai_quota_exhausted`、`retryable: false` 與 `Cache-Control: no-store`；只帶固定安全訊息，`fixed` 保留本次已確認成功的中文、英文及總筆數。一般速率限制不當成額度耗盡。
+- 中止範圍是本次呼叫，沒有停用、啟用或修改任何外部排程；帳戶餘額也不會因程式修正而增加。正式額度、正式部署效果及既有社群發布副作用均未在這次整合中驗收。
+
+回歸測試使用真實 Supabase／OpenAI SDK 搭配本機模擬 I/O，涵蓋逾時取消、402、安全錯誤、空結果／重複前綴、首次額度失敗中止、無預算呼叫只送一次，以及部分成功計數。沿用 CI 的 lint、全套單元測試與隔離 Next.js build/start ISR 驗收；不使用正式金鑰或付費 API。

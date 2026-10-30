@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { autoFixNewsContent } from '@/lib/auto-fix-service';
+import { autoFixNewsContent, AutoFixDependencyError } from '@/lib/auto-fix-service';
 import { hasMaintenanceAuth } from '@/lib/api-auth';
 
 /**
@@ -48,6 +48,16 @@ export async function GET(req: NextRequest) {
         });
 
     } catch (error: unknown) {
+        if (error instanceof AutoFixDependencyError) {
+            console.error('Bilingual fix blocked:', error.code);
+            return NextResponse.json({
+                success: false,
+                error: error.message,
+                code: error.code,
+                retryable: error.retryable,
+                fixed: { ...error.fixed, total: error.fixed.chinese + error.fixed.english },
+            }, { status: 503, headers: { 'Cache-Control': 'no-store' } });
+        }
         console.error('Bilingual fix cron job failed:', error);
         return NextResponse.json(
             { error: (error as Error).message || 'Internal Server Error' },
