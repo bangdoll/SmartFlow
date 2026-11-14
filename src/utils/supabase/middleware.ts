@@ -1,12 +1,11 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function updateSession(request: NextRequest) {
-    let response = NextResponse.next({
-        request: {
-            headers: request.headers,
-        },
-    })
+export async function updateSession(request: NextRequest, rewrite?: URL) {
+    const createResponse = () => rewrite
+        ? NextResponse.rewrite(rewrite, { request: { headers: request.headers } })
+        : NextResponse.next({ request: { headers: request.headers } })
+    let response = createResponse()
 
     // Public pages are the majority of traffic, especially crawler requests.
     // Anonymous requests have no session to refresh, so avoid a Supabase auth
@@ -30,11 +29,7 @@ export async function updateSession(request: NextRequest) {
                 },
                 setAll(cookiesToSet) {
                     cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-                    response = NextResponse.next({
-                        request: {
-                            headers: request.headers,
-                        },
-                    })
+                    response = createResponse()
                     cookiesToSet.forEach(({ name, value, options }) =>
                         response.cookies.set(name, value, options)
                     )

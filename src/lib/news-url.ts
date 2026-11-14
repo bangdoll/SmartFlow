@@ -4,12 +4,17 @@ export function isFullNewsId(id: string): boolean {
     return NEWS_UUID_PATTERN.test(id);
 }
 
+export function isShortNewsId(id: string): boolean {
+    return /^[0-9a-f]{8}$/i.test(id);
+}
+
 /**
  * Use one public cache key for every news item. Full UUID and slug aliases
  * remain readable by the route, but public links should use the short ID.
  */
 export function getCanonicalNewsId(id: string): string {
-    return isFullNewsId(id) ? id.slice(0, 8) : id;
+    if (isFullNewsId(id)) return id.slice(0, 8).toLowerCase();
+    return isShortNewsId(id) ? id.toLowerCase() : id;
 }
 
 export function getNewsPath(id: string): string {
