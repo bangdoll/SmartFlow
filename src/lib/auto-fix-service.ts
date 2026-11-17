@@ -57,8 +57,8 @@ async function translateToChineseWithSummary(title: string, url: string, existin
 ${existingSummary ? `現有摘要 (可能是英文)：${existingSummary}` : `網址：${url}`}
 
 任務：
-1. 翻譯標題成繁體中文 (台灣用語)
-2. 生成/翻譯繁體中文摘要 (必須全中文)
+1. 翻譯標題成繁體中文 (台灣用語)。產品名稱可保留英文，但標題必須至少含兩個中文字；純產品名稱請加上忠於原文的中文描述，並將 and 翻為「與」。
+2. 生成/翻譯繁體中文摘要 (至少 30 字，必須含中文)
 
 請使用以下 JSON 格式回覆：
 {
@@ -102,202 +102,129 @@ Output JSON format:
     return JSON.parse(content);
 }
 
-/**
- * 自動修復中文內容 (英→中)
- * 檢查:
- * 1. Title 是英文
- * 2. Summary 缺失
- * 3. Summary 是英文
- */
-export async function autoFixChineseContent(daysBack = 7, limit = 20, execution?: AutoFixExecution): Promise<number> {
+type RepairLanguage = 'zh' | 'en';
+type RepairItem = {
+    id: string;
+    title: string;
+    original_url?: string | null;
+    summary_zh: string | null;
+    title_en?: string | null;
+    summary_en?: string | null;
+    bilingual_zh_retry_after?: string | null;
+    bilingual_en_retry_after?: string | null;
+};
+
+const RETRY_COOLDOWN_MS = 60 * 60 * 1000;
+const REPAIR_COLUMNS = 'id, title, original_url, summary_zh, title_en, summary_en, bilingual_zh_retry_after, bilingual_en_retry_after';
+
+function validText(value: unknown, language: RepairLanguage, minLength = 1): value is string {
+    if (typeof value !== 'string' || value.trim().length < minLength) return false;
+    return language === 'zh'
+        ? (value.match(/[\u4e00-\u9fff]/g)?.length || 0) >= 2
+        : isEnglishText(value);
+}
+
+// Use the same predicate for selection, proposed output and persisted output.
+function repairIssues(item: RepairItem, language: RepairLanguage): string[] {
+    const titleField = language === 'zh' ? 'title' : 'title_en';
+    const summaryField = language === 'zh' ? 'summary_zh' : 'summary_en';
+    return [
+        ...(!validText(item[titleField], language) ? [titleField] : []),
+        ...(!validText(item[summaryField], language, 30) ? [summaryField] : []),
+    ];
+}
+
+async function autoFixContent(language: RepairLanguage, daysBack: number, limit: number, execution?: AutoFixExecution): Promise<number> {
     if (!hasTimeRemaining(execution)) return 0;
-    console.log(`[AutoFix-ZH] Checking Chinese content from last ${daysBack} days...`);
-
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - daysBack);
-
-    let query = supabase
-        .from('news_items')
-        .select('id, title, summary_zh, original_url')
-        .gte('published_at', cutoffDate.toISOString())
-        .order('published_at', { ascending: false });
-
+    const prefix = `[AutoFix-${language.toUpperCase()}]`;
+    const retryField = language === 'zh' ? 'bilingual_zh_retry_after' : 'bilingual_en_retry_after';
+    const titleField = language === 'zh' ? 'title' : 'title_en';
+    const summaryField = language === 'zh' ? 'summary_zh' : 'summary_en';
+    const cutoffDate = new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000);
+    let query = supabase.from('news_items').select(REPAIR_COLUMNS)
+        .gte('published_at', cutoffDate.toISOString()).order('published_at', { ascending: false });
     if (execution) query = query.abortSignal(execution.signal);
     const { data: items, error } = await query;
-
     if (error) {
-        console.error('[AutoFix-ZH] Error fetching news:', error);
+        console.error(`${prefix} Fetch failed`, { error: error.message });
         return 0;
     }
 
-    // 找出需要修復的項目
-    const needsFix = items?.filter(item => {
-        const titleIsEnglish = isEnglishText(item.title || '');
-        const summaryMissing = !item.summary_zh || item.summary_zh.length < 30;
-        const summaryIsEnglish = item.summary_zh && isEnglishText(item.summary_zh);
-
-        return titleIsEnglish || summaryMissing || summaryIsEnglish;
-    }).slice(0, limit) || [];
-
-    if (needsFix.length === 0) {
-        console.log('[AutoFix-ZH] All Chinese content is complete.');
-        return 0;
-    }
-
-    console.log(`[AutoFix-ZH] Found ${needsFix.length} items to fix`);
+    // Cooldown happens BEFORE the batch limit so failed records cannot take the
+    // next round's slots. State lives in Postgres and survives serverless restarts.
+    const pending = (items as RepairItem[] | null)?.filter(item => repairIssues(item, language).length > 0 &&
+        (!item[retryField] || Date.parse(item[retryField]) <= Date.now())).slice(0, limit) || [];
+    console.log(`${prefix} Eligible: ${pending.length}`);
     let fixedCount = 0;
-
-    for (const item of needsFix) {
+    for (const candidate of pending) {
         if (!hasTimeRemaining(execution)) break;
+        const retryAfter = new Date(Date.now() + RETRY_COOLDOWN_MS).toISOString();
+        const context = { id: candidate.id, language, retryAfter };
         try {
-            const result = await translateToChineseWithSummary(
-                item.title,
-                item.original_url || '',
-                item.summary_zh,
-                execution
-            );
-
+            // Conditional UPDATE is an atomic claim shared by daily and bilingual
+            // jobs. A failed/aborted attempt keeps the one-hour retry deadline.
+            let claim = supabase.from('news_items').update({ [retryField]: retryAfter })
+                .eq('id', candidate.id)
+                .or(`${retryField}.is.null,${retryField}.lte.${new Date().toISOString()}`)
+                .select(REPAIR_COLUMNS);
+            if (execution) claim = claim.abortSignal(execution.signal);
+            const { data: claimed, error: claimError } = await claim;
+            if (claimError) {
+                console.error(`${prefix} Claim failed; no AI request`, { ...context, error: claimError.message });
+                continue;
+            }
+            const item = claimed?.[0] as RepairItem | undefined;
+            if (!item || !hasTimeRemaining(execution)) continue;
+            const issues = repairIssues(item, language);
+            if (issues.length === 0) continue;
+            console.log(`${prefix} Attempt`, { ...context, issues });
+            const result = language === 'zh'
+                ? await translateToChineseWithSummary(item.title, item.original_url || '', item.summary_zh, execution)
+                : await translateToEnglish(item.title, item.summary_zh || item.summary_en || '', execution);
             if (!hasTimeRemaining(execution)) break;
-            const updateData: Record<string, string> = {};
 
-            // 只有當標題被檢測為英文時才更新，避免過度翻譯
-            if (isEnglishText(item.title || '') && result.title_zh && !isEnglishText(result.title_zh)) {
-                updateData.title = result.title_zh;
+            const output = result && typeof result === 'object' ? result as unknown as Record<string, unknown> : {};
+            const updateData: Record<string, string | null> = {};
+            if (issues.includes(titleField) && validText(output[`title_${language}`], language)) {
+                updateData[titleField] = (output[`title_${language}`] as string).trim();
+            }
+            if (issues.includes(summaryField) && validText(output[`summary_${language}`], language, 30)) {
+                updateData[summaryField] = (output[`summary_${language}`] as string).trim();
+            }
+            const remaining = repairIssues({ ...item, ...updateData } as RepairItem, language);
+            if (remaining.length > 0) {
+                console.warn(`${prefix} Incomplete; retry deferred`, { ...context, issues, remaining });
+                continue;
             }
 
-            // 總是更新摘要（因為如果進入這裡，摘要不是缺失就是英文）
-            if (
-                result.summary_zh &&
-                result.summary_zh.length > 20 &&
-                !isEnglishText(result.summary_zh)
-            ) {
-                updateData.summary_zh = result.summary_zh;
+            // Never rewrite healthy fields. Confirm UPDATE actually returned a
+            // complete record before counting it; a zero-row write is not success.
+            const changed = Object.keys(updateData);
+            let update = supabase.from('news_items').update({ ...updateData, [retryField]: null })
+                .eq('id', item.id).eq(retryField, retryAfter).eq('title', item.title).select(REPAIR_COLUMNS);
+            if (execution) update = update.abortSignal(execution.signal);
+            const { data: saved, error: updateError } = await update;
+            if (updateError || !saved?.[0] || repairIssues(saved[0] as RepairItem, language).length > 0) {
+                console.error(`${prefix} Write not confirmed`, { ...context, error: updateError?.message || 'No complete row returned' });
+                continue;
             }
-
-            if (Object.keys(updateData).length > 0) {
-                let update = supabase
-                    .from('news_items')
-                    .update(updateData)
-                    .eq('id', item.id);
-
-                if (execution) update = update.abortSignal(execution.signal);
-                const { error: updateError } = await update;
-
-                if (!updateError) {
-                    fixedCount++;
-                    const action = updateData.title ? 'Title+Summary' : 'Summary';
-                    console.log(`[AutoFix-ZH] Fixed (${action}): ${item.title?.substring(0, 30)}...`);
-                }
-            }
-
+            fixedCount++;
+            console.log(`${prefix} Fixed`, { id: item.id, language, changed, remaining: [] });
             await rateLimitPause(execution);
-        } catch (e: unknown) {
-            console.error(`[AutoFix-ZH] Error:`, (e as Error).message);
+        } catch (error: unknown) {
+            console.error(`${prefix} Attempt failed; retry deferred`, { ...context, error: error instanceof Error ? error.message : String(error) });
         }
     }
-
-    if (!hasTimeRemaining(execution)) console.log('[AutoFix-ZH] Time budget reached; unfinished items will be retried next run.');
-    console.log(`[AutoFix-ZH] Completed. Fixed ${fixedCount} items.`);
+    console.log(`${prefix} Completed. Fixed ${fixedCount} items.`);
     return fixedCount;
 }
 
-/**
- * 自動修復英文內容 (中→英)
- * 檢查:
- * 1. Title_EN 缺失
- * 2. Title_EN 是中文 (非英文)
- * 3. Summary_EN 缺失
- * 4. Summary_EN 是中文 (非英文)
- */
+export async function autoFixChineseContent(daysBack = 7, limit = 20, execution?: AutoFixExecution): Promise<number> {
+    return autoFixContent('zh', daysBack, limit, execution);
+}
+
 export async function autoFixEnglishContent(daysBack = 7, limit = 20, execution?: AutoFixExecution): Promise<number> {
-    if (!hasTimeRemaining(execution)) return 0;
-    console.log(`[AutoFix-EN] Checking English content from last ${daysBack} days...`);
-
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - daysBack);
-
-    let query = supabase
-        .from('news_items')
-        .select('id, title, summary_zh, title_en, summary_en')
-        .gte('published_at', cutoffDate.toISOString())
-        .order('published_at', { ascending: false });
-
-    if (execution) query = query.abortSignal(execution.signal);
-    const { data: items, error } = await query;
-
-    if (error) {
-        console.error('[AutoFix-EN] Error fetching news:', error);
-        return 0;
-    }
-
-    // 找出需要修復的項目
-    const needsFix = items?.filter(item => {
-        const titleMissing = !item.title_en;
-        const titleNotEnglish = item.title_en && !isEnglishText(item.title_en);
-
-        const summaryMissing = !item.summary_en;
-        const summaryNotEnglish = item.summary_en && !isEnglishText(item.summary_en);
-
-        return titleMissing || titleNotEnglish || summaryMissing || summaryNotEnglish;
-    }).slice(0, limit) || [];
-
-    if (needsFix.length === 0) {
-        console.log('[AutoFix-EN] All English content is complete.');
-        return 0;
-    }
-
-    console.log(`[AutoFix-EN] Found ${needsFix.length} items to fix`);
-    let fixedCount = 0;
-
-    for (const item of needsFix) {
-        if (!hasTimeRemaining(execution)) break;
-        try {
-            // 如果需要修復英文，我們依賴中文內容作為來源
-            const sourceTitle = item.summary_zh ? item.title : (item.title_en || item.title); // Prefer title if valid
-            const sourceSummary = item.summary_zh || item.summary_en || '';
-
-            const result = await translateToEnglish(sourceTitle, sourceSummary, execution);
-
-            if (!hasTimeRemaining(execution)) break;
-
-            if (result.title_en) {
-                const updateData: Record<string, string> = {};
-
-                // 如果標題缺失或甚至不是英文，則更新
-                if (!item.title_en || !isEnglishText(item.title_en)) {
-                    updateData.title_en = result.title_en;
-                }
-
-                // 如果摘要缺失或甚至不是英文，則更新
-                if (!item.summary_en || !isEnglishText(item.summary_en)) {
-                    updateData.summary_en = result.summary_en;
-                }
-
-                if (Object.keys(updateData).length > 0) {
-                    let update = supabase
-                        .from('news_items')
-                        .update(updateData)
-                        .eq('id', item.id);
-
-                    if (execution) update = update.abortSignal(execution.signal);
-                    const { error: updateError } = await update;
-
-                    if (!updateError) {
-                        fixedCount++;
-                        console.log(`[AutoFix-EN] Fixed: ${result.title_en.substring(0, 30)}...`);
-                    }
-                }
-            }
-
-            await rateLimitPause(execution);
-        } catch (e: unknown) {
-            console.error(`[AutoFix-EN] Error:`, (e as Error).message);
-        }
-    }
-
-    if (!hasTimeRemaining(execution)) console.log('[AutoFix-EN] Time budget reached; unfinished items will be retried next run.');
-    console.log(`[AutoFix-EN] Completed. Fixed ${fixedCount} items.`);
-    return fixedCount;
+    return autoFixContent('en', daysBack, limit, execution);
 }
 
 /**

@@ -32,7 +32,7 @@ const language = loadTS('src/lib/text-language.ts');
 const chineseSummary = '這是一段完整的繁體中文摘要，說明人工智慧最新發展以及對日常生活帶來的實際影響。';
 const resultZH = { title_zh: '人工智慧最新消息', summary_zh: chineseSummary };
 const resultEN = { title_en: 'Latest artificial intelligence news', summary_en: 'An English summary explaining the news and practical impact on everyday life.' };
-const silentConsole = { log() {}, error() {} };
+const silentConsole = { log() {}, warn() {}, error() {} };
 
 function makeHarness({ count = 5, translationMs = 3_000, readMs = 100, writeMs = 100, translationResult, failingWrites = false, malformed = false } = {}) {
     let now = 0;
@@ -71,27 +71,36 @@ function makeHarness({ count = 5, translationMs = 3_000, readMs = 100, writeMs =
         } } };
     }
     const supabase = { from: () => {
-        let lang, data, id, signal;
+        let lang, data, signal, orFilter;
+        const filters = [];
         const builder = {
             select(columns) { lang = columns.includes('title_en') ? 'english' : 'chinese'; return this; },
             gte() { return this; }, order() { return this; },
             update(value) { data = value; return this; },
-            eq(_key, value) { id = value; return this; },
+            eq(key, value) { filters.push([key, value]); return this; },
+            or(value) { orFilter = value; return this; },
             abortSignal(value) { signal = value; return this; },
             then(resolve, reject) {
                 return Promise.resolve().then(() => {
-                    const kind = data ? 'write' : 'read';
+                    const claim = data && Object.keys(data).every(key => key.endsWith('_retry_after'));
+                    const kind = claim ? 'claim' : data ? 'write' : 'read';
                     databaseCalls.push({ kind, lang, signal, started: now });
                     try {
-                        elapsed(data ? writeMs : readMs, signal);
+                        elapsed(claim ? 0 : data ? writeMs : readMs, signal);
                     } catch (error) { return { data: null, error }; }
-                    if (data) {
-                        if (failingWrites) return { error: new Error('Database rejected update') };
-                        Object.assign(items.find(item => item.id === id), data);
-                        updates.push({ id, data, finished: now });
-                        return { error: null };
+                    let selected = items.filter(item => filters.every(([key, value]) => item[key] === value));
+                    if (orFilter) {
+                        const column = orFilter.split('.')[0];
+                        selected = selected.filter(item => !item[column] || Date.parse(item[column]) <= now);
                     }
-                    return { data: structuredClone(items), error: null };
+                    if (data) {
+                        if (!claim && failingWrites) return { data: null, error: new Error('Database rejected update') };
+                        for (const item of selected) {
+                            Object.assign(item, data);
+                            if (!claim) updates.push({ id: item.id, data, finished: now });
+                        }
+                    }
+                    return { data: structuredClone(selected), error: null };
                 }).then(resolve, reject);
             },
         };
@@ -217,8 +226,14 @@ test('real OpenAI SDK cancels stalled fetches with no hidden retries or detached
     const service = loadTS('src/lib/auto-fix-service.ts', {
         openai: { __esModule: true, default: LocalOpenAI },
         '@/lib/supabase': { supabaseAdmin: { from: () => {
+            let data, id;
             const builder = { select() { return this; }, gte() { return this; }, order() { return this; }, abortSignal() { return this; },
-                then(resolve, reject) { return Promise.resolve({ data: h.items, error: null }).then(resolve, reject); } };
+                update(value) { data = value; return this; }, eq(key, value) { if (key === 'id') id = value; return this; }, or() { return this; },
+                then(resolve, reject) {
+                    const selected = id === undefined ? h.items : h.items.filter(item => item.id === id);
+                    if (data) selected.forEach(item => Object.assign(item, data));
+                    return Promise.resolve({ data: structuredClone(selected), error: null }).then(resolve, reject);
+                } };
             return builder;
         } } },
         '@/lib/text-language': language,
